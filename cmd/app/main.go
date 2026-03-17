@@ -1,21 +1,39 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"runtime/debug"
 
-	"Catter-CMS/actions"
+	"catter-cms/actions"
 )
 
-// main is the starting point for your Buffalo application.
-// You can feel free and add to this `main` method, change
-// what it does, etc...
-// All we ask is that, at some point, you make sure to
-// call `app.Serve()`, unless you don't want to start your
-// application that is. :)
 func main() {
-	app := actions.App()
+	// 捕获 panic
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("PANIC: %v\nStack trace:\n%s", r, debug.Stack())
+			os.Exit(1)
+		}
+	}()
+
+	// 禁用 Buffalo 插件加载，避免 Windows 上的插件加载错误
+	os.Setenv("BUFFALO_PLUGIN_PATH", "")
+
+	fmt.Println("Starting application...")
+	fmt.Println("Getting App instance...")
+	
+	app := actions.App
+	if app == nil {
+		log.Fatal("App is nil!")
+	}
+	
+	fmt.Printf("App initialized, Host: %s\n", app.Host)
+	fmt.Println("Starting server...")
+	
 	if err := app.Serve(); err != nil {
-		log.Fatal(err)
+		log.Fatal("Serve error:", err)
 	}
 }
 

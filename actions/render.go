@@ -1,8 +1,8 @@
 package actions
 
 import (
-	"Catter-CMS/public"
-	"Catter-CMS/templates"
+	"catter-cms/public"
+	"catter-cms/templates"
 
 	"github.com/gobuffalo/buffalo/render"
 )

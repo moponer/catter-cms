@@ -11,3 +11,4 @@ with_docker = false
 with_grifts = true
 as_web = true
 as_api = false
+port = "3000"

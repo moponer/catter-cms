@@ -1,0 +1,7 @@
+# catter-cms
+.\migrate_comments.go:11:6: main redeclared in this block
+	.\generate_password.go:8:6: other declaration of main
+.\migrate_db.go:12:6: main redeclared in this block
+	.\generate_password.go:8:6: other declaration of main
+.\migrate_scheduled_tasks.go:13:6: main redeclared in this block
+	.\generate_password.go:8:6: other declaration of main

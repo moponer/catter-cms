@@ -1,0 +1,257 @@
+<div class="posts-container">
+    <el-row :gutter="20">
+        <el-col :span="24">
+            <el-card shadow="hover">
+                <template #header>
+                    <div class="card-header">
+                        <i>📝</i>
+                        <span>文章管理</span>
+                        <el-button type="primary" size="small" icon="el-icon-plus" @click="createPost">
+                            新建文章
+                        </el-button>
+                    </div>
+                </template>
+                <div class="card-body">
+                    <el-form :inline="true" :model="searchForm">
+                        <el-form-item label="搜索">
+                            <el-input v-model="searchForm.keyword" placeholder="请输入标题或内容" clearable></el-input>
+                        </el-form-item>
+                        <el-form-item label="状态">
+                            <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+                                <el-option label="全部" value=""></el-option>
+                                <el-option label="已发布" value="published"></el-option>
+                                <el-option label="草稿" value="draft"></el-option>
+                                <el-option label="已归档" value="archived"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" icon="el-icon-search" @click="searchPosts">搜索</el-button>
+                            <el-button icon="el-icon-refresh" @click="resetSearch">重置</el-button>
+                        </el-form-item>
+                    </el-form>
+                    
+                    <el-table 
+                        :data="posts" 
+                        style="width: 100%"
+                        @selection-change="handleSelectionChange"
+                        @sort-change="handleSortChange">
+                        <el-table-column type="selection" width="55"></el-table-column>
+                        <el-table-column prop="title" label="标题" min-width="200"></el-table-column>
+                        <el-table-column prop="status" label="状态" width="100">
+                            <template #default="scope">
+                                <el-tag :type="getStatusType(scope.row.status)">
+                                    {{ getStatusText(scope.row.status) }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="author" label="作者" width="120"></el-table-column>
+                        <el-table-column prop="category" label="分类" width="120"></el-table-column>
+                        <el-table-column prop="created_at" label="创建时间" width="180">
+                            <template #default="scope">
+                                {{ formatDate(scope.row.created_at) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="updated_at" label="更新时间" width="180">
+                            <template #default="scope">
+                                {{ formatDate(scope.row.updated_at) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="操作" width="200" fixed="right">
+                            <template #default="scope">
+                                <el-button type="primary" size="small" icon="el-icon-edit" @click="editPost(scope.row)">
+                                    编辑
+                                </el-button>
+                                <el-button type="danger" size="small" icon="el-icon-delete" @click="deletePost(scope.row)">
+                                    删除
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    
+                    <el-pagination
+                        v-model:current-page="pagination.page"
+                        v-model:page-size="pagination.pageSize"
+                        :total="pagination.total"
+                        :page-sizes="[10, 20, 50, 100]"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange">
+                    </el-pagination>
+                    
+                    <div class="batch-actions" v-if="selectedPosts.length > 0">
+                        <el-button type="danger" icon="el-icon-delete" @click="batchDelete">
+                            批量删除 ({{ selectedPosts.length }})
+                        </el-button>
+                        <el-button type="success" icon="el-icon-check" @click="batchPublish">
+                            批量发布 ({{ selectedPosts.length }})
+                        </el-button>
+                    </div>
+                </div>
+            </el-card>
+        </el-col>
+    </el-row>
+</div>
+
+<style>
+    .posts-container {
+        padding: 20px;
+    }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .batch-actions {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #ebeef5;
+    }
+</style>
+
+<script>
+    const { ref, computed } = Vue;
+    const { ElTable, ElTag, ElMessage, ElMessageBox } = ElementPlus;
+    
+    const posts = ref([
+        {
+            id: 1,
+            title: 'Welcome to Catter CMS',
+            status: 'published',
+            author: 'admin',
+            category: '技术',
+            created_at: '2024-03-12 10:00:00',
+            updated_at: '2024-03-12 10:00:00'
+        },
+        {
+            id: 2,
+            title: 'Go语言入门教程',
+            status: 'published',
+            author: 'admin',
+            category: 'Go语言',
+            created_at: '2024-03-12 11:00:00',
+            updated_at: '2024-03-12 11:00:00'
+        }
+    ]);
+    
+    const selectedPosts = ref([]);
+    const searchForm = ref({
+        keyword: '',
+        status: ''
+    });
+    
+    const pagination = ref({
+        page: 1,
+        pageSize: 10,
+        total: 2
+    });
+    
+    const getStatusType = (status) => {
+        const statusMap = {
+            'published': 'success',
+            'draft': 'warning',
+            'archived': 'info'
+        };
+        return statusMap[status] || 'info';
+    };
+    
+    const getStatusText = (status) => {
+        const statusMap = {
+            'published': '已发布',
+            'draft': '草稿',
+            'archived': '已归档'
+        };
+        return statusMap[status] || status;
+    };
+    
+    const formatDate = (date) => {
+        return new Date(date).toLocaleString('zh-CN');
+    };
+    
+    const createPost = () => {
+        window.location.href = '/admin/posts/new';
+    };
+    
+    const editPost = (post) => {
+        window.location.href = `/admin/posts/${post.id}/edit`;
+    };
+    
+    const deletePost = (post) => {
+        ElMessageBox.confirm(
+            '确定要删除这篇文章吗？',
+            '删除后无法恢复',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }
+        ).then(() => {
+            ElMessage.success('删除成功');
+        }).catch(() => {
+            ElMessage.info('已取消删除');
+        });
+    };
+    
+    const handleSelectionChange = (selection) => {
+        selectedPosts.value = selection;
+    };
+    
+    const searchPosts = () => {
+        ElMessage.success('搜索功能开发中');
+    };
+    
+    const resetSearch = () => {
+        searchForm.value = {
+            keyword: '',
+            status: ''
+        };
+        ElMessage.success('已重置搜索条件');
+    };
+    
+    const handleSortChange = ({ prop, order }) => {
+        ElMessage.success(`排序：${prop} ${order}`);
+    };
+    
+    const handleSizeChange = (size) => {
+        pagination.value.pageSize = size;
+        ElMessage.success(`每页显示 ${size} 条`);
+    };
+    
+    const handleCurrentChange = (page) => {
+        pagination.value.page = page;
+        ElMessage.success(`当前第 ${page} 页`);
+    };
+    
+    const batchDelete = () => {
+        ElMessageBox.confirm(
+            `确定要删除选中的 ${selectedPosts.value.length} 篇文章吗？`,
+            '批量删除后无法恢复',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }
+        ).then(() => {
+            ElMessage.success('批量删除成功');
+            selectedPosts.value = [];
+        }).catch(() => {
+            ElMessage.info('已取消删除');
+        });
+    };
+    
+    const batchPublish = () => {
+        ElMessageBox.confirm(
+            `确定要发布选中的 ${selectedPosts.value.length} 篇文章吗？`,
+            '发布后将对所有用户可见',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'info'
+            }
+        ).then(() => {
+            ElMessage.success('批量发布成功');
+            selectedPosts.value = [];
+        }).catch(() => {
+            ElMessage.info('已取消发布');
+        });
+    };
+</script>

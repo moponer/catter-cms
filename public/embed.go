@@ -7,9 +7,13 @@ import (
 	"github.com/gobuffalo/buffalo"
 )
 
-//go:embed *
+//go:embed assets
+//go:embed favicon.svg
+//go:embed index.html
+//go:embed vite.svg
 var files embed.FS
 
+// FS returns the embedded filesystem for public assets
 func FS() fs.FS {
 	return buffalo.NewFS(files, "public")
 }

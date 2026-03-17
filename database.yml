@@ -1,12 +1,12 @@
 ---
 development:
   dialect: "sqlite3"
-  database: F:\Catter-CMS_catter_cms_development.sqlite
+  database: catter_cms_development.sqlite
 
 test:
   dialect: "sqlite3"
-  database: F:\Catter-CMS_catter_cms_test.sqlite
+  database: catter_cms_test.sqlite
 
 production:
   dialect: "sqlite3"
-  database: F:\Catter-CMS_catter_cms_production.sqlite
+  database: catter_cms_production.sqlite

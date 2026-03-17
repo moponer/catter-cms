@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Page</title>
+</head>
+<body>
+    <h1>Debug Page</h1>
+    
+    <h2>Posts Count: <%= len(posts) %></h2>
+    
+    <%= for (post) in posts { %>
+    <div>
+        <h3><%= post.Title %></h3>
+        <p>Slug: <%= post.Slug %></p>
+        <p>Views: <%= post.Views %></p>
+        <p>Excerpt: <%= post.Excerpt %></p>
+    </div>
+    <% } %>
+    
+    <h2>Categories Count: <%= len(categories) %></h2>
+    
+    <%= for (category) in categories { %>
+    <div>
+        <p>Name: <%= category.Name %></p>
+        <p>Slug: <%= category.Slug %></p>
+        <p>PostCount: <%= category.PostCount %></p>
+    </div>
+    <% } %>
+</body>
+</html>

@@ -1,0 +1,1154 @@
+# ========================================
+# Blog 博客主题配置
+# 版本: 2.0.0
+# ========================================
+
+# 主题基本信息
+name: "Blog"
+version: "2.0.0"
+apiVersion: "2.0"
+description: "简洁优雅的博客主题，适合个人博客和技术博客"
+author: "Catter Team"
+authorEmail: "support@cattercms.com"
+authorUrl: "https://cattercms.com"
+license: "MIT"
+tags: ["blog", "personal", "minimal", "clean"]
+thumbnail: "assets/images/thumbnail.jpg"
+
+# 依赖要求
+requires:
+  buffalo: ">=0.18.0"
+  catterCms: ">=2.0.0"
+
+# 主题能力声明
+capabilities:
+  layouts:
+    - default
+    - home
+    - post
+    - archive
+    - tag
+    - category
+  modules:
+    - hero
+    - posts
+    - sidebar
+    - related-posts
+    - comments
+  widgets:
+    - search
+    - categories
+    - tags
+    - recent-posts
+    - popular-posts
+    - archive
+    - about-me
+  postFormats:
+    - standard
+    - gallery
+    - video
+    - audio
+    - quote
+  customFields: true
+  customTemplates: true
+  colorSchemes: true
+  darkMode: true
+
+# 默认配置
+config:
+  default_locale: "zh-CN"
+
+  # 外观配置
+  appearance:
+    colors:
+      primary: "#2563EB"
+      secondary: "#7C3AED"
+      accent: "#06B6D4"
+      background: "#ffffff"
+      text: "#1f2937"
+      textMuted: "#6b7280"
+      border: "#e5e7eb"
+      success: "#10b981"
+      warning: "#f59e0b"
+      error: "#ef4444"
+      info: "#3b82f6"
+    
+    darkColors:
+      primary: "#60A5FA"
+      secondary: "#A78BFA"
+      accent: "#22D3EE"
+      background: "#111827"
+      text: "#f9fafb"
+      textMuted: "#9ca3af"
+      border: "#374151"
+    
+    typography:
+      baseFont: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+      headingFont: "inherit"
+      codeFont: "'Fira Code', 'Consolas', 'Courier New', monospace"
+      fontSize:
+        base: "15px"
+        scale: 1.125
+      lineHeight:
+        base: 1.6
+        heading: 1.3
+    
+    layout:
+      width: "1100px"
+      sidebar: "right"
+      container: "boxed"
+      gap: "24px"
+      sectionGap: "48px"
+      borderRadius: "8px"
+    
+    animations:
+      enabled: true
+      duration: "250ms"
+      easing: "ease"
+      fadeIn: true
+      slideUp: true
+      stagger: "50ms"
+  
+  # 模块配置
+  modules:
+    # Hero模块
+    hero:
+      enabled: true
+      config:
+        title: "我的博客"
+        subtitle: "分享技术，记录生活"
+        description: "一个专注于技术分享和生活记录的个人博客"
+        backgroundType: "gradient"
+        backgroundGradient: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)"
+        backgroundColor: "#2563EB"
+        backgroundImage: ""
+        overlayOpacity: 0.6
+        textAlign: "center"
+        textColor: "#ffffff"
+        height: "450px"
+        showCta: true
+        ctaText: "浏览文章"
+        ctaUrl: "#posts"
+        ctaStyle: "primary"
+        showSocial: true
+        socialLinks:
+          - platform: "github"
+            url: "https://github.com"
+            icon: "github"
+          - platform: "twitter"
+            url: "https://twitter.com"
+            icon: "twitter"
+          - platform: "email"
+            url: "mailto:contact@example.com"
+            icon: "email"
+    
+    # 文章列表模块
+    posts:
+      enabled: true
+      config:
+        title: "最新文章"
+        subtitle: "发现更多精彩内容"
+        layout: "grid"
+        columns: 2
+        perPage: 10
+        excerptLength: 200
+        showThumbnail: true
+        showAuthor: true
+        showDate: true
+        showCategory: true
+        showTags: true
+        showReadTime: true
+        showExcerpt: true
+        showViews: true
+        showComments: true
+        stickyPosts: []
+        pagination: "page"
+        loadMore: false
+    
+    # 侧边栏模块
+    sidebar:
+      enabled: true
+      config:
+        position: "right"
+        width: "320px"
+        sticky: true
+        stickyOffset: 20
+        showOnMobile: false
+    
+    # 相关文章模块
+    relatedPosts:
+      enabled: true
+      config:
+        title: "相关文章"
+        count: 5
+        by: "category"
+        showThumbnail: true
+        showDate: true
+        showCategory: true
+        showReadTime: true
+    
+    # 评论模块
+    comments:
+      enabled: true
+      config:
+        provider: "native"
+        disqusShortname: ""
+        valineAppId: ""
+        valineAppKey: ""
+        placeholder: "说点什么..."
+        allowGuest: true
+        moderate: false
+  
+  # 页面配置
+  pages:
+    home:
+      title: "首页"
+      template: "home.plush.html"
+      layout: "home"
+      enabled: true
+      config:
+        showHero: true
+        showPosts: true
+        showFeatured: false
+        featuredCount: 3
+    
+    post:
+      title: "文章详情"
+      template: "post.plush.html"
+      layout: "post"
+      enabled: true
+      config:
+        showSidebar: true
+        showToc: true
+        showRelatedPosts: true
+        showComments: true
+        showShareButtons: true
+        showPrevNext: true
+        showAuthorInfo: true
+        tocPosition: "right"
+        tocTitle: "目录"
+        tocMinHeaders: 2
+    
+    archive:
+      title: "归档"
+      template: "archive.plush.html"
+      layout: "archive"
+      enabled: true
+      config:
+        showDateGroup: true
+        dateFormat: "YYYY年MM月"
+        showCount: true
+    
+    tag:
+      title: "标签"
+      template: "tag.plush.html"
+      layout: "tag"
+      enabled: true
+      config:
+        showTagCloud: true
+        showPostCount: true
+        sortBy: "count"
+        order: "desc"
+        minFontSize: 14
+        maxFontSize: 24
+    
+    category:
+      title: "分类"
+      template: "category.plush.html"
+      layout: "category"
+      enabled: true
+      config:
+        showPostCount: true
+        showDescription: true
+        showEmpty: false
+  
+  # 小工具配置
+  widgets:
+    # 搜索小工具
+    search:
+      enabled: true
+      area: "sidebar"
+      config:
+        title: "搜索"
+        placeholder: "搜索文章..."
+        showButton: true
+        buttonText: "搜索"
+        showPopular: false
+        popularKeywords: []
+    
+    # 分类小工具
+    categories:
+      enabled: true
+      area: "sidebar"
+      config:
+        title: "分类"
+        showCount: true
+        showHierarchy: true
+        depth: 3
+        orderBy: "name"
+        order: "ASC"
+        showEmpty: false
+    
+    # 标签小工具
+    tags:
+      enabled: true
+      area: "sidebar"
+      config:
+        title: "热门标签"
+        count: 20
+        minSize: 12
+        maxSize: 24
+        orderBy: "count"
+        order: "desc"
+        showCount: false
+    
+    # 最近文章小工具
+    recentPosts:
+      enabled: true
+      area: "sidebar"
+      config:
+        title: "最近文章"
+        count: 8
+        showThumbnail: true
+        showDate: true
+        showCategory: false
+        showReadTime: true
+        thumbnailSize: "medium"
+    
+    # 热门文章小工具
+    popularPosts:
+      enabled: true
+      area: "sidebar"
+      config:
+        title: "热门文章"
+        count: 5
+        period: "month"
+        showThumbnail: true
+        showViews: true
+        showReadTime: true
+    
+    # 归档小工具
+    archive:
+      enabled: true
+      area: "sidebar"
+      config:
+        title: "归档"
+        format: "YYYY年MM月"
+        count: 12
+        showCount: true
+        expandYear: false
+    
+    # 关于我小工具
+    aboutMe:
+      enabled: true
+      area: "sidebar"
+      config:
+        title: "关于我"
+        avatar: "/assets/images/avatar.jpg"
+        name: "博主"
+        description: "一个热爱技术的开发者，喜欢分享和学习"
+        showSocial: true
+        showEmail: true
+        socialLinks:
+          - platform: "github"
+            url: "https://github.com"
+          - platform: "twitter"
+            url: "https://twitter.com"
+          - platform: "email"
+            url: "mailto:contact@example.com"
+    
+    # 自定义HTML小工具
+    customHtml:
+      enabled: false
+      area: "sidebar"
+      config:
+        title: "自定义内容"
+        content: ""
+  
+  # 分类法配置
+  taxonomies:
+    category:
+      enabled: true
+      template: "category"
+      showDescription: true
+      showPostCount: true
+      perPage: 20
+      showEmpty: false
+    
+    tag:
+      enabled: true
+      template: "tag"
+      showDescription: false
+      showPostCount: true
+      perPage: 30
+      showCloud: true
+  
+  # SEO配置
+  seo:
+    title: "我的博客 - 技术分享与生活记录"
+    description: "一个专注于技术分享和生活记录的个人博客，分享编程、技术、生活等内容"
+    keywords: ["博客", "技术", "编程", "生活", "学习"]
+    author: "博主"
+    canonicalUrl: ""
+    robots: "index, follow"
+    
+    opengraph:
+      enabled: true
+      type: "website"
+      image: "/assets/images/og-image.jpg"
+      imageAlt: "博客预览图"
+    
+    twitter:
+      enabled: true
+      card: "summary_large_image"
+      creator: "@username"
+      site: "@username"
+      image: "/assets/images/twitter-card.jpg"
+    
+    schema:
+      enabled: true
+      type: "Blog"
+      logo: "/assets/images/logo.png"
+      publisher: "我的博客"
+    
+    sitemap:
+      enabled: true
+      priority: 0.8
+      changefreq: "daily"
+      includeCategories: true
+      includeTags: true
+      includeAuthors: true
+  
+  # 自定义代码
+  custom:
+    css: |
+      /* 自定义样式 */
+      body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      }
+      
+      .blog-post-card {
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .blog-post-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+      }
+      
+      .blog-hero {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 60px 0;
+      }
+    
+    js: |
+      // 自定义脚本
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('Blog主题已加载');
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function(e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+              e.preventDefault();
+              target.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+        
+        // 移动端菜单
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        if (mobileMenuBtn && mobileMenu) {
+          mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+          });
+        }
+      });
+    
+    head: |
+      <!-- 自定义Head内容 -->
+      <meta name="theme-color" content="#2563EB">
+      <link rel="canonical" href="https://example.com">
+    
+    bodyTop: |
+      <!-- Body顶部内容 -->
+      <div class="announcement-bar">
+        欢迎访问我的博客！
+      </div>
+    
+    bodyBottom: |
+      <!-- Body底部内容 -->
+      <script>
+        // 统计代码等
+      </script>
+  
+  # 高级配置
+  advanced:
+    performance:
+      lazyLoadImages: true
+      lazyLoadIframes: true
+      preconnectUrls: []
+      preloadCritical: true
+    
+    reading:
+      readingTimeWordsPerMinute: 200
+      excerptSeparator: "<!--more-->"
+      wordCount: true
+      readingTime: true
+    
+    features:
+      readingProgress: true
+      backToTop: true
+      toc: true
+      wordCount: true
+      readingTime: true
+      postViews: true
+      shareButtons: true
+    
+    social:
+      twitter: ""
+      github: ""
+      weibo: ""
+      email: "contact@example.com"
+      rss: true
+    
+    analytics:
+      enabled: false
+      provider: "none"
+      googleId: ""
+    
+    ads:
+      enabled: false
+      autoAds: false
+      adSenseId: ""
+
+# ========================================
+# 配置定义（用于生成管理后台配置表单）
+# ========================================
+configDefinition:
+  # 布局设置
+  - section: "布局设置"
+    icon: "grid"
+    description: "配置博客的布局方式"
+    fields:
+      - name: "appearance.layout.width"
+        type: "text"
+        label: "内容宽度"
+        placeholder: "例如: 1100px, 90%"
+        default: "1100px"
+        description: "博客内容区域的最大宽度"
+      
+      - name: "appearance.layout.sidebar"
+        type: "select"
+        label: "侧边栏位置"
+        options:
+          - label: "右侧"
+            value: "right"
+          - label: "左侧"
+            value: "left"
+          - label: "隐藏"
+            value: "none"
+        default: "right"
+      
+      - name: "appearance.layout.container"
+        type: "select"
+        label: "容器模式"
+        options:
+          - label: "盒状布局"
+            value: "boxed"
+          - label: "全宽布局"
+            value: "fullwidth"
+        default: "boxed"
+      
+      - name: "appearance.layout.borderRadius"
+        type: "slider"
+        label: "圆角大小"
+        description: "调整卡片和按钮的圆角大小"
+        min: 0
+        max: 20
+        step: 1
+        default: 8
+      
+      - name: "advanced.features.backToTop"
+        type: "switch"
+        label: "返回顶部按钮"
+        description: "在页面右下角显示返回顶部按钮"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+  
+  # 样式设置
+  - section: "样式设置"
+    icon: "brush"
+    description: "自定义主题的外观样式"
+    fields:
+      - name: "appearance.colors.primary"
+        type: "color"
+        label: "主色调"
+        default: "#2563EB"
+        description: "博客的主要品牌颜色"
+      
+      - name: "appearance.colors.secondary"
+        type: "color"
+        label: "次要颜色"
+        default: "#7C3AED"
+        description: "次要按钮和装饰元素的颜色"
+      
+      - name: "appearance.colors.accent"
+        type: "color"
+        label: "强调色"
+        default: "#06B6D4"
+        description: "用于强调和突出显示的元素"
+      
+      - name: "appearance.colors.background"
+        type: "color"
+        label: "背景色"
+        default: "#ffffff"
+        description: "博客主要背景颜色"
+      
+      - name: "appearance.colors.text"
+        type: "color"
+        label: "文字颜色"
+        default: "#1f2937"
+        description: "主要文字颜色"
+      
+      - name: "appearance.animations.enabled"
+        type: "switch"
+        label: "启用动画"
+        description: "启用页面元素的动画效果"
+        activeText: "启用"
+        inactiveText: "禁用"
+        default: true
+      
+      - name: "appearance.animations.duration"
+        type: "select"
+        label: "动画时长"
+        options:
+          - label: "快速 (200ms)"
+            value: "200ms"
+          - label: "中等 (250ms)"
+            value: "250ms"
+          - label: "缓慢 (350ms)"
+            value: "350ms"
+        default: "250ms"
+        show_if: "appearance.animations.enabled"
+  
+  # Hero设置
+  - section: "Hero设置"
+    icon: "view"
+    description: "配置博客顶部Hero区域的显示内容和样式"
+    fields:
+      - name: "modules.hero.enabled"
+        type: "switch"
+        label: "启用Hero模块"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "modules.hero.config.title"
+        type: "text"
+        label: "主标题"
+        default: "我的博客"
+        show_if: "modules.hero.enabled"
+      
+      - name: "modules.hero.config.subtitle"
+        type: "text"
+        label: "副标题"
+        default: "分享技术，记录生活"
+        show_if: "modules.hero.enabled"
+      
+      - name: "modules.hero.config.description"
+        type: "textarea"
+        label: "描述文字"
+        rows: 3
+        default: "一个专注于技术分享和生活记录的个人博客"
+        show_if: "modules.hero.enabled"
+      
+      - name: "modules.hero.config.backgroundType"
+        type: "select"
+        label: "背景类型"
+        options:
+          - label: "渐变色"
+            value: "gradient"
+          - label: "纯色"
+            value: "color"
+          - label: "图片"
+            value: "image"
+        default: "gradient"
+        show_if: "modules.hero.enabled"
+      
+      - name: "modules.hero.config.backgroundGradient"
+        type: "textarea"
+        label: "渐变背景"
+        rows: 2
+        default: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)"
+        show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'gradient'"
+      
+      - name: "modules.hero.config.backgroundImage"
+        type: "image"
+        label: "背景图片"
+        show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'image'"
+      
+      - name: "modules.hero.config.showSocial"
+        type: "switch"
+        label: "显示社交链接"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+        show_if: "modules.hero.enabled"
+      
+      - name: "modules.hero.config.showCta"
+        type: "switch"
+        label: "显示按钮"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+        show_if: "modules.hero.enabled"
+      
+      - name: "modules.hero.config.ctaText"
+        type: "text"
+        label: "按钮文本"
+        default: "浏览文章"
+        show_if: "modules.hero.enabled && modules.hero.config.showCta"
+  
+  # 文章列表设置
+  - section: "文章列表"
+    icon: "document"
+    description: "配置文章列表的显示方式"
+    fields:
+      - name: "modules.posts.config.layout"
+        type: "select"
+        label: "布局方式"
+        options:
+          - label: "网格布局"
+            value: "grid"
+          - label: "列表布局"
+            value: "list"
+        default: "grid"
+      
+      - name: "modules.posts.config.columns"
+        type: "select"
+        label: "列数"
+        options:
+          - label: "2列"
+            value: "2"
+          - label: "3列"
+            value: "3"
+        default: "2"
+        show_if: "modules.posts.config.layout == 'grid'"
+      
+      - name: "modules.posts.config.perPage"
+        type: "number"
+        label: "每页文章数"
+        description: "首页每页显示的文章数量"
+        min: 5
+        max: 50
+        step: 1
+        default: 10
+      
+      - name: "modules.posts.config.excerptLength"
+        type: "number"
+        label: "摘要长度"
+        description: "文章摘要的最大字符数"
+        min: 100
+        max: 500
+        step: 10
+        default: 200
+      
+      - name: "modules.posts.config.showThumbnail"
+        type: "switch"
+        label: "显示缩略图"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "modules.posts.config.showAuthor"
+        type: "switch"
+        label: "显示作者"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "modules.posts.config.showDate"
+        type: "switch"
+        label: "显示日期"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "modules.posts.config.showCategory"
+        type: "switch"
+        label: "显示分类"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "modules.posts.config.showTags"
+        type: "switch"
+        label: "显示标签"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "modules.posts.config.showReadTime"
+        type: "switch"
+        label: "显示阅读时间"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "modules.posts.config.showViews"
+        type: "switch"
+        label: "显示浏览量"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+  
+  # 侧边栏设置
+  - section: "侧边栏设置"
+    icon: "menu"
+    description: "配置侧边栏的内容和样式"
+    fields:
+      - name: "modules.sidebar.enabled"
+        type: "switch"
+        label: "启用侧边栏"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "modules.sidebar.config.position"
+        type: "select"
+        label: "侧边栏位置"
+        options:
+          - label: "右侧"
+            value: "right"
+          - label: "左侧"
+            value: "left"
+        default: "right"
+        show_if: "modules.sidebar.enabled"
+      
+      - name: "modules.sidebar.config.sticky"
+        type: "switch"
+        label: "粘性定位"
+        description: "侧边栏滚动时固定在屏幕上"
+        activeText: "启用"
+        inactiveText: "禁用"
+        default: true
+        show_if: "modules.sidebar.enabled"
+      
+      - name: "widgets.search.enabled"
+        type: "switch"
+        label: "显示搜索框"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "widgets.recentPosts.enabled"
+        type: "switch"
+        label: "显示最近文章"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "widgets.recentPosts.config.count"
+        type: "number"
+        label: "文章数量"
+        min: 3
+        max: 20
+        step: 1
+        default: 8
+        show_if: "widgets.recentPosts.enabled"
+      
+      - name: "widgets.categories.enabled"
+        type: "switch"
+        label: "显示分类列表"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "widgets.tags.enabled"
+        type: "switch"
+        label: "显示标签云"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "widgets.archive.enabled"
+        type: "switch"
+        label: "显示归档"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+      
+      - name: "widgets.aboutMe.enabled"
+        type: "switch"
+        label: "显示关于我"
+        activeText: "显示"
+        inactiveText: "隐藏"
+        default: true
+  
+  # SEO设置
+  - section: "SEO设置"
+    icon: "search"
+    description: "配置博客的搜索引擎优化设置"
+    fields:
+      - name: "seo.title"
+        type: "text"
+        label: "网站标题"
+        default: "我的博客 - 技术分享与生活记录"
+        required: true
+      
+      - name: "seo.description"
+        type: "textarea"
+        label: "网站描述"
+        rows: 3
+        default: "一个专注于技术分享和生活记录的个人博客"
+        required: true
+      
+      - name: "seo.keywords"
+        type: "text"
+        label: "关键词"
+        placeholder: "用逗号分隔多个关键词"
+        default: "博客,技术,编程,生活"
+      
+      - name: "seo.opengraph.image"
+        type: "image"
+        label: "Open Graph图片"
+        description: "在社交媒体上分享时显示的图片"
+      
+      - name: "seo.sitemap.enabled"
+        type: "switch"
+        label: "启用站点地图"
+        activeText: "启用"
+        inactiveText: "禁用"
+        default: true
+  
+  # 自定义代码
+  - section: "自定义代码"
+    icon: "code"
+    description: "添加自定义CSS、JavaScript和HTML代码"
+    fields:
+      - name: "custom.css"
+        type: "code"
+        label: "自定义CSS"
+        language: "css"
+        rows: 10
+        description: "添加自定义CSS样式，会覆盖主题的默认样式"
+      
+      - name: "custom.js"
+        type: "code"
+        label: "自定义JavaScript"
+        language: "javascript"
+        rows: 10
+        description: "添加自定义JavaScript代码"
+      
+      - name: "custom.head"
+        type: "code"
+        label: "Head内容"
+        language: "html"
+        rows: 5
+        description: "添加到<head>中的HTML代码"
+      
+      - name: "custom.bodyTop"
+        type: "code"
+        label: "Body顶部内容"
+        language: "html"
+        rows: 5
+        description: "添加到<body>开始位置的HTML代码"
+      
+      - name: "custom.bodyBottom"
+        type: "code"
+        label: "Body底部内容"
+        language: "html"
+        rows: 5
+        description: "添加到<body>结束位置的HTML代码"
+
+# 菜单位置定义
+menuLocations:
+  header:
+    name: "顶部导航"
+    description: "博客顶部主导航菜单"
+    maxDepth: 3
+  footer:
+    name: "底部导航"
+    description: "博客底部导航菜单"
+    maxDepth: 2
+  sidebar:
+    name: "侧边栏菜单"
+    description: "侧边栏菜单"
+    maxDepth: 2
+  mobile:
+    name: "移动端菜单"
+    description: "移动端专用菜单"
+    maxDepth: 3
+
+# 小工具区域定义
+widgetAreas:
+  - id: "sidebar"
+    name: "侧边栏"
+    description: "侧边栏小工具区域"
+    maxWidgets: 10
+  - id: "footer"
+    name: "底部"
+    description: "底部小工具区域"
+    maxWidgets: 4
+    columns: 4
+  - id: "home_before_posts"
+    name: "首页文章前"
+    description: "首页文章列表上方的小工具区域"
+    maxWidgets: 3
+  - id: "post_before_content"
+    name: "文章内容前"
+    description: "文章内容前的小工具区域"
+    maxWidgets: 2
+  - id: "post_after_content"
+    name: "文章内容后"
+    description: "文章内容后的小工具区域"
+    maxWidgets: 5
+
+# 自定义字段支持
+customFields:
+  # 文章自定义字段
+  post:
+    - name: "subtitle"
+      label: "副标题"
+      type: "text"
+      description: "文章的副标题，会显示在标题下方"
+    
+    - name: "cover_image"
+      label: "封面图"
+      type: "image"
+      description: "文章的封面图片"
+    
+    - name: "show_toc"
+      label: "显示目录"
+      type: "switch"
+      default: true
+      description: "在文章中显示目录导航"
+    
+    - name: "toc_title"
+      label: "目录标题"
+      type: "text"
+      default: "目录"
+      description: "目录的标题文字"
+    
+    - name: "enable_comments"
+      label: "启用评论"
+      type: "switch"
+      default: true
+      description: "允许用户评论这篇文章"
+    
+    - name: "featured"
+      label: "精选文章"
+      type: "switch"
+      default: false
+      description: "将文章标记为精选"
+    
+    - name: "sticky"
+      label: "置顶文章"
+      type: "switch"
+      default: false
+      description: "将文章置顶显示"
+    
+    - name: "external_url"
+      label: "外部链接"
+      type: "text"
+      description: "如果设置了，文章标题将链接到这个URL而不是文章详情页"
+    
+    - name: "views"
+      label: "浏览量"
+      type: "number"
+      default: 0
+      description: "文章的浏览量统计"
+  
+  # 页面自定义字段
+  page:
+    - name: "layout"
+      label: "布局"
+      type: "select"
+      options:
+        - label: "默认"
+          value: "default"
+        - label: "全宽"
+          value: "fullwidth"
+      default: "default"
+    
+    - name: "show_sidebar"
+      label: "显示侧边栏"
+      type: "switch"
+      default: true
+    
+    - name: "show_title"
+      label: "显示标题"
+      type: "switch"
+      default: true
+    
+    - name: "show_breadcrumb"
+      label: "显示面包屑"
+      type: "switch"
+      default: true
+
+# 主题钩子(用于扩展)
+hooks:
+  - name: "header_before"
+    description: "头部之前"
+  - name: "header_after"
+    description: "头部之后"
+  - name: "content_before"
+    description: "内容之前"
+  - name: "content_after"
+    description: "内容之后"
+  - name: "post_before"
+    description: "文章之前"
+  - name: "post_after"
+    description: "文章之后"
+  - name: "footer_before"
+    description: "底部之前"
+  - name: "footer_after"
+    description: "底部之后"
+
+# 主题特定设置(非标准配置,主题可自由定义)
+settings:
+  # 配色方案
+  colorSchemes:
+    - name: "default"
+      label: "默认蓝色"
+      colors:
+        primary: "#2563EB"
+        secondary: "#7C3AED"
+        accent: "#06B6D4"
+    - name: "dark"
+      label: "深色模式"
+      colors:
+        primary: "#60A5FA"
+        secondary: "#A78BFA"
+        accent: "#22D3EE"
+    - name: "nature"
+      label: "自然绿"
+      colors:
+        primary: "#10B981"
+        secondary: "#059669"
+        accent: "#34D399"
+    - name: "warm"
+      label: "温暖橙"
+      colors:
+        primary: "#EA580C"
+        secondary: "#C2410C"
+        accent: "#F97316"
+  
+  # 其他设置
+  readingTimeWordsPerMinute: 200
+  excerptSeparator: "<!--more-->"
+  commentProvider: "native"
+  enableDarkMode: true
+  darkModeAuto: true
+  darkModeToggle: true
