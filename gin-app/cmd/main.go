@@ -312,19 +312,32 @@ func homeHandler(c *gin.Context) {
 		Limit(10).
 		Find(&posts)
 
+	// 获取最近文章（用于侧边栏）
+	var recentPosts []models.Post
+	models.DB.Where("status = ?", "published").
+		Order("published_at DESC").
+		Limit(5).
+		Find(&recentPosts)
+
 	// 获取分类
 	var categories []models.Category
 	models.DB.Find(&categories)
+
+	// 获取标签
+	var tags []models.Tag
+	models.DB.Find(&tags)
 
 	// 准备模板数据
 	data := map[string]interface{}{
 		"site": map[string]interface{}{
 			"title":       "Catter CMS",
 			"description": "一个现代化的博客系统",
+			"year":        "2026",
 		},
-		"posts":      posts,
-		"categories": categories,
-		"tags":       []models.Tag{},
+		"posts":       posts,
+		"recentPosts": recentPosts,
+		"categories":  categories,
+		"tags":        tags,
 	}
 
 	// 尝试渲染主题模板
@@ -435,14 +448,23 @@ func blogShowHandler(c *gin.Context) {
 	var categories []models.Category
 	models.DB.Find(&categories)
 
+	// 获取最近文章（用于侧边栏）
+	var recentPosts []models.Post
+	models.DB.Where("status = ?", "published").
+		Order("published_at DESC").
+		Limit(5).
+		Find(&recentPosts)
+
 	// 准备模板数据
 	data := map[string]interface{}{
 		"site": map[string]interface{}{
 			"title":       post.Title,
 			"description": post.Excerpt,
+			"year":        "2026",
 		},
-		"post":       post,
-		"categories": categories,
+		"post":        post,
+		"categories":  categories,
+		"recentPosts": recentPosts,
 	}
 
 	// 尝试渲染主题模板
@@ -496,13 +518,22 @@ func pageShowHandler(c *gin.Context) {
 	// 增加浏览量
 	models.DB.Model(&page).Update("views", page.Views+1)
 
+	// 获取最近文章（用于侧边栏）
+	var recentPosts []models.Post
+	models.DB.Where("status = ?", "published").
+		Order("published_at DESC").
+		Limit(5).
+		Find(&recentPosts)
+
 	// 尝试渲染主题模板
 	data := map[string]interface{}{
 		"site": map[string]interface{}{
 			"title":       page.Title,
 			"description": page.Excerpt,
+			"year":        "2026",
 		},
-		"page": page,
+		"page":        page,
+		"recentPosts": recentPosts,
 	}
 
 	if content, err := services.RenderTemplate("page", data); err == nil {
@@ -555,14 +586,23 @@ func categoryHandler(c *gin.Context) {
 		Order("published_at DESC").
 		Find(&posts)
 
+	// 获取所有分类和标签（用于侧边栏）
+	var categories []models.Category
+	models.DB.Find(&categories)
+	var tags []models.Tag
+	models.DB.Find(&tags)
+
 	// 准备模板数据
 	data := map[string]interface{}{
 		"site": map[string]interface{}{
 			"title":       category.Name,
 			"description": category.Description,
+			"year":        "2026",
 		},
-		"category": category,
-		"posts":    posts,
+		"category":   category,
+		"posts":      posts,
+		"categories": categories,
+		"tags":       tags,
 	}
 
 	// 尝试渲染主题模板

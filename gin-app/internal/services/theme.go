@@ -287,10 +287,32 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 		ctx.Set(key, value)
 	}
 
-	// 添加主题配置
+	// 添加主题配置 - 确保config始终存在
 	if theme.Config != nil {
 		ctx.Set("config", theme.Config)
+	} else {
+		ctx.Set("config", make(map[string]interface{}))
 	}
+
+	// 添加站点信息
+	if _, ok := data["site"]; !ok {
+		siteInfo := map[string]interface{}{
+			"title":       "Catter CMS",
+			"description": "一个现代化的博客系统",
+			"year":        "2026",
+		}
+		ctx.Set("site", siteInfo)
+	}
+
+	// 添加菜单数据
+	headerMenu, _ := models.GetMenuByLocation("header")
+	ctx.Set("headerMenu", headerMenu)
+
+	footerMenu, _ := models.GetMenuByLocation("footer")
+	ctx.Set("footerMenu", footerMenu)
+
+	sidebarMenu, _ := models.GetMenuByLocation("sidebar")
+	ctx.Set("sidebarMenu", sidebarMenu)
 
 	// 添加辅助函数
 	ctx.Set("asset_path", func(path string) string {
@@ -331,6 +353,26 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 			}
 		}
 		return false
+	})
+
+	// 添加len函数
+	ctx.Set("len", func(v interface{}) int {
+		switch val := v.(type) {
+		case []interface{}:
+			return len(val)
+		case []models.Post:
+			return len(val)
+		case []models.Category:
+			return len(val)
+		case []models.Tag:
+			return len(val)
+		case []models.MenuItem:
+			return len(val)
+		case string:
+			return len(val)
+		default:
+			return 0
+		}
 	})
 
 	// 执行模板渲染

@@ -48,8 +48,12 @@
             background-clip: text;
         }
         
+        nav .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        
         nav a {
-            margin-left: 30px;
             text-decoration: none;
             color: #4b5563;
             font-weight: 500;
@@ -107,22 +111,18 @@
         /* Layout */
         <%= let layout = config["pages.home.layout"] || "two-column" %>
         <%= let sidebarPos = config["pages.home.sidebarPosition"] || "right" %>
+        <%= let showSidebar = layout != "one-column" %>
         
-        <%= if (layout == "one-column") { %>
-        .content-wrapper {
-            display: block;
-        }
-        .posts-section {
-            width: 100%;
-        }
-        .sidebar {
-            display: none;
-        }
-        <%= } else { %>
+        <%= if (showSidebar) { %>
         .content-wrapper {
             display: grid;
             grid-template-columns: <%= sidebarPos == "left" ? "300px 1fr" : "1fr 300px" %>;
             gap: 30px;
+            align-items: start;
+        }
+        <%= } else { %>
+        .content-wrapper {
+            display: block;
         }
         <%= } %>
         
@@ -184,9 +184,16 @@
         <%= } %>
         
         /* Sidebar */
+        <%= if (showSidebar) { %>
         .sidebar {
-            display: <%= layout == "one-column" ? "none" : "block" %>;
+            position: sticky;
+            top: 20px;
         }
+        <%= } else { %>
+        .sidebar {
+            display: none;
+        }
+        <%= } %>
         
         .widget {
             background: white;
@@ -227,6 +234,55 @@
             color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
         }
         
+        /* Search Widget */
+        .search-form {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .search-form input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .search-form button {
+            padding: 10px 16px;
+            background: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        /* Author Widget */
+        .author-card {
+            text-align: center;
+        }
+        
+        .author-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 12px;
+            object-fit: cover;
+            border: 3px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        .author-name {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        
+        .author-bio {
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+        
         /* Footer */
         footer {
             text-align: center;
@@ -243,6 +299,9 @@
             .sidebar {
                 display: none;
             }
+            nav .nav-links {
+                display: none;
+            }
             .hero h1 {
                 font-size: 2em;
             }
@@ -256,12 +315,20 @@
     <div class="container">
         <!-- Navigation -->
         <nav>
-            <div class="logo"><%= site["title"] %></div>
-            <div>
-                <a href="/">首页</a>
-                <a href="/blog">文章</a>
-                <a href="/categories">分类</a>
-                <a href="/about">关于</a>
+            <a href="/" class="logo"><%= site["title"] %></a>
+            <div class="nav-links">
+                <%= if (headerMenu) { %>
+                    <%= for (item) in headerMenu { %>
+                        <a href="<%= item.url %>" <%= if (item.target == "_blank") { %>target="_blank"<% } %>>
+                            <%= item.label %>
+                        </a>
+                    <%= } %>
+                <%= } else { %>
+                    <a href="/">首页</a>
+                    <a href="/blog">文章</a>
+                    <a href="/categories">分类</a>
+                    <a href="/page/about">关于</a>
+                <%= } %>
             </div>
         </nav>
         
@@ -280,112 +347,152 @@
         
         <!-- Main Content -->
         <div class="content-wrapper">
-            <%= if (sidebarPos == "left" && layout != "one-column") { %>
+            <%= if (showSidebar && sidebarPos == "left") { %>
             <!-- Sidebar Left -->
-            <%= partial("sidebar.html") { %>
             <aside class="sidebar">
-                <%= if (hasWidget("search")) { %>
-                <div class="widget">
-                    <h4>🔍 搜索</h4>
-                    <form action="/search" method="get">
-                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                    </form>
-                </div>
-                <%= } %>
+                <%= let widgets = config["pages.home.sidebarWidgets"] || ["search", "author", "recent-posts", "categories", "tags"] %>
                 
-                <%= if (hasWidget("author")) { %>
-                <div class="widget">
-                    <h4>👤 关于作者</h4>
-                    <p>热爱技术，热爱生活</p>
-                </div>
-                <%= } %>
-                
-                <%= if (hasWidget("categories")) { %>
-                <div class="widget">
-                    <h4>📂 分类</h4>
-                    <ul class="category-list">
-                        <%= for (category) in categories { %>
-                        <li><a href="/category/<%= category.Slug %>"><%= category.Name %></a></li>
-                        <%= } %>
-                    </ul>
-                </div>
-                <%= } %>
-                
-                <%= if (hasWidget("tags")) { %>
-                <div class="widget">
-                    <h4>🏷 标签</h4>
-                    <ul class="tag-cloud">
-                        <%= for (tag) in tags { %>
-                        <li><a href="/tag/<%= tag.Slug %>"><%= tag.Name %></a></li>
-                        <%= } %>
-                    </ul>
-                </div>
+                <%= for (widgetName) in widgets { %>
+                    <%= if (widgetName == "search") { %>
+                    <div class="widget widget-search">
+                        <h4>搜索</h4>
+                        <form action="/search" method="get" class="search-form">
+                            <input type="text" name="q" placeholder="搜索文章...">
+                            <button type="submit">搜索</button>
+                        </form>
+                    </div>
+                    <%= } %>
+                    
+                    <%= if (widgetName == "author") { %>
+                    <div class="widget widget-author">
+                        <h4>关于博主</h4>
+                        <div class="author-card">
+                            <div class="author-name"><%= config["widgets.author.name"] || "博主" %></div>
+                            <div class="author-bio"><%= config["widgets.author.bio"] || "热爱技术，热爱生活" %></div>
+                        </div>
+                    </div>
+                    <%= } %>
+                    
+                    <%= if (widgetName == "recent-posts") { %>
+                    <div class="widget widget-recent-posts">
+                        <h4>最近文章</h4>
+                        <ul>
+                            <%= for (post) in recentPosts { %>
+                            <li><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></li>
+                            <%= } %>
+                        </ul>
+                    </div>
+                    <%= } %>
+                    
+                    <%= if (widgetName == "categories") { %>
+                    <div class="widget widget-categories">
+                        <h4>分类</h4>
+                        <ul>
+                            <%= for (category) in categories { %>
+                            <li><a href="/category/<%= category.Slug %>"><%= category.Name %></a></li>
+                            <%= } %>
+                        </ul>
+                    </div>
+                    <%= } %>
+                    
+                    <%= if (widgetName == "tags") { %>
+                    <div class="widget widget-tags">
+                        <h4>标签</h4>
+                        <ul>
+                            <%= for (tag) in tags { %>
+                            <li><a href="/tag/<%= tag.Slug %>"><%= tag.Name %></a></li>
+                            <%= } %>
+                        </ul>
+                    </div>
+                    <%= } %>
                 <%= } %>
             </aside>
-            <%= } %>
             <%= } %>
             
             <!-- Posts -->
             <main class="posts-section">
-                <h2 class="section-title">📝 最新文章</h2>
-                <%= for (post) in posts { %>
-                <article class="post-card">
-                    <h3><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></h3>
-                    <%= if (config["pages.home.showMeta"] != false) { %>
-                    <div class="post-meta">
-                        <span>📅 <%= post.PublishedAt %></span>
-                        <span>👁 <%= post.Views %> 阅读</span>
-                        <%= if (post.Category) { %>
-                        <span>📂 <%= post.Category.Name %></span>
+                <h2 class="section-title">最新文章</h2>
+                <%= if (len(posts) > 0) { %>
+                    <%= for (post) in posts { %>
+                    <article class="post-card">
+                        <h3><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></h3>
+                        <%= if (config["pages.home.showMeta"] != false) { %>
+                        <div class="post-meta">
+                            <span><%= post.PublishedAt %></span>
+                            <span><%= post.Views %> 阅读</span>
+                            <%= if (post.Category) { %>
+                            <span><%= post.Category.Name %></span>
+                            <%= } %>
+                        </div>
                         <%= } %>
-                    </div>
+                        <%= if (config["pages.home.showExcerpt"] != false && post.Excerpt) { %>
+                        <p class="post-excerpt"><%= post.Excerpt %></p>
+                        <%= } %>
+                    </article>
                     <%= } %>
-                    <%= if (config["pages.home.showExcerpt"] != false) { %>
-                    <p class="post-excerpt"><%= post.Excerpt %></p>
-                    <%= } %>
-                </article>
+                <%= } else { %>
+                    <p>暂无文章</p>
                 <%= } %>
             </main>
             
-            <%= if (sidebarPos == "right" && layout != "one-column") { %>
+            <%= if (showSidebar && sidebarPos == "right") { %>
             <!-- Sidebar Right -->
             <aside class="sidebar">
-                <%= if (hasWidget("search")) { %>
-                <div class="widget">
-                    <h4>🔍 搜索</h4>
-                    <form action="/search" method="get">
-                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                    </form>
-                </div>
-                <%= } %>
+                <%= let widgets = config["pages.home.sidebarWidgets"] || ["search", "author", "recent-posts", "categories", "tags"] %>
                 
-                <%= if (hasWidget("author")) { %>
-                <div class="widget">
-                    <h4>👤 关于作者</h4>
-                    <p>热爱技术，热爱生活</p>
-                </div>
-                <%= } %>
-                
-                <%= if (hasWidget("categories")) { %>
-                <div class="widget">
-                    <h4>📂 分类</h4>
-                    <ul class="category-list">
-                        <%= for (category) in categories { %>
-                        <li><a href="/category/<%= category.Slug %>"><%= category.Name %></a></li>
-                        <%= } %>
-                    </ul>
-                </div>
-                <%= } %>
-                
-                <%= if (hasWidget("tags")) { %>
-                <div class="widget">
-                    <h4>🏷 标签</h4>
-                    <ul class="tag-cloud">
-                        <%= for (tag) in tags { %>
-                        <li><a href="/tag/<%= tag.Slug %>"><%= tag.Name %></a></li>
-                        <%= } %>
-                    </ul>
-                </div>
+                <%= for (widgetName) in widgets { %>
+                    <%= if (widgetName == "search") { %>
+                    <div class="widget widget-search">
+                        <h4>搜索</h4>
+                        <form action="/search" method="get" class="search-form">
+                            <input type="text" name="q" placeholder="搜索文章...">
+                            <button type="submit">搜索</button>
+                        </form>
+                    </div>
+                    <%= } %>
+                    
+                    <%= if (widgetName == "author") { %>
+                    <div class="widget widget-author">
+                        <h4>关于博主</h4>
+                        <div class="author-card">
+                            <div class="author-name"><%= config["widgets.author.name"] || "博主" %></div>
+                            <div class="author-bio"><%= config["widgets.author.bio"] || "热爱技术，热爱生活" %></div>
+                        </div>
+                    </div>
+                    <%= } %>
+                    
+                    <%= if (widgetName == "recent-posts") { %>
+                    <div class="widget widget-recent-posts">
+                        <h4>最近文章</h4>
+                        <ul>
+                            <%= for (post) in recentPosts { %>
+                            <li><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></li>
+                            <%= } %>
+                        </ul>
+                    </div>
+                    <%= } %>
+                    
+                    <%= if (widgetName == "categories") { %>
+                    <div class="widget widget-categories">
+                        <h4>分类</h4>
+                        <ul>
+                            <%= for (category) in categories { %>
+                            <li><a href="/category/<%= category.Slug %>"><%= category.Name %></a></li>
+                            <%= } %>
+                        </ul>
+                    </div>
+                    <%= } %>
+                    
+                    <%= if (widgetName == "tags") { %>
+                    <div class="widget widget-tags">
+                        <h4>标签</h4>
+                        <ul>
+                            <%= for (tag) in tags { %>
+                            <li><a href="/tag/<%= tag.Slug %>"><%= tag.Name %></a></li>
+                            <%= } %>
+                        </ul>
+                    </div>
+                    <%= } %>
                 <%= } %>
             </aside>
             <%= } %>
@@ -393,7 +500,7 @@
         
         <!-- Footer -->
         <footer>
-            <p>&copy; 2026 <%= site["title"] %>. Powered by Catter CMS</p>
+            <p>&copy; <%= config["site.year"] || "2026" %> <%= site["title"] %>. Powered by Catter CMS</p>
         </footer>
     </div>
     
