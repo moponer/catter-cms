@@ -55,6 +55,11 @@
         <template #title>媒体库</template>
       </el-menu-item>
 
+      <el-menu-item index="/menus">
+        <el-icon><Menu /></el-icon>
+        <template #title>菜单管理</template>
+      </el-menu-item>
+
       <el-menu-item index="/themes">
         <el-icon><Brush /></el-icon>
         <template #title>主题配置</template>
@@ -102,7 +107,8 @@ import {
   Fold,
   Search,
   Timer,
-  Connection
+  Connection,
+  Menu
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 

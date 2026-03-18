@@ -15,6 +15,7 @@ import Settings from '@/views/settings/SiteSettings.vue'
 import Comments from '@/views/comments/Index.vue'
 import ScheduledTasks from '@/views/scheduled-tasks/Index.vue'
 import Sitemap from '@/views/sitemap/Index.vue'
+import Menus from '@/views/menus/MenuList.vue'
 
 const routes = [
   {
@@ -130,6 +131,12 @@ const routes = [
     name: 'Sitemap',
     component: Sitemap,
     meta: { title: 'Sitemap管理', requiresAuth: true }
+  },
+  {
+    path: '/menus',
+    name: 'Menus',
+    component: Menus,
+    meta: { title: '菜单管理', requiresAuth: true }
   }
 ]
 

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= page.Title %> - <%= site["title"] %></title>
+    <meta name="description" content="<%= page.Excerpt || site["description"] %>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: <%= config["appearance.typography.baseFont"] || "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" %>;
+            line-height: 1.6;
+            color: <%= config["appearance.colors.text"] || "#1f2937" %>;
+            background: <%= config["appearance.colors.background"] || "#f5f7fa" %>;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: <%= config["appearance.layout.width"] || "1200px" %>;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Navigation */
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        nav .logo {
+            font-size: 1.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, <%= config["appearance.colors.primary"] || "#3B82F6" %>, <%= config["appearance.colors.secondary"] || "#764ba2" %>);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        nav a {
+            margin-left: 30px;
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        /* Layout */
+        <%= let showSidebar = page.ShowSidebar != false && config["pages.page.showSidebar"] != false %>
+        <%= let sidebarPos = config["pages.page.sidebarPosition"] || config["appearance.layout.sidebar"] || "right" %>
+        
+        <%= if (showSidebar) { %>
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: <%= sidebarPos == "left" ? "300px 1fr" : "1fr 300px" %>;
+            gap: 30px;
+        }
+        <%= } else { %>
+        .content-wrapper {
+            display: block;
+        }
+        <%= } %>
+        
+        /* Page Content */
+        .page-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        .page-header h1 {
+            font-size: 2em;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            margin-bottom: 10px;
+        }
+        
+        .page-meta {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        
+        .page-meta span {
+            margin-right: 15px;
+        }
+        
+        .page-body {
+            font-size: 1.05em;
+            line-height: 1.8;
+        }
+        
+        .page-body h2 {
+            font-size: 1.5em;
+            margin: 30px 0 15px;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        .page-body h3 {
+            font-size: 1.3em;
+            margin: 25px 0 12px;
+            color: #374151;
+        }
+        
+        .page-body p {
+            margin-bottom: 15px;
+        }
+        
+        .page-body ul, .page-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        .page-body li {
+            margin-bottom: 8px;
+        }
+        
+        .page-body a {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            text-decoration: none;
+        }
+        
+        .page-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .page-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .page-body blockquote {
+            border-left: 4px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            padding: 15px 20px;
+            margin: 20px 0;
+            background: #f9fafb;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .page-body code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: <%= config["appearance.typography.codeFont"] || "'Fira Code', 'Consolas', 'Courier New', monospace" %>;
+            font-size: 0.9em;
+        }
+        
+        .page-body pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        .page-body pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            display: <%= showSidebar ? "block" : "none" %>;
+        }
+        
+        .widget {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .widget h4 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        .widget ul {
+            list-style: none;
+        }
+        
+        .widget li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .widget li:last-child {
+            border-bottom: none;
+        }
+        
+        .widget a {
+            color: #4b5563;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .widget a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            margin-top: 40px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+            .page-content {
+                padding: 25px;
+            }
+            nav a {
+                margin-left: 15px;
+                font-size: 0.9em;
+            }
+        }
+        
+        /* Custom CSS */
+        <%= config["custom.css"] %>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav>
+            <div class="logo"><%= site["title"] %></div>
+            <div>
+                <a href="/">首页</a>
+                <a href="/blog">文章</a>
+                <a href="/categories">分类</a>
+                <a href="/about">关于</a>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <%= if (showSidebar && sidebarPos == "left") { %>
+            <%= partial("sidebar.html") %>
+            <%= } %>
+            
+            <!-- Page Content -->
+            <main class="page-content">
+                <header class="page-header">
+                    <h1><%= page.Title %></h1>
+                    <div class="page-meta">
+                        <span>📅 <%= page.PublishedAt %></span>
+                        <%= if (page.UpdatedAt && page.UpdatedAt != page.PublishedAt) { %>
+                        <span>📝 更新于 <%= page.UpdatedAt %></span>
+                        <%= } %>
+                        <%= if (page.Author) { %>
+                        <span>👤 <%= page.Author.Name %></span>
+                        <%= } %>
+                    </div>
+                </header>
+                
+                <div class="page-body">
+                    <%= page.Content %>
+                </div>
+            </main>
+            
+            <%= if (showSidebar && sidebarPos == "right") { %>
+            <%= partial("sidebar.html") %>
+            <%= } %>
+        </div>
+        
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2026 <%= site["title"] %>. Powered by Catter CMS</p>
+        </footer>
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <%= if (config["custom.js"]) { %>
+    <script>
+    <%= config["custom.js"] %>
+    </script>
+    <%= } %>
+</body>
+</html>

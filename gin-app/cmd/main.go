@@ -211,6 +211,19 @@ func main() {
 		protected.POST("/admin/scheduled-tasks/:id/disable", api.DisableScheduledTask)
 		protected.GET("/admin/scheduler/status", api.GetSchedulerStatus)
 		protected.POST("/admin/scheduler/restart", api.RestartScheduler)
+
+		// 菜单管理 API
+		protected.GET("/menus", api.ListMenus)
+		protected.GET("/menus/:id", api.GetMenu)
+		protected.POST("/menus", api.CreateMenu)
+		protected.PUT("/menus/:id", api.UpdateMenu)
+		protected.DELETE("/menus/:id", api.DeleteMenu)
+		protected.GET("/menus/location/:location", api.GetMenuByLocation)
+		protected.GET("/menus/:id/items", api.GetMenuItems)
+		protected.POST("/menus/:id/items", api.CreateMenuItem)
+		protected.PUT("/menus/:id/items/:itemId", api.UpdateMenuItem)
+		protected.DELETE("/menus/:id/items/:itemId", api.DeleteMenuItem)
+		protected.POST("/menus/:id/items/reorder", api.ReorderMenuItems)
 	}
 	}
 

@@ -39,5 +39,7 @@ func AutoMigrate() error {
 		&Media{},
 		&Setting{},
 		&ThemeConfig{},
+		&Menu{},
+		&MenuItem{},
 	)
 }
