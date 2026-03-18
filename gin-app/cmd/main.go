@@ -154,8 +154,8 @@ func main() {
 			protected.POST("/media/upload", api.UploadMedia)
 			protected.DELETE("/media/:id", api.DeleteMedia)
 
-		// 主题 API - 先注册具体路径，再注册通配符路径
-		protected.GET("/themes", api.ListThemes)
+			// 主题 API - 先注册具体路径，再注册通配符路径
+			protected.GET("/themes", api.ListThemes)
 		protected.POST("/themes/upload", api.UploadTheme)
 		protected.GET("/themes/config/:slug", api.GetThemeConfig)
 		protected.PUT("/themes/config/:slug", api.SaveThemeConfig)
@@ -166,7 +166,7 @@ func main() {
 		protected.DELETE("/themes/:slug", api.DeleteTheme)
 		protected.GET("/themes/:slug", api.GetTheme)
 
-			// 页面 API
+		// 页面 API
 			protected.GET("/pages", api.ListPages)
 			protected.GET("/pages/:id", api.GetPage)
 			protected.POST("/pages", api.CreatePage)
@@ -180,51 +180,51 @@ func main() {
 			protected.PUT("/users/:id", api.UpdateUser)
 			protected.DELETE("/users/:id", api.DeleteUser)
 
-		// 评论 API
+			// 评论 API
 		protected.GET("/comments", api.ListComments)
 		protected.GET("/admin/comments", api.ListComments)
 		protected.DELETE("/comments/:id", api.DeleteComment)
 		protected.POST("/comments/:id/approve", api.ApproveComment)
 		protected.POST("/comments/:id/reject", api.RejectComment)
 
-		// Sitemap管理 API
+			// Sitemap管理 API
 		protected.GET("/admin/sitemap/info", api.GetSitemapInfo)
 		protected.POST("/admin/sitemap/rebuild", api.RebuildSitemap)
 
-		// 系统信息 API
-		protected.GET("/admin/system/info", api.GetSystemInfo)
+			// 系统信息 API
+			protected.GET("/admin/system/info", api.GetSystemInfo)
 
-		// 设置 API
-		protected.GET("/settings", api.GetSettings)
-		protected.PUT("/settings", api.SaveSettings)
+			// 设置 API
+			protected.GET("/settings", api.GetSettings)
+			protected.PUT("/settings", api.SaveSettings)
 
-		// 定时任务 API
-		protected.GET("/admin/scheduled-tasks", api.ListScheduledTasks)
-		protected.GET("/admin/scheduled-tasks/:id", api.GetScheduledTask)
-		protected.POST("/admin/scheduled-tasks", api.CreateScheduledTask)
-		protected.PUT("/admin/scheduled-tasks/:id", api.UpdateScheduledTask)
-		protected.DELETE("/admin/scheduled-tasks/:id", api.DeleteScheduledTask)
-		protected.POST("/admin/scheduled-tasks/:id/toggle", api.ToggleScheduledTask)
-		protected.POST("/admin/scheduled-tasks/:id/run", api.RunScheduledTask)
-		protected.POST("/admin/scheduled-tasks/:id/run-now", api.RunScheduledTask) // 前端使用的别名
-		protected.POST("/admin/scheduled-tasks/:id/enable", api.EnableScheduledTask)
-		protected.POST("/admin/scheduled-tasks/:id/disable", api.DisableScheduledTask)
-		protected.GET("/admin/scheduler/status", api.GetSchedulerStatus)
-		protected.POST("/admin/scheduler/restart", api.RestartScheduler)
+			// 定时任务 API
+			protected.GET("/admin/scheduled-tasks", api.ListScheduledTasks)
+			protected.GET("/admin/scheduled-tasks/:id", api.GetScheduledTask)
+			protected.POST("/admin/scheduled-tasks", api.CreateScheduledTask)
+			protected.PUT("/admin/scheduled-tasks/:id", api.UpdateScheduledTask)
+			protected.DELETE("/admin/scheduled-tasks/:id", api.DeleteScheduledTask)
+			protected.POST("/admin/scheduled-tasks/:id/toggle", api.ToggleScheduledTask)
+			protected.POST("/admin/scheduled-tasks/:id/run", api.RunScheduledTask)
+			protected.POST("/admin/scheduled-tasks/:id/run-now", api.RunScheduledTask) // 前端使用的别名
+			protected.POST("/admin/scheduled-tasks/:id/enable", api.EnableScheduledTask)
+			protected.POST("/admin/scheduled-tasks/:id/disable", api.DisableScheduledTask)
+			protected.GET("/admin/scheduler/status", api.GetSchedulerStatus)
+			protected.POST("/admin/scheduler/restart", api.RestartScheduler)
 
-		// 菜单管理 API
-		protected.GET("/menus", api.ListMenus)
-		protected.GET("/menus/:id", api.GetMenu)
-		protected.POST("/menus", api.CreateMenu)
-		protected.PUT("/menus/:id", api.UpdateMenu)
-		protected.DELETE("/menus/:id", api.DeleteMenu)
-		protected.GET("/menus/location/:location", api.GetMenuByLocation)
-		protected.GET("/menus/:id/items", api.GetMenuItems)
-		protected.POST("/menus/:id/items", api.CreateMenuItem)
-		protected.PUT("/menus/:id/items/:itemId", api.UpdateMenuItem)
-		protected.DELETE("/menus/:id/items/:itemId", api.DeleteMenuItem)
-		protected.POST("/menus/:id/items/reorder", api.ReorderMenuItems)
-	}
+			// 菜单管理 API
+			protected.GET("/menus", api.ListMenus)
+			protected.GET("/menus/:id", api.GetMenu)
+			protected.POST("/menus", api.CreateMenu)
+			protected.PUT("/menus/:id", api.UpdateMenu)
+			protected.DELETE("/menus/:id", api.DeleteMenu)
+			protected.GET("/menus/location/:location", api.GetMenuByLocation)
+			protected.GET("/menus/:id/items", api.GetMenuItems)
+			protected.POST("/menus/:id/items", api.CreateMenuItem)
+			protected.PUT("/menus/:id/items/:itemId", api.UpdateMenuItem)
+			protected.DELETE("/menus/:id/items/:itemId", api.DeleteMenuItem)
+			protected.POST("/menus/:id/items/reorder", api.ReorderMenuItems)
+		}
 	}
 
 	// 前台评论 API（公开）- 必须放在 /posts/:id 之前

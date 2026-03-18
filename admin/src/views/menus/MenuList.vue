@@ -252,15 +252,20 @@
         </el-form-item>
 
         <el-form-item v-if="itemForm.linkType === 'post'" label="选择文章" prop="url">
-          <el-select-v2
+          <el-select
             v-model="itemForm.url"
-            :options="postOptions"
             placeholder="搜索并选择文章"
-            :props="{ value: 'value', label: 'label' }"
             filterable
             clearable
             style="width: 100%"
-          />
+          >
+            <el-option
+              v-for="post in posts"
+              :key="post.id"
+              :label="post.title"
+              :value="`/blog/${post.slug}`"
+            />
+          </el-select>
         </el-form-item>
 
         <el-form-item label="图标">
