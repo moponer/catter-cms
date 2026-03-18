@@ -39,10 +39,7 @@
           <span>内容管理</span>
         </template>
         <el-menu-item index="/posts">文章列表</el-menu-item>
-        <el-menu-item index="/pages">
-          <el-icon><Files /></el-icon>
-          <span>页面管理</span>
-        </el-menu-item>
+        <el-menu-item index="/pages">页面管理</el-menu-item>
         <el-menu-item index="/categories">分类管理</el-menu-item>
         <el-menu-item index="/tags">标签管理</el-menu-item>
         <el-menu-item index="/comments">评论管理</el-menu-item>
@@ -99,7 +96,6 @@ import {
   Document,
   User,
   Picture,
-  Files,
   Brush,
   Setting,
   Expand,

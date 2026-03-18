@@ -1,3 +1,0 @@
-2026/03/16 16:46:17 数据库连接成功
-time="2026-03-16T16:46:17+08:00" level=error msg="[PLUGIN] error loading plugin C:\\Users\\Administrator\\go\\bin\\buffalo-pop.exe: fork/exec C:\\Users\\Administrator\\go\\bin\\buffalo-pop.exe: %1 is not a valid Win32 application.\n"
-time="2026-03-16T16:46:17+08:00" level=error msg="[PLUGIN] error loading plugin C:\\Users\\Administrator\\go\\bin\\buffalo-pop.exe: fork/exec C:\\Users\\Administrator\\go\\bin\\buffalo-pop.exe: %1 is not a valid Win32 application.\n"

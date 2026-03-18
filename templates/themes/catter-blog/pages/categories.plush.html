@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分类 - <%= site["title"] %></title>
+    <meta name="description" content="浏览所有文章分类">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: <%= config["appearance.typography.baseFont"] || "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" %>;
+            line-height: 1.6;
+            color: <%= config["appearance.colors.text"] || "#1f2937" %>;
+            background: <%= config["appearance.colors.background"] || "#f5f7fa" %>;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: <%= config["appearance.layout.width"] || "1200px" %>;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Navigation */
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        nav .logo {
+            font-size: 1.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, <%= config["appearance.colors.primary"] || "#3B82F6" %>, <%= config["appearance.colors.secondary"] || "#764ba2" %>);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        nav a {
+            margin-left: 30px;
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        /* Page Header */
+        .page-header {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .page-header h1 {
+            font-size: 2em;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: #6b7280;
+        }
+        
+        /* Categories Grid */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .category-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        
+        .category-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        .category-card p {
+            color: #6b7280;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .category-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #f3f4f6;
+        }
+        
+        .post-count {
+            background: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .category-link {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #374151;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            margin-top: 40px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav a {
+                margin-left: 15px;
+                font-size: 0.9em;
+            }
+            
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header {
+                padding: 25px;
+            }
+            
+            .page-header h1 {
+                font-size: 1.5em;
+            }
+        }
+        
+        /* Custom CSS */
+        <%= config["custom.css"] %>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav>
+            <div class="logo"><%= site["title"] %></div>
+            <div>
+                <a href="/">首页</a>
+                <a href="/blog">文章</a>
+                <a href="/categories">分类</a>
+                <a href="/tags">标签</a>
+                <a href="/archives">归档</a>
+            </div>
+        </nav>
+        
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>📂 文章分类</h1>
+            <p>共 <%= len(categories) %> 个分类</p>
+        </div>
+        
+        <!-- Categories Grid -->
+        <%= if (len(categories) > 0) { %>
+        <div class="categories-grid">
+            <%= for (category) in categories { %>
+            <a href="/category/<%= category.Slug %>" class="category-card">
+                <h3><%= category.Name %></h3>
+                <%= if (category.Description) { %>
+                <p><%= category.Description %></p>
+                <%= } else { %>
+                <p>暂无描述</p>
+                <%= } %>
+                <div class="category-meta">
+                    <span class="post-count"><%= category.PostCount || 0 %> 篇文章</span>
+                    <span class="category-link">查看全部 →</span>
+                </div>
+            </a>
+            <%= } %>
+        </div>
+        <%= } else { %>
+        <div class="empty-state">
+            <h3>暂无分类</h3>
+            <p>还没有创建任何分类</p>
+        </div>
+        <%= } %>
+        
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2026 <%= site["title"] %>. Powered by Catter CMS</p>
+        </footer>
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <%= if (config["custom.js"]) { %>
+    <script>
+    <%= config["custom.js"] %>
+    </script>
+    <%= } %>
+</body>
+</html>

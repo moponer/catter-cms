@@ -1,4 +1,0 @@
-# catter-cms/actions/admin
-actions\admin\sitemap.go:19:4: undefined: log
-actions\admin\sitemap.go:26:3: undefined: log
-actions\admin\sitemap.go:43:3: undefined: log

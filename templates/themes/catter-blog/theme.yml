@@ -680,6 +680,242 @@ configDefinition:
         type: "image"
         description: "在社交媒体上分享时显示的图片"
   
+  # 首页布局配置
+  - section: "首页布局"
+    icon: "layout"
+    description: "配置首页的文章列表、侧边栏等布局"
+    fields:
+      - name: "pages.home.layout"
+        label: "首页布局"
+        type: "select"
+        options:
+          - label: "双栏布局（带侧边栏）"
+            value: "two-column"
+          - label: "单栏布局（无侧边栏）"
+            value: "one-column"
+          - label: "三栏布局"
+            value: "three-column"
+        default: "two-column"
+      
+      - name: "pages.home.sidebarPosition"
+        label: "侧边栏位置"
+        type: "select"
+        options:
+          - label: "右侧"
+            value: "right"
+          - label: "左侧"
+            value: "left"
+        default: "right"
+        show_if: "pages.home.layout == 'two-column' || pages.home.layout == 'three-column'"
+      
+      - name: "pages.home.postsPerPage"
+        label: "每页文章数"
+        type: "number"
+        default: 10
+        min: 1
+        max: 50
+      
+      - name: "pages.home.showExcerpt"
+        label: "显示文章摘要"
+        type: "switch"
+        default: true
+      
+      - name: "pages.home.excerptLength"
+        label: "摘要长度"
+        type: "number"
+        default: 150
+        min: 50
+        max: 500
+        show_if: "pages.home.showExcerpt"
+      
+      - name: "pages.home.showFeaturedImage"
+        label: "显示特色图片"
+        type: "switch"
+        default: true
+      
+      - name: "pages.home.showMeta"
+        label: "显示文章元信息"
+        type: "switch"
+        default: true
+        description: "显示作者、日期、分类等信息"
+      
+      - name: "pages.home.sidebarWidgets"
+        label: "侧边栏小工具"
+        type: "multi-select"
+        options:
+          - label: "搜索框"
+            value: "search"
+          - label: "作者信息"
+            value: "author"
+          - label: "最近文章"
+            value: "recent-posts"
+          - label: "热门文章"
+            value: "popular-posts"
+          - label: "分类列表"
+            value: "categories"
+          - label: "标签云"
+            value: "tags"
+          - label: "社交链接"
+            value: "social"
+          - label: "订阅表单"
+            value: "newsletter"
+        default: ["search", "author", "recent-posts", "categories", "tags"]
+        show_if: "pages.home.layout == 'two-column' || pages.home.layout == 'three-column'"
+
+  # 文章页布局配置
+  - section: "文章页布局"
+    icon: "file-text"
+    description: "配置文章详情页的显示布局和元素"
+    fields:
+      - name: "pages.post.layout"
+        label: "文章页布局"
+        type: "select"
+        options:
+          - label: "双栏布局（带侧边栏）"
+            value: "two-column"
+          - label: "单栏布局（无侧边栏）"
+            value: "one-column"
+          - label: "阅读模式（宽屏居中）"
+            value: "reading"
+        default: "two-column"
+      
+      - name: "pages.post.sidebarPosition"
+        label: "侧边栏位置"
+        type: "select"
+        options:
+          - label: "右侧"
+            value: "right"
+          - label: "左侧"
+            value: "left"
+        default: "right"
+        show_if: "pages.post.layout == 'two-column'"
+      
+      - name: "pages.post.showToc"
+        label: "显示文章目录"
+        type: "switch"
+        default: true
+        description: "自动根据文章标题生成目录"
+      
+      - name: "pages.post.tocPosition"
+        label: "目录位置"
+        type: "select"
+        options:
+          - label: "侧边栏"
+            value: "sidebar"
+          - label: "文章顶部"
+            value: "top"
+          - label: "浮动跟随"
+            value: "floating"
+        default: "sidebar"
+        show_if: "pages.post.showToc"
+      
+      - name: "pages.post.showAuthor"
+        label: "显示作者信息"
+        type: "switch"
+        default: true
+      
+      - name: "pages.post.showRelated"
+        label: "显示相关文章"
+        type: "switch"
+        default: true
+      
+      - name: "pages.post.relatedCount"
+        label: "相关文章数量"
+        type: "number"
+        default: 6
+        min: 3
+        max: 12
+        show_if: "pages.post.showRelated"
+      
+      - name: "pages.post.showShare"
+        label: "显示分享按钮"
+        type: "switch"
+        default: true
+      
+      - name: "pages.post.showPrevNext"
+        label: "显示上一篇/下一篇"
+        type: "switch"
+        default: true
+      
+      - name: "pages.post.sidebarWidgets"
+        label: "侧边栏小工具"
+        type: "multi-select"
+        options:
+          - label: "文章目录"
+            value: "toc"
+          - label: "作者信息"
+            value: "author"
+          - label: "最近文章"
+            value: "recent-posts"
+          - label: "相关文章"
+            value: "related"
+          - label: "分类列表"
+            value: "categories"
+          - label: "标签云"
+            value: "tags"
+          - label: "广告位"
+            value: "ad"
+        default: ["toc", "author", "recent-posts"]
+        show_if: "pages.post.layout == 'two-column'"
+
+  # 分类页布局配置
+  - section: "分类页布局"
+    icon: "folder"
+    description: "配置分类文章列表页的显示布局"
+    fields:
+      - name: "pages.category.layout"
+        label: "分类页布局"
+        type: "select"
+        options:
+          - label: "双栏布局（带侧边栏）"
+            value: "two-column"
+          - label: "单栏布局（无侧边栏）"
+            value: "one-column"
+        default: "two-column"
+      
+      - name: "pages.category.sidebarPosition"
+        label: "侧边栏位置"
+        type: "select"
+        options:
+          - label: "右侧"
+            value: "right"
+          - label: "左侧"
+            value: "left"
+        default: "right"
+        show_if: "pages.category.layout == 'two-column'"
+      
+      - name: "pages.category.postsPerPage"
+        label: "每页文章数"
+        type: "number"
+        default: 10
+        min: 1
+        max: 50
+      
+      - name: "pages.category.showDescription"
+        label: "显示分类描述"
+        type: "switch"
+        default: true
+      
+      - name: "pages.category.showSubcategories"
+        label: "显示子分类"
+        type: "switch"
+        default: true
+      
+      - name: "pages.category.sidebarWidgets"
+        label: "侧边栏小工具"
+        type: "multi-select"
+        options:
+          - label: "搜索框"
+            value: "search"
+          - label: "分类列表"
+            value: "categories"
+          - label: "标签云"
+            value: "tags"
+          - label: "最近文章"
+            value: "recent-posts"
+        default: ["search", "categories", "tags"]
+        show_if: "pages.category.layout == 'two-column'"
+
   # 自定义代码
   - section: "自定义代码"
     icon: "code"
@@ -689,13 +925,15 @@ configDefinition:
         label: "自定义CSS"
         type: "code"
         language: "css"
-        description: "添加自定义CSS样式，会覆盖主题的默认样式"
+        description: "添加自定义CSS样式，会覆盖主题的默认样式。作用于所有页面的<head>中。"
+        rows: 10
       
       - name: "custom.js"
         label: "自定义JavaScript"
         type: "code"
         language: "javascript"
-        description: "添加自定义JavaScript代码"
+        description: "添加自定义JavaScript代码。作用于所有页面的</body>前。"
+        rows: 10
 
 # 菜单位置定义
 menuLocations:

@@ -11,16 +11,19 @@
             box-sizing: border-box;
         }
         
+        <%= let layout = config["pages.category.layout"] || "two-column" %>
+        <%= let sidebarPos = config["pages.category.sidebarPosition"] || "right" %>
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: <%= config["appearance.typography.baseFont"] || "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" %>;
             line-height: 1.6;
-            color: #1f2937;
-            background: linear-gradient(135deg, #667eea 0%, #764ba4 100%);
+            color: <%= config["appearance.colors.text"] || "#1f2937" %>;
+            background: <%= config["appearance.colors.background"] || "#f5f7fa" %>;
             min-height: 100vh;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: <%= config["appearance.layout.width"] || "1200px" %>;
             margin: 0 auto;
             padding: 20px;
         }
@@ -40,7 +43,7 @@
         nav .logo {
             font-size: 1.5em;
             font-weight: 800;
-            background: linear-gradient(135deg, #3B82F6, #764ba2);
+            background: linear-gradient(135deg, <%= config["appearance.colors.primary"] || "#3B82F6" %>, <%= config["appearance.colors.secondary"] || "#764ba2" %>);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -53,6 +56,18 @@
             font-weight: 500;
         }
         
+        <%= if (layout == "one-column") { %>
+        .content-wrapper {
+            display: block;
+        }
+        <%= } else { %>
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: <%= sidebarPos == "left" ? "280px 1fr" : "1fr 280px" %>;
+            gap: 30px;
+        }
+        <%= } %>
+        
         .category-header {
             background: white;
             padding: 40px;
@@ -64,11 +79,39 @@
         .category-header h1 {
             font-size: 2em;
             margin-bottom: 10px;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
         }
         
+        <%= if (config["pages.category.showDescription"] != false) { %>
         .category-header p {
             color: #6b7280;
+            margin-top: 10px;
         }
+        <%= } %>
+        
+        <%= if (config["pages.category.showSubcategories"] != false) { %>
+        .subcategories {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .subcategory-tag {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #4b5563;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .subcategory-tag:hover {
+            background: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: white;
+        }
+        <%= } %>
         
         .posts-section {
             background: white;
@@ -94,10 +137,11 @@
         .post-card h3 a {
             color: #1f2937;
             text-decoration: none;
+            transition: color 0.3s;
         }
         
         .post-card h3 a:hover {
-            color: #3B82F6;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
         }
         
         .post-meta {
@@ -108,53 +152,220 @@
         
         .post-excerpt {
             color: #4b5563;
+            line-height: 1.7;
         }
         
-        footer {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 40px 20px;
-            text-align: center;
-            margin-top: 40px;
+        /* Sidebar */
+        .sidebar {
+            display: <%= layout == "one-column" ? "none" : "block" %>;
+        }
+        
+        .widget {
+            background: white;
+            padding: 20px;
             border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
-        footer p {
-            color: #6b7280;
+        .widget h4 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
         }
+        
+        .widget ul {
+            list-style: none;
+        }
+        
+        .widget li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .widget li:last-child {
+            border-bottom: none;
+        }
+        
+        .widget a {
+            color: #4b5563;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .widget a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .pagination a {
+            padding: 10px 16px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #4b5563;
+            transition: all 0.3s;
+        }
+        
+        .pagination a:hover,
+        .pagination a.active {
+            background: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: white;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            margin-top: 40px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+        
+        /* Custom CSS */
+        <%= config["custom.css"] %>
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Navigation -->
         <nav>
-            <div class="logo">Catter Blog</div>
+            <div class="logo"><%= site["title"] %></div>
             <div>
                 <a href="/">首页</a>
-                <a href="/blog">博客</a>
+                <a href="/blog">文章</a>
+                <a href="/categories">分类</a>
                 <a href="/about">关于</a>
             </div>
         </nav>
         
-        <header class="category-header">
+        <!-- Category Header -->
+        <div class="category-header">
             <h1>📂 <%= category.Name %></h1>
-            <p>该分类下共 <%= len(posts) %> 篇文章</p>
-        </header>
+            <%= if (config["pages.category.showDescription"] != false && category.Description) { %>
+            <p><%= category.Description %></p>
+            <%= } %>
+            <%= if (config["pages.category.showSubcategories"] != false) { %>
+            <div class="subcategories">
+                <a href="#" class="subcategory-tag">子分类1</a>
+                <a href="#" class="subcategory-tag">子分类2</a>
+                <a href="#" class="subcategory-tag">子分类3</a>
+            </div>
+            <%= } %>
+        </div>
         
-        <main class="posts-section">
-            <%= for (post) in posts { %>
-            <article class="post-card">
-                <h3><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></h3>
-                <div class="post-meta">
-                    <span>📅 <%= post.PublishedAt %></span>
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <%= if (sidebarPos == "left" && layout != "one-column") { %>
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="widget">
+                    <h4>🔍 搜索</h4>
+                    <form action="/search" method="get">
+                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                    </form>
                 </div>
-                <p class="post-excerpt"><%= post.Excerpt %></p>
-            </article>
-            <% } %>
-        </main>
+                
+                <div class="widget">
+                    <h4>📂 所有分类</h4>
+                    <ul>
+                        <%= for (cat) in categories { %>
+                        <li><a href="/category/<%= cat.Slug %>"><%= cat.Name %></a></li>
+                        <%= } %>
+                    </ul>
+                </div>
+            </aside>
+            <%= } %>
+            
+            <!-- Posts -->
+            <main class="posts-section">
+                <%= for (post) in posts { %>
+                <article class="post-card">
+                    <h3><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></h3>
+                    <div class="post-meta">
+                        <span>📅 <%= post.PublishedAt %></span>
+                        <span>👁 <%= post.Views %> 阅读</span>
+                    </div>
+                    <p class="post-excerpt"><%= post.Excerpt %></p>
+                </article>
+                <%= } %>
+                
+                <%= if (len(posts) == 0) { %>
+                <p style="text-align:center;color:#6b7280;padding:40px;">该分类下暂无文章</p>
+                <%= } %>
+                
+                <!-- Pagination -->
+                <div class="pagination">
+                    <a href="#">上一页</a>
+                    <a href="#" class="active">1</a>
+                    <a href="#">2</a>
+                    <a href="#">3</a>
+                    <a href="#">下一页</a>
+                </div>
+            </main>
+            
+            <%= if (sidebarPos == "right" && layout != "one-column") { %>
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="widget">
+                    <h4>🔍 搜索</h4>
+                    <form action="/search" method="get">
+                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                    </form>
+                </div>
+                
+                <div class="widget">
+                    <h4>📂 所有分类</h4>
+                    <ul>
+                        <%= for (cat) in categories { %>
+                        <li><a href="/category/<%= cat.Slug %>"><%= cat.Name %></a></li>
+                        <%= } %>
+                    </ul>
+                </div>
+                
+                <div class="widget">
+                    <h4>🏷 热门标签</h4>
+                    <ul>
+                        <%= for (tag) in tags { %>
+                        <li><a href="/tag/<%= tag.Slug %>"><%= tag.Name %></a></li>
+                        <%= } %>
+                    </ul>
+                </div>
+            </aside>
+            <%= } %>
+        </div>
         
+        <!-- Footer -->
         <footer>
             <p>&copy; 2026 <%= site["title"] %>. Powered by Catter CMS</p>
         </footer>
     </div>
+    
+    <!-- Custom JavaScript -->
+    <%= if (config["custom.js"]) { %>
+    <script>
+    <%= config["custom.js"] %>
+    </script>
+    <%= } %>
 </body>
 </html>

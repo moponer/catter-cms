@@ -13,25 +13,60 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: <%= config["appearance.typography.baseFont"] || "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" %>;
             line-height: 1.6;
-            color: #1f2937;
-            background: linear-gradient(135deg, #667eea 0%, #764ba4 100%);
+            color: <%= config["appearance.colors.text"] || "#1f2937" %>;
+            background: <%= config["appearance.colors.background"] || "#f5f7fa" %>;
             min-height: 100vh;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: <%= config["appearance.layout.width"] || "1200px" %>;
             margin: 0 auto;
             padding: 20px;
         }
         
+        /* Navigation */
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        nav .logo {
+            font-size: 1.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, <%= config["appearance.colors.primary"] || "#3B82F6" %>, <%= config["appearance.colors.secondary"] || "#764ba2" %>);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        nav a {
+            margin-left: 30px;
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
         /* Hero Section */
+        <%= if (config["modules.hero.enabled"] != false) { %>
         .hero {
-            background: linear-gradient(135deg, #3B82F6 0%, #764ba2 100%);
-            color: white;
+            background: <%= config["modules.hero.config.backgroundGradient"] || "linear-gradient(135deg, #3B82F6 0%, #764ba2 100%)" %>;
+            color: <%= config["modules.hero.config.textColor"] || "#ffffff" %>;
             padding: 80px 20px;
-            text-align: center;
+            text-align: <%= config["modules.hero.config.textAlign"] || "center" %>;
             border-radius: 20px;
             margin-bottom: 40px;
             box-shadow: 0 20px 60px rgba(59, 130, 246, 0.3);
@@ -55,7 +90,7 @@
             display: inline-block;
             padding: 15px 40px;
             background: white;
-            color: #3B82F6;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 600;
@@ -67,49 +102,31 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
+        <%= } %>
         
-        /* Navigation */
-        nav {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Layout */
+        <%= let layout = config["pages.home.layout"] || "two-column" %>
+        <%= let sidebarPos = config["pages.home.sidebarPosition"] || "right" %>
+        
+        <%= if (layout == "one-column") { %>
+        .content-wrapper {
+            display: block;
         }
-        
-        nav .logo {
-            font-size: 1.5em;
-            font-weight: 800;
-            background: linear-gradient(135deg, #3B82F6, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .posts-section {
+            width: 100%;
         }
-        
-        nav a {
-            margin-left: 30px;
-            text-decoration: none;
-            color: #4b5563;
-            font-weight: 500;
-            transition: color 0.3s;
+        .sidebar {
+            display: none;
         }
-        
-        nav a:hover {
-            color: #3B82F6;
-        }
-        
-        /* Content Layout */
+        <%= } else { %>
         .content-wrapper {
             display: grid;
-            grid-template-columns: 1fr 350px;
+            grid-template-columns: <%= sidebarPos == "left" ? "300px 1fr" : "1fr 300px" %>;
             gap: 30px;
         }
+        <%= } %>
         
-        /* Posts Grid */
+        /* Posts Section */
         .posts-section {
             background: white;
             padding: 30px;
@@ -118,27 +135,20 @@
         }
         
         .section-title {
-            font-size: 1.8em;
+            font-size: 1.5em;
             margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 3px solid #3B82F6;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
         }
         
         .post-card {
             padding: 25px 0;
             border-bottom: 1px solid #e5e7eb;
-            transition: all 0.3s;
         }
         
         .post-card:last-child {
             border-bottom: none;
-        }
-        
-        .post-card:hover {
-            transform: translateX(5px);
         }
         
         .post-card h3 {
@@ -153,163 +163,232 @@
         }
         
         .post-card h3 a:hover {
-            color: #3B82F6;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
         }
         
         .post-meta {
             color: #6b7280;
             font-size: 0.9em;
-            margin-bottom: 12px;
-            display: flex;
-            gap: 15px;
+            margin-bottom: 10px;
         }
         
+        .post-meta span {
+            margin-right: 15px;
+        }
+        
+        <%= if (config["pages.home.showExcerpt"] != false) { %>
         .post-excerpt {
             color: #4b5563;
-            line-height: 1.8;
+            line-height: 1.7;
         }
+        <%= } %>
         
         /* Sidebar */
         .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
+            display: <%= layout == "one-column" ? "none" : "block" %>;
         }
         
         .widget {
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 15px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
         .widget h4 {
-            font-size: 1.2em;
+            font-size: 1.1em;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #e5e7eb;
+            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
         }
         
-        .category-list, .tag-cloud {
+        .widget ul {
             list-style: none;
         }
         
-        .category-list li, .tag-cloud li {
+        .widget li {
             padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
         }
         
-        .category-list a, .tag-cloud a {
+        .widget li:last-child {
+            border-bottom: none;
+        }
+        
+        .widget a {
             color: #4b5563;
             text-decoration: none;
             transition: color 0.3s;
         }
         
-        .category-list a:hover, .tag-cloud a:hover {
-            color: #3B82F6;
-        }
-        
-        .tag-cloud {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .tag-cloud a {
-            background: #f3f4f6;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-        }
-        
-        .tag-cloud a:hover {
-            background: #3B82F6;
-            color: white;
+        .widget a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
         }
         
         /* Footer */
         footer {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 40px 20px;
             text-align: center;
-            margin-top: 40px;
-            border-radius: 15px;
-        }
-        
-        footer p {
+            padding: 40px;
             color: #6b7280;
+            margin-top: 40px;
         }
         
         /* Responsive */
-        @media (max-width: 968px) {
+        @media (max-width: 768px) {
             .content-wrapper {
                 grid-template-columns: 1fr;
             }
-            
+            .sidebar {
+                display: none;
+            }
             .hero h1 {
                 font-size: 2em;
             }
         }
+        
+        /* Custom CSS */
+        <%= config["custom.css"] %>
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Navigation -->
         <nav>
-            <div class="logo">Catter Blog</div>
+            <div class="logo"><%= site["title"] %></div>
             <div>
                 <a href="/">首页</a>
-                <a href="/blog">博客</a>
+                <a href="/blog">文章</a>
+                <a href="/categories">分类</a>
                 <a href="/about">关于</a>
             </div>
         </nav>
         
+        <%= if (config["modules.hero.enabled"] != false) { %>
         <!-- Hero Section -->
         <section class="hero">
-            <h1>欢迎来到我的博客</h1>
-            <p>分享技术、记录生活、探索未知</p>
-            <a href="/blog" class="hero-btn">查看文章</a>
+            <h1><%= config["modules.hero.config.title"] || "欢迎来到我的博客" %></h1>
+            <p><%= config["modules.hero.config.subtitle"] || "分享技术、记录生活、探索未知" %></p>
+            <%= if (config["modules.hero.config.showCta"] != false) { %>
+            <a href="<%= config["modules.hero.config.ctaUrl"] || "/blog" %>" class="hero-btn">
+                <%= config["modules.hero.config.ctaText"] || "查看文章" %>
+            </a>
+            <%= } %>
         </section>
+        <%= } %>
         
         <!-- Main Content -->
         <div class="content-wrapper">
+            <%= if (sidebarPos == "left" && layout != "one-column") { %>
+            <!-- Sidebar Left -->
+            <%= partial("sidebar.html") { %>
+            <aside class="sidebar">
+                <%= if (hasWidget("search")) { %>
+                <div class="widget">
+                    <h4>🔍 搜索</h4>
+                    <form action="/search" method="get">
+                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                    </form>
+                </div>
+                <%= } %>
+                
+                <%= if (hasWidget("author")) { %>
+                <div class="widget">
+                    <h4>👤 关于作者</h4>
+                    <p>热爱技术，热爱生活</p>
+                </div>
+                <%= } %>
+                
+                <%= if (hasWidget("categories")) { %>
+                <div class="widget">
+                    <h4>📂 分类</h4>
+                    <ul class="category-list">
+                        <%= for (category) in categories { %>
+                        <li><a href="/category/<%= category.Slug %>"><%= category.Name %></a></li>
+                        <%= } %>
+                    </ul>
+                </div>
+                <%= } %>
+                
+                <%= if (hasWidget("tags")) { %>
+                <div class="widget">
+                    <h4>🏷 标签</h4>
+                    <ul class="tag-cloud">
+                        <%= for (tag) in tags { %>
+                        <li><a href="/tag/<%= tag.Slug %>"><%= tag.Name %></a></li>
+                        <%= } %>
+                    </ul>
+                </div>
+                <%= } %>
+            </aside>
+            <%= } %>
+            <%= } %>
+            
             <!-- Posts -->
             <main class="posts-section">
                 <h2 class="section-title">📝 最新文章</h2>
                 <%= for (post) in posts { %>
                 <article class="post-card">
                     <h3><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></h3>
+                    <%= if (config["pages.home.showMeta"] != false) { %>
                     <div class="post-meta">
                         <span>📅 <%= post.PublishedAt %></span>
                         <span>👁 <%= post.Views %> 阅读</span>
+                        <%= if (post.Category) { %>
+                        <span>📂 <%= post.Category.Name %></span>
+                        <%= } %>
                     </div>
+                    <%= } %>
+                    <%= if (config["pages.home.showExcerpt"] != false) { %>
                     <p class="post-excerpt"><%= post.Excerpt %></p>
+                    <%= } %>
                 </article>
-                <% } %>
+                <%= } %>
             </main>
             
-            <!-- Sidebar -->
+            <%= if (sidebarPos == "right" && layout != "one-column") { %>
+            <!-- Sidebar Right -->
             <aside class="sidebar">
-                <!-- Categories Widget -->
+                <%= if (hasWidget("search")) { %>
+                <div class="widget">
+                    <h4>🔍 搜索</h4>
+                    <form action="/search" method="get">
+                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                    </form>
+                </div>
+                <%= } %>
+                
+                <%= if (hasWidget("author")) { %>
+                <div class="widget">
+                    <h4>👤 关于作者</h4>
+                    <p>热爱技术，热爱生活</p>
+                </div>
+                <%= } %>
+                
+                <%= if (hasWidget("categories")) { %>
                 <div class="widget">
                     <h4>📂 分类</h4>
                     <ul class="category-list">
                         <%= for (category) in categories { %>
-                        <li><a href="/category/<%= category.Slug %>"><%= category.Name %> (<%= category.PostCount %>)</a></li>
-                        <% } %>
+                        <li><a href="/category/<%= category.Slug %>"><%= category.Name %></a></li>
+                        <%= } %>
                     </ul>
                 </div>
+                <%= } %>
                 
-                <!-- Tags Widget -->
+                <%= if (hasWidget("tags")) { %>
                 <div class="widget">
                     <h4>🏷 标签</h4>
                     <ul class="tag-cloud">
                         <%= for (tag) in tags { %>
                         <li><a href="/tag/<%= tag.Slug %>"><%= tag.Name %></a></li>
-                        <% } %>
+                        <%= } %>
                     </ul>
                 </div>
+                <%= } %>
             </aside>
+            <%= } %>
         </div>
         
         <!-- Footer -->
@@ -317,5 +396,12 @@
             <p>&copy; 2026 <%= site["title"] %>. Powered by Catter CMS</p>
         </footer>
     </div>
+    
+    <!-- Custom JavaScript -->
+    <%= if (config["custom.js"]) { %>
+    <script>
+    <%= config["custom.js"] %>
+    </script>
+    <%= } %>
 </body>
 </html>

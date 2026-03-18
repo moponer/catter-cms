@@ -32,16 +32,16 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },
     allowedHosts: true,
   },
   build: {
-    // 输出到 public 目录（Buffalo 静态资源目录）
-    outDir: '../public',
-    emptyOutDir: false, // 不清空目录，避免文件锁定问题
+    // 输出到 dist 目录
+    outDir: 'dist',
+    emptyOutDir: true,
     // 代码分割优化
     rollupOptions: {
       output: {

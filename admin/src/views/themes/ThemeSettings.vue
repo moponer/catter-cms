@@ -24,40 +24,38 @@
     </div>
 
     <!-- 主题列表 -->
-    <el-row :gutter="24" class="theme-grid">
-      <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="theme in themes" :key="theme.id">
-        <div class="theme-card" :class="{ active: theme.is_active }">
-          <!-- 主题预览图 -->
-          <div class="theme-preview">
-            <img v-if="theme.thumbnail" :src="theme.thumbnail" :alt="theme.name" />
-            <div v-else class="preview-placeholder">
-              <el-icon :size="64"><Picture /></el-icon>
-              <span>暂无预览</span>
+    <el-row :gutter="20" class="theme-grid">
+      <el-col :xs="24" :sm="12" :md="8" v-for="theme in themes" :key="theme.id">
+        <div class="theme-card-compact" :class="{ active: theme.is_active }">
+          <!-- 主题头部 -->
+          <div class="theme-header">
+            <div class="theme-icon">
+              <el-icon :size="28"><Picture /></el-icon>
             </div>
-            <div class="theme-overlay" v-if="theme.is_active">
-              <el-tag type="success" effect="dark">当前主题</el-tag>
+            <div class="theme-title">
+              <h3>{{ theme.name }}</h3>
+              <el-tag v-if="theme.is_active" type="success" size="small">当前使用</el-tag>
             </div>
           </div>
 
           <!-- 主题信息 -->
-          <div class="theme-info">
-            <h3>{{ theme.name }}</h3>
+          <div class="theme-body">
             <p class="description">{{ theme.description || '暂无描述' }}</p>
             <div class="theme-meta">
               <span class="version">v{{ theme.version || '1.0.0' }}</span>
+              <span class="divider">|</span>
               <span class="author">{{ theme.author || '未知作者' }}</span>
             </div>
           </div>
 
           <!-- 操作按钮 -->
-          <div class="theme-actions">
+          <div class="theme-actions-compact">
             <el-button
               v-if="!theme.is_active"
               type="primary"
               size="small"
               @click="handleActivate(theme)"
               :loading="activating === theme.id"
-              block
             >
               激活
             </el-button>
@@ -66,28 +64,24 @@
                 type="success"
                 size="small"
                 @click="handleConfigure(theme)"
-                block
               >
                 <el-icon class="mr-2"><Setting /></el-icon>
-                配置主题
-              </el-button>
-              <el-button
-                type="primary"
-                size="small"
-                @click="handlePreview(theme)"
-                block
-              >
-                <el-icon class="mr-2"><View /></el-icon>
-                预览
+                配置
               </el-button>
             </template>
+            <el-button
+              size="small"
+              @click="handlePreview(theme)"
+            >
+              <el-icon class="mr-2"><View /></el-icon>
+              预览
+            </el-button>
             <el-button
               v-if="!theme.is_active"
               type="danger"
               size="small"
               plain
               @click="handleDelete(theme)"
-              block
             >
               删除
             </el-button>
@@ -100,10 +94,11 @@
     <el-dialog
       v-model="configVisible"
       :title="`${currentTheme?.name} - 主题配置`"
-      width="1200px"
+      width="900px"
       class="theme-config-dialog"
       destroy-on-close
       :fullscreen="false"
+      top="5vh"
     >
       <div v-if="currentTheme" class="config-container">
         <!-- 标签页切换 - 横向布局 -->
@@ -137,7 +132,7 @@
             </template>
 
             <!-- 配置表单 -->
-            <el-scrollbar max-height="60vh" class="tab-content">
+            <el-scrollbar max-height="50vh" class="tab-content">
               <el-form
                 :model="configForm"
                 label-position="top"
@@ -382,10 +377,10 @@
       </div>
 
       <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="configVisible = false" size="large">取消</el-button>
-          <el-button @click="handleResetConfig" size="large">重置默认</el-button>
-          <el-button type="primary" @click="handleSaveConfig" :loading="savingConfig" size="large">
+        <div class="dialog-footer-simple">
+          <el-button @click="configVisible = false">取消</el-button>
+          <el-button @click="handleResetConfig">重置默认</el-button>
+          <el-button type="primary" @click="handleSaveConfig" :loading="savingConfig">
             <el-icon class="mr-2"><Check /></el-icon>
             保存配置
           </el-button>
@@ -443,9 +438,19 @@ const uploadHeaders = computed(() => {
 const loadThemes = async () => {
   try {
     const res = await get('/api/themes')
-    themes.value = res.data || res || []
+    // 后端返回 { list: [...], total: n } 格式
+    if (res.data && Array.isArray(res.data.list)) {
+      themes.value = res.data.list
+    } else if (Array.isArray(res.data)) {
+      themes.value = res.data
+    } else if (Array.isArray(res)) {
+      themes.value = res
+    } else {
+      themes.value = []
+    }
   } catch (error) {
     console.error('加载主题列表失败:', error)
+    themes.value = []
   }
 }
 
@@ -453,7 +458,7 @@ const loadThemes = async () => {
 const handleActivate = async (theme) => {
   activating.value = theme.id
   try {
-    await post(`/api/themes/${theme.id}/activate`)
+    await post(`/api/themes/${theme.slug}/activate`)
     ElMessage.success('主题激活成功')
     loadThemes()
   } catch (error) {
@@ -471,10 +476,10 @@ const handleConfigure = async (theme) => {
     // 获取完整配置，包括配置表单定义
     const res = await get(`/api/themes/${theme.slug}/config/full`)
     
-    // axios 拦截器返回的是完整的响应体: { code: 0, message: "success", data: {...} }
-    // res.data 就是 API 返回的 data 字段，包含 configForm, appearance 等
+    // axios 拦截器返回的是响应体: { code: 0, message: "success", data: {...} }
+    // res 就是 API 返回的数据，res.data 包含 configForm, appearance 等
     console.log('API响应:', res)
-    const config = res.data || {}
+    const config = res.data || res || {}
 
     // 使用主题开发者定义的配置表单（configForm）
     // configForm 对应 theme.yml 中的 configDefinition
@@ -500,14 +505,32 @@ const handleConfigure = async (theme) => {
       ElMessage.warning('该主题没有定义配置表单（configForm为空）')
     }
 
-    // 初始化表单值 - 从 configDefinition 的 fields 中提取默认值
+    // 初始化表单值 - 首先获取已保存的配置值，然后用默认值填充未设置的字段
     const formValues = {}
+    
+    // 1. 首先加载已保存的配置值（从后端返回的config对象中，排除configForm等元数据）
+    const savedConfig = { ...config }
+    delete savedConfig.configForm  // 删除配置表单定义
+    delete savedConfig.name
+    delete savedConfig.slug
+    delete savedConfig.version
+    delete savedConfig.description
+    delete savedConfig.author
+    
+    // 将已保存的配置值放入表单
+    Object.keys(savedConfig).forEach(key => {
+      if (savedConfig[key] !== undefined && savedConfig[key] !== null) {
+        formValues[key] = savedConfig[key]
+      }
+    })
+    
+    // 2. 从 configDefinition 的 fields 中提取默认值，填充未设置的字段
     if (config.configForm && Array.isArray(config.configForm)) {
       config.configForm.forEach(group => {
         if (group.fields && Array.isArray(group.fields)) {
           group.fields.forEach(field => {
-            // 使用字段的默认值
-            if (field.default !== undefined) {
+            // 只在字段没有已保存值时使用默认值
+            if (formValues[field.name] === undefined && field.default !== undefined) {
               formValues[field.name] = field.default
             }
           })
@@ -570,7 +593,7 @@ const handleDelete = async (theme) => {
         type: 'warning'
       }
     )
-    await del(`/api/themes/${theme.id}`)
+    await del(`/api/themes/${theme.slug}`)
     ElMessage.success('主题删除成功')
     loadThemes()
   } catch (error) {
@@ -800,6 +823,94 @@ onMounted(() => {
   margin-right: 6px;
 }
 
+/* 紧凑型主题卡片 */
+.theme-card-compact {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  margin-bottom: 20px;
+}
+
+.theme-card-compact:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.theme-card-compact.active {
+  border-color: #409eff;
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
+}
+
+.theme-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.theme-icon {
+  width: 48px;
+  height: 48px;
+  background: #f5f7fa;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #409eff;
+}
+
+.theme-title {
+  flex: 1;
+}
+
+.theme-title h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.theme-body {
+  margin-bottom: 16px;
+}
+
+.theme-body .description {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.theme-body .theme-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.theme-body .theme-meta .divider {
+  color: #dcdfe6;
+}
+
+.theme-actions-compact {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.theme-actions-compact .el-button {
+  flex: 1;
+  min-width: 60px;
+}
+
 /* 主题配置对话框 - 强制横向布局 */
 .theme-config-dialog :deep(.el-dialog__body) {
   padding: 0;
@@ -810,7 +921,7 @@ onMounted(() => {
 }
 
 .config-container {
-  min-height: 500px;
+  min-height: 400px;
   display: flex;
   flex-direction: column;
 }
@@ -928,10 +1039,9 @@ onMounted(() => {
 }
 
 .tab-content {
-  padding: 32px;
+  padding: 24px;
   background: #f9fafb;
-  min-height: 500px;
-  max-height: 70vh;
+  min-height: 300px;
 }
 
 .config-groups {
@@ -1082,12 +1192,10 @@ onMounted(() => {
   margin-top: 8px;
 }
 
-.dialog-footer {
+.dialog-footer-simple {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
 }
 
 @media (max-width: 768px) {

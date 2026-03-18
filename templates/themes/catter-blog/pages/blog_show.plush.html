@@ -12,16 +12,19 @@
             box-sizing: border-box;
         }
         
+        <%= let layout = config["pages.post.layout"] || "two-column" %>
+        <%= let tocPosition = config["pages.post.tocPosition"] || "sidebar" %>
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.8;
-            color: #1f2937;
-            background: linear-gradient(135deg, #667eea 0%, #764ba4 100%);
+            font-family: <%= config["appearance.typography.baseFont"] || "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" %>;
+            line-height: <%= config["appearance.typography.lineHeight.base"] || "1.8" %>;
+            color: <%= config["appearance.colors.text"] || "#1f2937" %>;
+            background: <%= config["appearance.colors.background"] || "#f5f7fa" %>;
             min-height: 100vh;
         }
         
         .container {
-            max-width: 900px;
+            max-width: <%= config["appearance.layout.width"] || "1200px" %>;
             margin: 0 auto;
             padding: 20px;
         }
@@ -41,7 +44,7 @@
         nav .logo {
             font-size: 1.5em;
             font-weight: 800;
-            background: linear-gradient(135deg, #3B82F6, #764ba2);
+            background: linear-gradient(135deg, <%= config["appearance.colors.primary"] || "#3B82F6" %>, <%= config["appearance.colors.secondary"] || "#764ba2" %>);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -54,17 +57,41 @@
             font-weight: 500;
         }
         
+        <%= if (layout == "reading") { %>
+        .content-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        <%= } else if (layout == "two-column") { %>
+        <%= let sidebarPos = config["pages.post.sidebarPosition"] || "right" %>
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: <%= sidebarPos == "left" ? "280px 1fr" : "1fr 280px" %>;
+            gap: 30px;
+        }
+        <%= } else { %>
+        .content-wrapper {
+            display: block;
+        }
+        <%= } %>
+        
         .article-container {
             background: white;
-            padding: 50px;
+            padding: <%= layout == "reading" ? "60px 80px" : "50px" %>;
             border-radius: 15px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
+        <%= if (layout != "reading") { %>
+        .sidebar {
+            display: <%= layout == "one-column" ? "none" : "block" %>;
+        }
+        <%= } %>
+        
         .back-link {
             display: inline-block;
             margin-bottom: 30px;
-            color: #3B82F6;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
             text-decoration: none;
             font-weight: 500;
         }
@@ -80,7 +107,7 @@
         }
         
         .article-header h1 {
-            font-size: 2.5em;
+            font-size: <%= layout == "reading" ? "2.8em" : "2.5em" %>;
             line-height: 1.3;
             margin-bottom: 20px;
             color: #111827;
@@ -91,138 +118,417 @@
             gap: 20px;
             color: #6b7280;
             font-size: 0.95em;
+            flex-wrap: wrap;
         }
+        
+        <%= if (config["pages.post.showAuthor"] != false) { %>
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+        
+        .author-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, <%= config["appearance.colors.primary"] || "#3B82F6" %>, <%= config["appearance.colors.secondary"] || "#764ba2" %>);
+        }
+        
+        .author-details h4 {
+            color: #111827;
+            margin-bottom: 5px;
+        }
+        
+        .author-details p {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        <%= } %>
+        
+        <%= if (config["pages.post.showToc"] != false && tocPosition != "sidebar") { %>
+        .toc {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .toc h3 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #111827;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            padding: 5px 0;
+        }
+        
+        .toc a {
+            color: #4b5563;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        <%= } %>
         
         .article-content {
             font-size: 1.1em;
             line-height: 2;
+            color: #374151;
         }
         
         .article-content h2 {
-            margin: 40px 0 20px;
             font-size: 1.8em;
+            margin: 40px 0 20px;
             color: #111827;
         }
         
         .article-content h3 {
-            margin: 30px 0 15px;
             font-size: 1.4em;
-            color: #111827;
+            margin: 30px 0 15px;
+            color: #1f2937;
         }
         
         .article-content p {
             margin-bottom: 20px;
         }
         
+        .article-content code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: <%= config["appearance.typography.codeFont"] || "'Fira Code', monospace" %>;
+            font-size: 0.9em;
+        }
+        
         .article-content pre {
             background: #1f2937;
             color: #f9fafb;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow-x: auto;
             margin: 20px 0;
         }
         
-        .article-content code {
-            background: #f3f4f6;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: 'Fira Code', monospace;
+        .article-content pre code {
+            background: none;
+            padding: 0;
         }
         
-        .article-content blockquote {
-            border-left: 4px solid #3B82F6;
-            padding-left: 20px;
-            margin: 20px 0;
-            color: #6b7280;
-            font-style: italic;
-        }
-        
-        .article-content img {
-            max-width: 100%;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        
-        .article-footer {
-            margin-top: 50px;
+        <%= if (config["pages.post.showShare"] != false) { %>
+        .share-section {
+            margin-top: 40px;
             padding-top: 30px;
             border-top: 1px solid #e5e7eb;
         }
         
-        .tags {
+        .share-section h4 {
+            margin-bottom: 15px;
+            color: #374151;
+        }
+        
+        .share-buttons {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
         
-        .tag {
-            background: #f3f4f6;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            color: #4b5563;
+        .share-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
             text-decoration: none;
+            color: white;
+            font-size: 0.9em;
         }
         
-        .tag:hover {
-            background: #3B82F6;
+        .share-btn.weibo { background: #e6162d; }
+        .share-btn.wechat { background: #07c160; }
+        .share-btn.twitter { background: #1da1f2; }
+        <%= } %>
+        
+        <%= if (config["pages.post.showPrevNext"] != false) { %>
+        .prev-next {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .prev-next a {
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #4b5563;
+            transition: all 0.3s;
+        }
+        
+        .prev-next a:hover {
+            background: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
             color: white;
         }
         
-        footer {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 40px 20px;
-            text-align: center;
-            margin-top: 40px;
-            border-radius: 15px;
+        .prev-next .next {
+            text-align: right;
         }
         
-        footer p {
-            color: #6b7280;
+        .prev-next .label {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-bottom: 5px;
         }
+        <%= } %>
+        
+        <%= if (config["pages.post.showRelated"] != false) { %>
+        .related-posts {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .related-posts h3 {
+            margin-bottom: 20px;
+            color: #111827;
+        }
+        
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .related-card {
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #374151;
+            transition: all 0.3s;
+        }
+        
+        .related-card:hover {
+            background: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: white;
+        }
+        <%= } %>
+        
+        /* Sidebar Widgets */
+        .widget {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .widget h4 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        <%= if (config["pages.post.showToc"] != false && tocPosition == "sidebar") { %>
+        .toc-widget ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .toc-widget li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .toc-widget a {
+            color: #4b5563;
+            text-decoration: none;
+            font-size: 0.95em;
+        }
+        
+        .toc-widget a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        <%= } %>
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+            .article-container {
+                padding: 30px 20px;
+            }
+            .article-header h1 {
+                font-size: 1.8em;
+            }
+        }
+        
+        /* Custom CSS */
+        <%= config["custom.css"] %>
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Navigation -->
         <nav>
-            <div class="logo">Catter Blog</div>
+            <div class="logo"><%= site["title"] %></div>
             <div>
                 <a href="/">首页</a>
-                <a href="/blog">博客</a>
+                <a href="/blog">文章</a>
+                <a href="/categories">分类</a>
                 <a href="/about">关于</a>
             </div>
         </nav>
         
-        <article class="article-container">
-            <a href="/" class="back-link">← 返回首页</a>
-            
-            <header class="article-header">
-                <h1><%= post.Title %></h1>
-                <div class="article-meta">
-                    <span>📅 <%= post.PublishedAt %></span>
-                    <span>👁 <%= post.Views %> 阅读</span>
-                    <span>⏱ 阅读约 <%= post.ReadingTime %> 分钟</span>
+        <div class="content-wrapper">
+            <%= if (layout == "two-column" && config["pages.post.sidebarPosition"] == "left") { %>
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <%= if (config["pages.post.showToc"] != false && tocPosition == "sidebar") { %>
+                <div class="widget toc-widget">
+                    <h4>📑 文章目录</h4>
+                    <ul>
+                        <li><a href="#section1">简介</a></li>
+                        <li><a href="#section2">主要内容</a></li>
+                        <li><a href="#section3">总结</a></li>
+                    </ul>
                 </div>
-            </header>
-            
-            <div class="article-content">
-                <%= post.Content %>
-            </div>
-            
-            <footer class="article-footer">
-                <div class="tags">
-                    <span style="color: #6b7280; margin-right: 10px;">标签:</span>
-                    <a href="/tag/example" class="tag">技术</a>
-                    <a href="/tag/example" class="tag">编程</a>
+                <%= } %>
+                
+                <div class="widget">
+                    <h4>👤 作者</h4>
+                    <p>博主</p>
                 </div>
-            </footer>
-        </article>
-        
-        <footer>
-            <p>&copy; 2026 <%= site["title"] %>. Powered by Catter CMS</p>
-        </footer>
+            </aside>
+            <%= } %>
+            
+            <!-- Article -->
+            <article class="article-container">
+                <a href="/" class="back-link">← 返回首页</a>
+                
+                <header class="article-header">
+                    <h1><%= post.Title %></h1>
+                    <div class="article-meta">
+                        <span>📅 <%= post.PublishedAt %></span>
+                        <span>👁 <%= post.Views %> 阅读</span>
+                        <%= if (post.Category) { %>
+                        <span>📂 <%= post.Category.Name %></span>
+                        <%= } %>
+                    </div>
+                </header>
+                
+                <%= if (config["pages.post.showToc"] != false && tocPosition == "top") { %>
+                <div class="toc">
+                    <h3>📑 文章目录</h3>
+                    <ul>
+                        <li><a href="#section1">简介</a></li>
+                        <li><a href="#section2">主要内容</a></li>
+                        <li><a href="#section3">总结</a></li>
+                    </ul>
+                </div>
+                <%= } %>
+                
+                <div class="article-content">
+                    <%= post.Content %>
+                </div>
+                
+                <%= if (config["pages.post.showAuthor"] != false) { %>
+                <div class="author-info">
+                    <div class="author-avatar"></div>
+                    <div class="author-details">
+                        <h4>作者</h4>
+                        <p>热爱技术，分享知识</p>
+                    </div>
+                </div>
+                <%= } %>
+                
+                <%= if (config["pages.post.showShare"] != false) { %>
+                <div class="share-section">
+                    <h4>分享文章</h4>
+                    <div class="share-buttons">
+                        <a href="#" class="share-btn weibo">微博</a>
+                        <a href="#" class="share-btn wechat">微信</a>
+                        <a href="#" class="share-btn twitter">Twitter</a>
+                    </div>
+                </div>
+                <%= } %>
+                
+                <%= if (config["pages.post.showPrevNext"] != false) { %>
+                <div class="prev-next">
+                    <a href="#" class="prev">
+                        <div class="label">上一篇</div>
+                        <div>文章标题</div>
+                    </a>
+                    <a href="#" class="next">
+                        <div class="label">下一篇</div>
+                        <div>文章标题</div>
+                    </a>
+                </div>
+                <%= } %>
+                
+                <%= if (config["pages.post.showRelated"] != false) { %>
+                <div class="related-posts">
+                    <h3>相关文章</h3>
+                    <div class="related-grid">
+                        <a href="#" class="related-card">
+                            <h4>相关文章标题</h4>
+                        </a>
+                        <a href="#" class="related-card">
+                            <h4>相关文章标题</h4>
+                        </a>
+                        <a href="#" class="related-card">
+                            <h4>相关文章标题</h4>
+                        </a>
+                    </div>
+                </div>
+                <%= } %>
+            </article>
+            
+            <%= if (layout == "two-column" && config["pages.post.sidebarPosition"] != "left") { %>
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <%= if (config["pages.post.showToc"] != false && tocPosition == "sidebar") { %>
+                <div class="widget toc-widget">
+                    <h4>📑 文章目录</h4>
+                    <ul>
+                        <li><a href="#section1">简介</a></li>
+                        <li><a href="#section2">主要内容</a></li>
+                        <li><a href="#section3">总结</a></li>
+                    </ul>
+                </div>
+                <%= } %>
+                
+                <div class="widget">
+                    <h4>👤 作者</h4>
+                    <p>博主</p>
+                </div>
+            </aside>
+            <%= } %>
+        </div>
     </div>
+    
+    <!-- Custom JavaScript -->
+    <%= if (config["custom.js"]) { %>
+    <script>
+    <%= config["custom.js"] %>
+    </script>
+    <%= } %>
 </body>
 </html>

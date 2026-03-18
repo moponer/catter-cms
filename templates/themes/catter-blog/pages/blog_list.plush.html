@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章列表 - <%= site["title"] %></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: <%= config["appearance.typography.baseFont"] || "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" %>;
+            line-height: 1.6;
+            color: <%= config["appearance.colors.text"] || "#1f2937" %>;
+            background: <%= config["appearance.colors.background"] || "#f5f7fa" %>;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: <%= config["appearance.layout.width"] || "1200px" %>;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        nav .logo {
+            font-size: 1.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, <%= config["appearance.colors.primary"] || "#3B82F6" %>, <%= config["appearance.colors.secondary"] || "#764ba2" %>);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        nav a {
+            margin-left: 30px;
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+        }
+        
+        .page-header {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .page-header h1 {
+            font-size: 2em;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: #6b7280;
+        }
+        
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+        
+        .posts-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .post-card {
+            padding: 25px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .post-card:last-child {
+            border-bottom: none;
+        }
+        
+        .post-card h3 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+        
+        .post-card h3 a {
+            color: #1f2937;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .post-card h3 a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        .post-meta {
+            color: #6b7280;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .post-meta span {
+            margin-right: 15px;
+        }
+        
+        .post-excerpt {
+            color: #4b5563;
+            line-height: 1.7;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            display: block;
+        }
+        
+        .widget {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .widget h4 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        .widget ul {
+            list-style: none;
+        }
+        
+        .widget li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .widget a {
+            color: #4b5563;
+            text-decoration: none;
+        }
+        
+        .widget a:hover {
+            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .pagination a, .pagination span {
+            padding: 10px 16px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #4b5563;
+        }
+        
+        .pagination a:hover, .pagination .current {
+            background: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: white;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+        
+        <%= config["custom.css"] %>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav>
+            <div class="logo"><%= site["title"] %></div>
+            <div>
+                <a href="/">首页</a>
+                <a href="/blog">文章</a>
+                <a href="/categories">分类</a>
+                <a href="/tags">标签</a>
+                <a href="/archives">归档</a>
+            </div>
+        </nav>
+        
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>📚 文章列表</h1>
+            <p>共 <%= pagination["total"] %> 篇文章</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <!-- Posts -->
+            <main class="posts-section">
+                <%= for (post) in posts { %>
+                <article class="post-card">
+                    <h3><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></h3>
+                    <div class="post-meta">
+                        <span>📅 <%= post.PublishedAt %></span>
+                        <span>👁 <%= post.Views %> 阅读</span>
+                        <%= if (post.Category) { %>
+                        <span>📂 <a href="/category/<%= post.Category.Slug %>"><%= post.Category.Name %></a></span>
+                        <%= } %>
+                    </div>
+                    <p class="post-excerpt"><%= post.Excerpt %></p>
+                </article>
+                <%= } %>
+                
+                <%= if (len(posts) == 0) { %>
+                <p style="text-align:center;color:#6b7280;padding:40px;">暂无文章</p>
+                <%= } %>
+                
+                <!-- Pagination -->
+                <%= if (pagination["totalPages"] > 1) { %>
+                <div class="pagination">
+                    <%= if (pagination["page"] > 1) { %>
+                    <a href="/blog?page=<%= pagination["page"] - 1 %>">上一页</a>
+                    <%= } %>
+                    
+                    <%= for (i) in [1, 2, 3] { %>
+                    <%= if (i <= pagination["totalPages"]) { %>
+                    <%= if (i == pagination["page"]) { %>
+                    <span class="current"><%= i %></span>
+                    <%= } else { %>
+                    <a href="/blog?page=<%= i %>"><%= i %></a>
+                    <%= } %>
+                    <%= } %>
+                    <%= } %>
+                    
+                    <%= if (pagination["page"] < pagination["totalPages"]) { %>
+                    <a href="/blog?page=<%= pagination["page"] + 1 %>">下一页</a>
+                    <%= } %>
+                </div>
+                <%= } %>
+            </main>
+            
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="widget">
+                    <h4>🔍 搜索</h4>
+                    <form action="/search" method="get">
+                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                    </form>
+                </div>
+                
+                <div class="widget">
+                    <h4>📂 分类</h4>
+                    <ul>
+                        <%= for (category) in categories { %>
+                        <li><a href="/category/<%= category.Slug %>"><%= category.Name %></a></li>
+                        <%= } %>
+                    </ul>
+                </div>
+                
+                <div class="widget">
+                    <h4>🏷 标签</h4>
+                    <ul>
+                        <%= for (tag) in tags { %>
+                        <li><a href="/tag/<%= tag.Slug %>"><%= tag.Name %></a></li>
+                        <%= } %>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+        
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2026 <%= site["title"] %>. Powered by Catter CMS</p>
+        </footer>
+    </div>
+    
+    <%= if (config["custom.js"]) { %>
+    <script>
+    <%= config["custom.js"] %>
+    </script>
+    <%= } %>
+</body>
+</html>

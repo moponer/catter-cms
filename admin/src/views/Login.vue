@@ -106,7 +106,7 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f7fa;
 }
 
 .login-card {
@@ -114,7 +114,7 @@ const handleLogin = async () => {
   padding: 40px;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .login-header {
@@ -128,7 +128,7 @@ const handleLogin = async () => {
   justify-content: center;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  background: #409eff;
   border-radius: 16px;
   color: white;
   font-size: 28px;
