@@ -11,7 +11,6 @@ import (
 
 	"catter-cms-gin/internal/models"
 
-	"github.com/gobuffalo/plush/v4"
 	"gopkg.in/yaml.v3"
 )
 
@@ -257,21 +256,17 @@ func SaveThemeConfigToDB(themeName string, config map[string]interface{}) error 
 	return models.SaveThemeConfig(themeName, config)
 }
 
-// RenderTemplate 渲染模板 - 使用Plush引擎
+// RenderTemplate 渲染模板 - 使用 Go 标准模板引擎
 func RenderTemplate(templateName string, data map[string]interface{}) (template.HTML, error) {
 	theme := GetActiveTheme()
 	if theme == nil {
 		return "", fmt.Errorf("no active theme")
 	}
 
-	// 构建模板路径
-	templatePath := filepath.Join(theme.Path, "pages", templateName+".plush.html")
+	// 构建模板路径 - 只使用 .html 后缀
+	templatePath := filepath.Join(theme.Path, "pages", templateName+".html")
 	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
-		// 尝试 .html 后缀
-		templatePath = filepath.Join(theme.Path, "pages", templateName+".html")
-		if _, err := os.Stat(templatePath); os.IsNotExist(err) {
-			return "", fmt.Errorf("template not found: %s", templateName)
-		}
+		return "", fmt.Errorf("template not found: %s", templateName)
 	}
 
 	// 读取模板内容
@@ -316,68 +311,16 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 	
 	fmt.Printf("[DEBUG] Template data prepared: headerMenu=%+v\n", headerMenu)
 
-	// 检查是否是 .html 后缀（Go标准模板）
-	if strings.HasSuffix(templatePath, ".html") && !strings.Contains(templatePath, ".plush.html") {
-		// 直接使用 Go 标准模板引擎
-		return renderWithStandardTemplate(templateName, string(content), templateData)
-	}
-	
-	// 使用 Plush 引擎渲染
-	ctx := plush.NewContext()
-	
-	// 添加所有数据到上下文
-	for key, value := range templateData {
-		ctx.Set(key, value)
-	}
-	
-	// 添加辅助函数
-	ctx.Set("asset_path", func(path string) string {
-		return "/themes/" + theme.Name + "/" + path
-	})
-	
-	ctx.Set("current_theme", func() string {
-		return theme.Name
-	})
-	
-	// 添加len函数
-	ctx.Set("len", func(v interface{}) int {
-		switch val := v.(type) {
-		case []interface{}:
-			return len(val)
-		case []models.Post:
-			return len(val)
-		case []models.Category:
-			return len(val)
-		case []models.Tag:
-			return len(val)
-		case []models.MenuItem:
-			return len(val)
-		case string:
-			return len(val)
-		default:
-			return 0
-		}
-	})
-
-	// 执行模板渲染
-	rendered, err := plush.Render(string(content), ctx)
-	if err != nil {
-		// Plush渲染失败，尝试使用标准模板引擎作为降级方案
-		return renderWithStandardTemplate(templateName, string(content), templateData)
-	}
-
-	return template.HTML(rendered), nil
+	// 使用 Go 标准模板引擎渲染
+	return renderWithStandardTemplate(templateName, string(content), templateData)
 }
 
-// renderWithStandardTemplate 使用标准模板引擎渲染（降级方案）
+// renderWithStandardTemplate 使用标准模板引擎渲染
 func renderWithStandardTemplate(templateName, content string, data map[string]interface{}) (template.HTML, error) {
-	// 转换Plush语法到Go模板语法
-	convertedContent := convertPlushToGoTemplate(content)
-
 	// 创建模板并添加自定义函数
 	tmpl := template.New(templateName).Funcs(getTemplateFuncs())
 	
-	_, err := tmpl.Parse(convertedContent)
+	_, err := tmpl.Parse(content)
 	if err != nil {
 		return "", fmt.Errorf("template parse error: %v", err)
 	}
@@ -621,28 +564,17 @@ func convertPlushToGoTemplate(content string) string {
 
 // RenderTemplateString 渲染模板字符串
 func RenderTemplateString(content string, data map[string]interface{}) (template.HTML, error) {
-	// 尝试使用Plush渲染
-	ctx := plush.NewContext()
-	for key, value := range data {
-		ctx.Set(key, value)
-	}
-
-	rendered, err := plush.Render(content, ctx)
+	// 使用标准模板引擎
+	tmpl, err := template.New("dynamic").Funcs(getTemplateFuncs()).Parse(content)
 	if err != nil {
-		// 降级到标准模板
-		tmpl, err := template.New("dynamic").Parse(content)
-		if err != nil {
-			return "", err
-		}
-
-		var buf bytes.Buffer
-		if err := tmpl.Execute(&buf, data); err != nil {
-			return "", err
-		}
-		return template.HTML(buf.String()), nil
+		return "", err
 	}
 
-	return template.HTML(rendered), nil
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", err
+	}
+	return template.HTML(buf.String()), nil
 }
 
 // GetThemeConfig 获取主题配置
