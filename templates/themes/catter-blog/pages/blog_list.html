@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章列表 - {{ .site.title }}</title>
+    <meta name="description" content="所有文章">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: {{ getConfig "appearance.colors.primary" "#2d3436" }};
+            --secondary: {{ getConfig "appearance.colors.secondary" "#636e72" }};
+            --accent: {{ getConfig "appearance.colors.accent" "#e17055" }};
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --text-tertiary: #adb5bd;
+            --border-color: #dee2e6;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s ease;
+        }
+
+        .nav-menu a:hover { color: var(--accent); }
+
+        .page-header {
+            background: var(--primary);
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .page-header p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 32px;
+        }
+
+        .posts-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .post-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .post-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .post-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .post-card-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .post-card-title a:hover { color: var(--accent); }
+
+        .post-meta {
+            display: flex;
+            gap: 16px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .post-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .post-excerpt {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .post-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 32px;
+        }
+
+        .pagination a {
+            padding: 8px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .pagination a:hover,
+        .pagination a.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .widget {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .widget-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .widget-title i { color: var(--accent); }
+
+        .widget-list {
+            list-style: none;
+        }
+
+        .widget-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .widget-list li:last-child { border-bottom: none; }
+
+        .widget-list a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .widget-list a:hover { color: var(--accent); }
+
+        .footer {
+            background: var(--primary);
+            padding: 40px 24px;
+            margin-top: 48px;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .nav-menu { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/blog">文章</a></li>
+                    <li><a href="/categories">分类</a></li>
+                    <li><a href="/tags">标签</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>全部文章</h1>
+        <p>探索所有精彩内容</p>
+    </section>
+
+    <div class="main-container">
+        <main class="posts-section">
+            {{ if gt (len .posts) 0 }}
+                {{ range .posts }}
+                <article class="post-card">
+                    <h2 class="post-card-title">
+                        <a href="/blog/{{ .Slug }}">{{ .Title }}</a>
+                    </h2>
+                    <div class="post-meta">
+                        <span class="post-meta-item">
+                            <i class="far fa-calendar"></i>
+                            {{ .PublishedAt.Format "2006-01-02" }}
+                        </span>
+                        <span class="post-meta-item">
+                            <i class="far fa-eye"></i>
+                            {{ .Views }} 阅读
+                        </span>
+                        {{ if .Category }}
+                        <span class="post-meta-item">
+                            <i class="far fa-folder"></i>
+                            {{ .Category.Name }}
+                        </span>
+                        {{ end }}
+                    </div>
+                    {{ if .Excerpt }}
+                    <p class="post-excerpt">{{ .Excerpt }}</p>
+                    {{ end }}
+                    {{ if .Tags }}
+                    <div class="post-tags">
+                        {{ range .Tags }}
+                            <a href="/tag/{{ .Slug }}" class="tag">{{ .Name }}</a>
+                        {{ end }}
+                    </div>
+                    {{ end }}
+                </article>
+                {{ end }}
+            {{ else }}
+                <div class="widget">
+                    <p style="text-align: center; color: var(--text-tertiary); padding: 40px 0;">
+                        暂无文章
+                    </p>
+                </div>
+            {{ end }}
+
+            {{ if gt .pagination.totalPages 1 }}
+            <div class="pagination">
+                {{ if gt .pagination.page 1 }}
+                <a href="/blog?page={{ sub .pagination.page 1 }}">上一页</a>
+                {{ end }}
+                
+                {{ range $i := iterate .pagination.totalPages }}
+                <a href="/blog?page={{ add $i 1 }}" class="{{ if eq (add $i 1) $.pagination.page }}active{{ end }}">{{ add $i 1 }}</a>
+                {{ end }}
+                
+                {{ if lt .pagination.page .pagination.totalPages }}
+                <a href="/blog?page={{ add .pagination.page 1 }}">下一页</a>
+                {{ end }}
+            </div>
+            {{ end }}
+        </main>
+
+        <aside class="sidebar">
+            <div class="widget">
+                <h3 class="widget-title"><i class="fas fa-folder"></i> 分类</h3>
+                <ul class="widget-list">
+                    {{ range .categories }}
+                    <li><a href="/category/{{ .Slug }}"><span>{{ .Name }}</span></a></li>
+                    {{ end }}
+                </ul>
+            </div>
+
+            <div class="widget">
+                <h3 class="widget-title"><i class="fas fa-tags"></i> 标签</h3>
+                <div class="post-tags">
+                    {{ range .tags }}
+                        <a href="/tag/{{ .Slug }}" class="tag">{{ .Name }}</a>
+                    {{ end }}
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <p>&copy; 2026 {{ .site.title }}. Powered by Catter CMS</p>
+        </div>
+    </footer>
+</body>
+</html>

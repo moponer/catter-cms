@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= page.Title %> - <%= site["title"] %></title>
-    <meta name="description" content="<%= page.Excerpt || site["description"] %>">
+    <title><%= page.Title %> - <%= config.siteTitle %></title>
     <style>
         * {
             margin: 0;
@@ -13,95 +12,80 @@
         }
         
         body {
-            font-family: <%= config["appearance.typography.baseFont"] || "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" %>;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: <%= config["appearance.colors.text"] || "#1f2937" %>;
-            background: <%= config["appearance.colors.background"] || "#f5f7fa" %>;
+            color: #2d3436;
+            background: #ffffff;
             min-height: 100vh;
         }
         
         .container {
-            max-width: <%= config["appearance.layout.width"] || "1200px" %>;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
         
         /* Navigation */
         nav {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
+            background: #2d3436;
+            padding: 16px 24px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-radius: 8px;
         }
         
         nav .logo {
-            font-size: 1.5em;
-            font-weight: 800;
-            background: linear-gradient(135deg, <%= config["appearance.colors.primary"] || "#3B82F6" %>, <%= config["appearance.colors.secondary"] || "#764ba2" %>);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #ffffff;
         }
         
         nav .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 24px;
         }
         
         nav a {
             text-decoration: none;
-            color: #4b5563;
+            color: #dfe6e9;
             font-weight: 500;
-            transition: color 0.3s;
+            transition: color 0.2s;
         }
         
         nav a:hover {
-            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: #e17055;
         }
         
-        /* Layout */
-        <%= let showSidebar = page.ShowSidebar != false && config["pages.page.showSidebar"] != false %>
-        <%= let sidebarPos = config["pages.page.sidebarPosition"] || config["appearance.layout.sidebar"] || "right" %>
-        
-        <%= if (showSidebar) { %>
         .content-wrapper {
             display: grid;
-            grid-template-columns: <%= sidebarPos == "left" ? "300px 1fr" : "1fr 300px" %>;
+            grid-template-columns: 1fr 280px;
             gap: 30px;
         }
-        <%= } else { %>
-        .content-wrapper {
-            display: block;
-        }
-        <%= } %>
         
         /* Page Content */
         .page-content {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: #ffffff;
+            padding: 50px;
+            border-radius: 8px;
+            border: 1px solid #dfe6e9;
         }
         
         .page-header {
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            border-bottom: 2px solid #e17055;
         }
         
         .page-header h1 {
             font-size: 2em;
-            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: #2d3436;
             margin-bottom: 10px;
         }
         
         .page-meta {
-            color: #6b7280;
+            color: #636e72;
             font-size: 0.9em;
         }
         
@@ -117,13 +101,15 @@
         .page-body h2 {
             font-size: 1.5em;
             margin: 30px 0 15px;
-            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: #2d3436;
+            border-left: 4px solid #e17055;
+            padding-left: 16px;
         }
         
         .page-body h3 {
             font-size: 1.3em;
             margin: 25px 0 12px;
-            color: #374151;
+            color: #2d3436;
         }
         
         .page-body p {
@@ -140,7 +126,7 @@
         }
         
         .page-body a {
-            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: #e17055;
             text-decoration: none;
         }
         
@@ -150,30 +136,28 @@
         
         .page-body img {
             max-width: 100%;
-            height: auto;
             border-radius: 8px;
             margin: 20px 0;
         }
         
         .page-body blockquote {
-            border-left: 4px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            border-left: 4px solid #e17055;
             padding: 15px 20px;
             margin: 20px 0;
-            background: #f9fafb;
-            border-radius: 0 8px 8px 0;
+            background: #f8f9fa;
         }
         
         .page-body code {
-            background: #f3f4f6;
+            background: #f8f9fa;
             padding: 2px 6px;
             border-radius: 4px;
-            font-family: <%= config["appearance.typography.codeFont"] || "'Fira Code', 'Consolas', 'Courier New', monospace" %>;
+            font-family: 'Fira Code', monospace;
             font-size: 0.9em;
         }
         
         .page-body pre {
-            background: #1f2937;
-            color: #f9fafb;
+            background: #2d3436;
+            color: #dfe6e9;
             padding: 20px;
             border-radius: 8px;
             overflow-x: auto;
@@ -187,23 +171,22 @@
         
         /* Sidebar */
         .sidebar {
-            display: <%= showSidebar ? "block" : "none" %>;
+            display: block;
         }
         
         .widget {
-            background: white;
+            background: #f8f9fa;
             padding: 20px;
-            border-radius: 15px;
+            border-radius: 8px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
         .widget h4 {
-            font-size: 1.1em;
+            font-size: 1em;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid <%= config["appearance.colors.primary"] || "#3B82F6" %>;
-            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            border-bottom: 2px solid #e17055;
+            color: #2d3436;
         }
         
         .widget ul {
@@ -212,7 +195,7 @@
         
         .widget li {
             padding: 8px 0;
-            border-bottom: 1px solid #f3f4f6;
+            border-bottom: 1px solid #dfe6e9;
         }
         
         .widget li:last-child {
@@ -220,21 +203,22 @@
         }
         
         .widget a {
-            color: #4b5563;
+            color: #636e72;
             text-decoration: none;
-            transition: color 0.3s;
+            transition: color 0.2s;
         }
         
         .widget a:hover {
-            color: <%= config["appearance.colors.primary"] || "#3B82F6" %>;
+            color: #e17055;
         }
         
         /* Footer */
         footer {
             text-align: center;
             padding: 40px;
-            color: #6b7280;
+            color: #636e72;
             margin-top: 40px;
+            border-top: 1px solid #dfe6e9;
         }
         
         /* Responsive */
@@ -248,72 +232,33 @@
             .page-content {
                 padding: 25px;
             }
-            nav a {
-                margin-left: 15px;
-                font-size: 0.9em;
-            }
         }
-        
-        /* Custom CSS */
-        <%= config["custom.css"] %>
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Navigation -->
         <nav>
-            <a href="/" class="logo"><%= site["title"] %></a>
+            <a href="/" class="logo"><%= config.siteTitle %></a>
             <div class="nav-links">
-                <%= if (headerMenu) { %>
-                    <%= for (item) in headerMenu { %>
-                        <a href="<%= item.url %>" <%= if (item.target == "_blank") { %>target="_blank"<% } %>>
-                            <%= item.label %>
-                        </a>
-                    <%= } %>
-                <%= } else { %>
-                    <a href="/">首页</a>
-                    <a href="/blog">文章</a>
-                    <a href="/categories">分类</a>
-                    <a href="/page/about">关于</a>
-                <%= } %>
+                <a href="/">首页</a>
+                <a href="/blog">文章</a>
+                <a href="/categories">分类</a>
+                <a href="/tags">标签</a>
             </div>
         </nav>
         
         <!-- Main Content -->
         <div class="content-wrapper">
-            <%= if (showSidebar && sidebarPos == "left") { %>
-            <!-- Sidebar Left -->
-            <aside class="sidebar">
-                <div class="widget">
-                    <h4>搜索</h4>
-                    <form action="/search" method="get">
-                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                    </form>
-                </div>
-                
-                <div class="widget">
-                    <h4>最近文章</h4>
-                    <ul>
-                        <%= for (post) in recentPosts { %>
-                        <li><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></li>
-                        <%= } %>
-                    </ul>
-                </div>
-            </aside>
-            <%= } %>
-            
             <!-- Page Content -->
             <main class="page-content">
                 <header class="page-header">
                     <h1><%= page.Title %></h1>
                     <div class="page-meta">
-                        <span>📅 <%= page.PublishedAt %></span>
-                        <%= if (page.UpdatedAt && page.UpdatedAt != page.PublishedAt) { %>
-                        <span>📝 更新于 <%= page.UpdatedAt %></span>
-                        <%= } %>
+                        <span><%= page.PublishedAt %></span>
                         <%= if (page.Author) { %>
-                        <span>👤 <%= page.Author.Name %></span>
-                        <%= } %>
+                        <span><%= page.Author.Name %></span>
+                        <% } %>
                     </div>
                 </header>
                 
@@ -322,13 +267,12 @@
                 </div>
             </main>
             
-            <%= if (showSidebar && sidebarPos == "right") { %>
-            <!-- Sidebar Right -->
+            <!-- Sidebar -->
             <aside class="sidebar">
                 <div class="widget">
                     <h4>搜索</h4>
                     <form action="/search" method="get">
-                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                        <input type="text" name="q" placeholder="搜索文章..." style="width:100%;padding:10px;border:1px solid #dfe6e9;border-radius:6px;">
                     </form>
                 </div>
                 
@@ -337,24 +281,16 @@
                     <ul>
                         <%= for (post) in recentPosts { %>
                         <li><a href="/blog/<%= post.Slug %>"><%= post.Title %></a></li>
-                        <%= } %>
+                        <% } %>
                     </ul>
                 </div>
             </aside>
-            <%= } %>
         </div>
         
         <!-- Footer -->
         <footer>
-            <p>&copy; 2026 <%= site["title"] %>. Powered by Catter CMS</p>
+            <p>&copy; 2026 <%= config.siteTitle %>. Powered by Catter CMS</p>
         </footer>
     </div>
-    
-    <!-- Custom JavaScript -->
-    <%= if (config["custom.js"]) { %>
-    <script>
-    <%= config["custom.js"] %>
-    </script>
-    <%= } %>
 </body>
 </html>

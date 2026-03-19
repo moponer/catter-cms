@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .category.Name }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ .category.Description }}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: {{ getConfig "appearance.colors.primary" "#2d3436" }};
+            --secondary: {{ getConfig "appearance.colors.secondary" "#636e72" }};
+            --accent: {{ getConfig "appearance.colors.accent" "#e17055" }};
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --text-tertiary: #adb5bd;
+            --border-color: #dee2e6;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--accent);
+        }
+
+        /* 分类头部 */
+        .category-header {
+            background: var(--primary);
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        .category-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .category-header p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* 主内容区 */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 32px;
+        }
+
+        /* 文章列表 */
+        .posts-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .post-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .post-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .post-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .post-card-title a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .post-card-title a:hover {
+            color: var(--accent);
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 16px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .post-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .post-excerpt {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 32px;
+        }
+
+        .pagination a {
+            padding: 8px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .pagination a:hover,
+        .pagination a.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .widget {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .widget-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .widget-title i {
+            color: var(--accent);
+        }
+
+        .widget-list {
+            list-style: none;
+        }
+
+        .widget-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .widget-list li:last-child {
+            border-bottom: none;
+        }
+
+        .widget-list a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: color 0.2s ease;
+        }
+
+        .widget-list a:hover {
+            color: var(--accent);
+        }
+
+        /* 搜索框 */
+        .search-form {
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+        }
+
+        .search-btn {
+            padding: 10px 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background: var(--accent);
+        }
+
+        /* 页脚 */
+        .footer {
+            background: var(--primary);
+            padding: 40px 24px;
+            margin-top: 48px;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .category-header h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/blog">文章</a></li>
+                    <li><a href="/categories">分类</a></li>
+                    <li><a href="/about">关于</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 分类头部 -->
+    <section class="category-header">
+        <h1>{{ .category.Name }}</h1>
+        {{ if .category.Description }}
+        <p>{{ .category.Description }}</p>
+        {{ end }}
+    </section>
+
+    <!-- 主内容 -->
+    <div class="main-container">
+        <!-- 文章列表 -->
+        <main class="posts-section">
+            {{ if gt (len .posts) 0 }}
+                {{ range .posts }}
+                <article class="post-card">
+                    <h2 class="post-card-title">
+                        <a href="/blog/{{ .Slug }}">{{ .Title }}</a>
+                    </h2>
+                    <div class="post-meta">
+                        <span class="post-meta-item">
+                            <i class="far fa-calendar"></i>
+                            {{ .PublishedAt.Format "2006-01-02" }}
+                        </span>
+                        <span class="post-meta-item">
+                            <i class="far fa-eye"></i>
+                            {{ .Views }} 阅读
+                        </span>
+                    </div>
+                    {{ if .Excerpt }}
+                    <p class="post-excerpt">{{ .Excerpt }}</p>
+                    {{ end }}
+                </article>
+                {{ end }}
+            {{ else }}
+                <div class="widget">
+                    <p style="text-align: center; color: var(--text-tertiary); padding: 40px 0;">
+                        该分类下暂无文章
+                    </p>
+                </div>
+            {{ end }}
+        </main>
+
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="widget">
+                <h3 class="widget-title">
+                    <i class="fas fa-search"></i>
+                    搜索
+                </h3>
+                <form action="/search" method="get" class="search-form">
+                    <input type="text" name="q" class="search-input" placeholder="搜索文章...">
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="widget">
+                <h3 class="widget-title">
+                    <i class="fas fa-folder"></i>
+                    所有分类
+                </h3>
+                <ul class="widget-list">
+                    {{ range .categories }}
+                    <li>
+                        <a href="/category/{{ .Slug }}">
+                            <span>{{ .Name }}</span>
+                        </a>
+                    </li>
+                    {{ end }}
+                </ul>
+            </div>
+        </aside>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <p>&copy; {{ .site.year }} {{ .site.title }}. Powered by Catter CMS</p>
+        </div>
+    </footer>
+</body>
+</html>

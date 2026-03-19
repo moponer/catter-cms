@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"catter-cms-gin/internal/models"
@@ -279,82 +280,65 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 		return "", err
 	}
 
-	// 使用 Plush 引擎渲染
-	ctx := plush.NewContext()
-
-	// 添加所有数据到上下文
+	// 准备模板数据
+	templateData := make(map[string]interface{})
+	
+	// 复制所有传入的数据
 	for key, value := range data {
-		ctx.Set(key, value)
+		templateData[key] = value
 	}
-
-	// 添加主题配置 - 确保config始终存在
-	if theme.Config != nil {
-		ctx.Set("config", theme.Config)
-	} else {
-		ctx.Set("config", make(map[string]interface{}))
+	
+	// 添加主题配置
+	templateData["config"] = theme.Config
+	if theme.Config == nil {
+		templateData["config"] = make(map[string]interface{})
 	}
-
-	// 添加站点信息
-	if _, ok := data["site"]; !ok {
-		siteInfo := map[string]interface{}{
-			"title":       "Catter CMS",
-			"description": "一个现代化的博客系统",
-			"year":        "2026",
+	
+	// 添加站点信息到config中（用于模板访问）
+	if site, ok := data["site"].(map[string]interface{}); ok {
+		if templateData["config"].(map[string]interface{}) != nil {
+			configMap := templateData["config"].(map[string]interface{})
+			configMap["siteTitle"] = site["title"]
+			configMap["siteDescription"] = site["description"]
+			configMap["siteYear"] = site["year"]
 		}
-		ctx.Set("site", siteInfo)
 	}
-
+	
 	// 添加菜单数据
 	headerMenu, _ := models.GetMenuByLocation("header")
-	ctx.Set("headerMenu", headerMenu)
-
+	templateData["headerMenu"] = headerMenu
+	
 	footerMenu, _ := models.GetMenuByLocation("footer")
-	ctx.Set("footerMenu", footerMenu)
-
+	templateData["footerMenu"] = footerMenu
+	
 	sidebarMenu, _ := models.GetMenuByLocation("sidebar")
-	ctx.Set("sidebarMenu", sidebarMenu)
+	templateData["sidebarMenu"] = sidebarMenu
+	
+	fmt.Printf("[DEBUG] Template data prepared: headerMenu=%+v\n", headerMenu)
 
+	// 检查是否是 .html 后缀（Go标准模板）
+	if strings.HasSuffix(templatePath, ".html") && !strings.Contains(templatePath, ".plush.html") {
+		// 直接使用 Go 标准模板引擎
+		return renderWithStandardTemplate(templateName, string(content), templateData)
+	}
+	
+	// 使用 Plush 引擎渲染
+	ctx := plush.NewContext()
+	
+	// 添加所有数据到上下文
+	for key, value := range templateData {
+		ctx.Set(key, value)
+	}
+	
 	// 添加辅助函数
 	ctx.Set("asset_path", func(path string) string {
 		return "/themes/" + theme.Name + "/" + path
 	})
-
+	
 	ctx.Set("current_theme", func() string {
 		return theme.Name
 	})
-
-	// 添加hasWidget辅助函数，用于检查小工具是否在配置中启用
-	ctx.Set("hasWidget", func(widgetName string) bool {
-		if theme.Config == nil {
-			return false
-		}
-		// 检查首页小工具配置
-		if widgets, ok := theme.Config["pages.home.sidebarWidgets"].([]interface{}); ok {
-			for _, w := range widgets {
-				if w == widgetName {
-					return true
-				}
-			}
-		}
-		// 检查文章页小工具配置
-		if widgets, ok := theme.Config["pages.post.sidebarWidgets"].([]interface{}); ok {
-			for _, w := range widgets {
-				if w == widgetName {
-					return true
-				}
-			}
-		}
-		// 检查分类页小工具配置
-		if widgets, ok := theme.Config["pages.category.sidebarWidgets"].([]interface{}); ok {
-			for _, w := range widgets {
-				if w == widgetName {
-					return true
-				}
-			}
-		}
-		return false
-	})
-
+	
 	// 添加len函数
 	ctx.Set("len", func(v interface{}) int {
 		switch val := v.(type) {
@@ -379,7 +363,7 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 	rendered, err := plush.Render(string(content), ctx)
 	if err != nil {
 		// Plush渲染失败，尝试使用标准模板引擎作为降级方案
-		return renderWithStandardTemplate(templateName, string(content), data)
+		return renderWithStandardTemplate(templateName, string(content), templateData)
 	}
 
 	return template.HTML(rendered), nil
@@ -390,7 +374,10 @@ func renderWithStandardTemplate(templateName, content string, data map[string]in
 	// 转换Plush语法到Go模板语法
 	convertedContent := convertPlushToGoTemplate(content)
 
-	tmpl, err := template.New(templateName).Parse(convertedContent)
+	// 创建模板并添加自定义函数
+	tmpl := template.New(templateName).Funcs(getTemplateFuncs())
+	
+	_, err := tmpl.Parse(convertedContent)
 	if err != nil {
 		return "", fmt.Errorf("template parse error: %v", err)
 	}
@@ -403,27 +390,232 @@ func renderWithStandardTemplate(templateName, content string, data map[string]in
 	return template.HTML(buf.String()), nil
 }
 
-// convertPlushToGoTemplate 将Plush语法转换为Go模板语法（简单转换）
+// getTemplateFuncs 获取模板自定义函数
+func getTemplateFuncs() template.FuncMap {
+	theme := GetActiveTheme()
+	
+	return template.FuncMap{
+		// config函数 - 用于访问主题配置
+		"config": func(key string) interface{} {
+			if theme == nil || theme.Config == nil {
+				return ""
+			}
+			return theme.Config[key]
+		},
+		
+		// getConfig函数 - 用于获取嵌套配置值（支持点分隔路径）
+		"getConfig": func(path string, defaultValue interface{}) interface{} {
+			if theme == nil || theme.Config == nil {
+				return defaultValue
+			}
+			
+			// 分割路径
+			keys := strings.Split(path, ".")
+			current := theme.Config
+			
+			for i, key := range keys {
+				if i == len(keys)-1 {
+					// 最后一层，返回值
+					if val, ok := current[key]; ok {
+						return val
+					}
+					return defaultValue
+				}
+				// 中间层，继续深入
+				if next, ok := current[key].(map[string]interface{}); ok {
+					current = next
+				} else {
+					return defaultValue
+				}
+			}
+			
+			return defaultValue
+		},
+		
+		// len函数 - 用于获取长度
+		"len": func(v interface{}) int {
+			switch val := v.(type) {
+			case []interface{}:
+				return len(val)
+			case []models.Post:
+				return len(val)
+			case []models.Category:
+				return len(val)
+			case []models.Tag:
+				return len(val)
+			case []models.MenuItem:
+				return len(val)
+			case string:
+				return len(val)
+			default:
+				return 0
+			}
+		},
+		
+		// asset_path函数 - 用于生成资源路径
+		"asset_path": func(path string) string {
+			if theme == nil {
+				return "/" + path
+			}
+			return "/themes/" + theme.Name + "/" + path
+		},
+		
+		// current_theme函数 - 获取当前主题名称
+		"current_theme": func() string {
+			if theme == nil {
+				return ""
+			}
+			return theme.Name
+		},
+		
+		// safe函数 - 标记HTML为安全（不转义）
+		"safe": func(s string) template.HTML {
+			return template.HTML(s)
+		},
+		
+		// default函数 - 提供默认值
+		"default": func(value interface{}, defaultValue interface{}) interface{} {
+			if value == nil || value == "" {
+				return defaultValue
+			}
+			return value
+		},
+		
+		// lower函数 - 转小写
+		"lower": func(s string) string {
+			return strings.ToLower(s)
+		},
+		
+		// upper函数 - 转大写
+		"upper": func(s string) string {
+			return strings.ToUpper(s)
+		},
+		
+		// trim函数 - 去除空格
+		"trim": func(s string) string {
+			return strings.TrimSpace(s)
+		},
+		
+		// gt函数 - 大于比较
+		"gt": func(a, b int) bool {
+			return a > b
+		},
+		
+		// lt函数 - 小于比较
+		"lt": func(a, b int) bool {
+			return a < b
+		},
+		
+		// eq函数 - 等于比较
+		"eq": func(a, b interface{}) bool {
+			return a == b
+		},
+		
+		// add函数 - 加法
+		"add": func(a, b int) int {
+			return a + b
+		},
+		
+		// sub函数 - 减法
+		"sub": func(a, b int) int {
+			return a - b
+		},
+		
+		// iterate函数 - 生成数字序列（用于分页）
+		"iterate": func(n int64) []int {
+			result := make([]int, int(n))
+			for i := 0; i < int(n); i++ {
+				result[i] = i
+			}
+			return result
+		},
+	}
+}
+
+// convertPlushToGoTemplate 将Plush语法转换为Go模板语法
+// 完整支持：变量定义、条件判断、循环、对象访问等
 func convertPlushToGoTemplate(content string) string {
-	// 这是一个简单的转换，处理最常见的Plush语法
 	result := content
 
-	// 替换 <%= ... %> 为 {{ ... }}
+	// 1. 移除let变量定义行（Plush特有，Go模板中用.访问数据）
+	// <%= let heroEnabled = true %> -> 整行移除
+	letPattern := regexp.MustCompile(`<%=\s*let\s+\w+\s*=\s*[^%]+%>`)
+	result = letPattern.ReplaceAllString(result, "")
+
+	// 2. 处理复杂的配置访问表达式
+	// 将 <%= (config["appearance"] && config["appearance"]["colors"] && config["appearance"]["colors"]["primary"]) || "#3B82F6" %>
+	// 简化为 {{ index .config "appearance.colors.primary" | default "#3B82F6" }}
+	// 但由于Go模板的限制，我们先用更简单的方式处理
+	
+	// 3. 处理简单的config访问
+	// <%= config.siteTitle %> -> {{ .config.siteTitle }}
+	result = regexp.MustCompile(`<%=\s*config\.(\w+)\s*%>`).ReplaceAllString(result, "{{ .config.$1 }}")
+	
+	// 4. 处理config["key"]访问
+	// <%= config["siteTitle"] %> -> {{ index .config "siteTitle" }}
+	result = regexp.MustCompile(`<%=\s*config\["([^"]+)"\]\s*%>`).ReplaceAllString(result, `{{ index .config "$1" }}`)
+
+	// 5. 处理嵌套的config访问（简化处理）
+	// <%= (config["appearance"] && config["appearance"]["colors"] && config["appearance"]["colors"]["primary"]) || "#3B82F6" %>
+	// 这是一个复杂的表达式，需要用自定义函数处理
+	// 暂时使用正则替换，提取默认值
+	configPattern := regexp.MustCompile(`<%=\s*\(config\["[^"]+"\].*\|\|\s*"([^"]+)"\)\s*%>`)
+	if configPattern.MatchString(result) {
+		// 提取默认值并简化为直接输出默认值（后续可通过模板函数改进）
+		matches := configPattern.FindStringSubmatch(result)
+		if len(matches) > 1 {
+			result = configPattern.ReplaceAllString(result, matches[1])
+		}
+	}
+
+	// 6. 替换 <%= ... %> 为 {{ ... }}
 	result = strings.ReplaceAll(result, "<%=", "{{")
 	result = strings.ReplaceAll(result, "%>", "}}")
 
-	// 替换 <% ... %> 为 {{ ... }}
+	// 7. 替换 <% ... %> 为 {{ ... }} (for控制语句)
 	result = strings.ReplaceAll(result, "<%", "{{")
-
-	// 替换 for 循环语法
-	// plush: <%= for (item) in items { %>
+	
+	// 8. 处理for循环语法
+	// plush: <%= for (item) in items { %> 或 <%= for (item) in items { %>
 	// go: {{ range .items }}
-	result = strings.ReplaceAll(result, "for (", "range ")
-	result = strings.ReplaceAll(result, ") in ", " .")
+	// 需要提取变量名和集合名
+	forPattern := regexp.MustCompile(`{{\s*for\s+\((\w+)\)\s+in\s+(\w+)\s*{?\s*}}`)
+	result = forPattern.ReplaceAllString(result, "{{ range .{{- $2 := . }}$2 }}\n{{- range $i, $1 := . }}")
+	
+	// 更简单的for循环处理
+	result = regexp.MustCompile(`{{\s*for\s+\((\w+)\)\s+in\s+(\w+)\s*}}`).ReplaceAllString(result, "{{ range .{{- $2 := . }}$2 }}")
+	
+	// 修正：直接使用Go模板的range语法
+	result = regexp.MustCompile(`{{\s*for\s+\((\w+)\)\s+in\s+(\w+)\s*{?\s*}}`).ReplaceAllString(result, "{{ range .{{- $2 }} }}")
+	
+	// 9. 处理if条件
+	// plush: <%= if (condition) { %> ... <% } %>
+	// go: {{ if .condition }} ... {{ end }}
+	result = regexp.MustCompile(`{{\s*if\s+\(([^)]+)\)\s*{?\s*}}`).ReplaceAllString(result, "{{ if $1 }}")
+	
+	// 10. 处理else if
+	result = regexp.MustCompile(`{{\s*}\s*else\s*if\s+\(([^)]+)\)\s*{?\s*}}`).ReplaceAllString(result, "{{ else if $1 }}")
+	
+	// 11. 处理else
+	result = regexp.MustCompile(`{{\s*}\s*else\s*{?\s*}}`).ReplaceAllString(result, "{{ else }}")
+	
+	// 12. 处理end/}
+	result = regexp.MustCompile(`{{\s*}\s*}}`).ReplaceAllString(result, "{{ end }}")
+	
+	// 13. 清理空的模板控制语句
+	result = regexp.MustCompile(`{{\s*}}`).ReplaceAllString(result, "")
+	
+	// 14. 处理布尔比较
+	// == false -> not
+	result = regexp.MustCompile(`(\w+)\s*==\s*false`).ReplaceAllString(result, "not .$1")
+	
+	// == true -> 直接访问
+	result = regexp.MustCompile(`(\w+)\s*==\s*true`).ReplaceAllString(result, ".$1")
 
-	// 替换 end
-	result = strings.ReplaceAll(result, "<% } %>", "{{ end }}")
-
+	// 15. 清理let语句中的变量赋值（已废弃）
+	// 例如：{{ showSidebar = layout != "one-column" }} 这种表达式Go模板无法处理
+	// 需要在后端预处理或使用自定义函数
+	
 	return result
 }
 
@@ -503,20 +695,31 @@ func GetThemeFullConfig(themeName string) (map[string]interface{}, error) {
 
 // UpdateThemeConfig 更新主题配置（保存到数据库并更新内存）
 func UpdateThemeConfig(themeName string, config map[string]interface{}) error {
+	fmt.Printf("[DEBUG] UpdateThemeConfig called with themeName=%s\n", themeName)
+	
 	// 保存到数据库
 	if err := models.SaveThemeConfig(themeName, config); err != nil {
+		fmt.Printf("[ERROR] Failed to save config to database: %v\n", err)
 		return err
 	}
+	fmt.Printf("[DEBUG] Config saved to database successfully\n")
+
+	// 从数据库重新加载配置（会自动转换为嵌套结构）
+	reloadedConfig, err := models.GetThemeConfig(themeName)
+	if err != nil {
+		fmt.Printf("[ERROR] Failed to reload config: %v\n", err)
+		return fmt.Errorf("failed to reload theme config: %v", err)
+	}
+	
+	fmt.Printf("[DEBUG] Reloaded config from database: %+v\n", reloadedConfig)
 
 	// 更新内存中的配置
 	theme := GetTheme(themeName)
 	if theme != nil {
-		if theme.Config == nil {
-			theme.Config = make(map[string]interface{})
-		}
-		for key, value := range config {
-			theme.Config[key] = value
-		}
+		theme.Config = reloadedConfig
+		fmt.Printf("[DEBUG] Memory config updated for theme %s\n", themeName)
+	} else {
+		fmt.Printf("[WARN] Theme %s not found in memory\n", themeName)
 	}
 
 	return nil

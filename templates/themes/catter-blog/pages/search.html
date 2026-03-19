@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索: {{ .query }} - {{ .site.title }}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: {{ getConfig "appearance.colors.primary" "#2d3436" }};
+            --accent: {{ getConfig "appearance.colors.accent" "#e17055" }};
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --text-tertiary: #adb5bd;
+            --border-color: #dee2e6;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        .header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .nav-menu a:hover { color: var(--accent); }
+
+        .page-header {
+            background: var(--primary);
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .search-form {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+        }
+
+        .search-btn {
+            padding: 14px 24px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background: #d35400;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        .results-info {
+            margin-bottom: 24px;
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .posts-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .post-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .post-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .post-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .post-card-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .post-card-title a:hover { color: var(--accent); }
+
+        .post-meta {
+            display: flex;
+            gap: 16px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+        }
+
+        .post-excerpt {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-top: 12px;
+        }
+
+        .footer {
+            background: var(--primary);
+            padding: 40px 24px;
+            margin-top: 48px;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu { display: none; }
+            .search-form { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/blog">文章</a></li>
+                    <li><a href="/categories">分类</a></li>
+                    <li><a href="/tags">标签</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>搜索</h1>
+        <form action="/search" method="get" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="输入关键词搜索..." value="{{ .query }}">
+            <button type="submit" class="search-btn">
+                <i class="fas fa-search"></i> 搜索
+            </button>
+        </form>
+    </section>
+
+    <div class="main-container">
+        {{ if .query }}
+        <p class="results-info">找到 <strong>{{ .count }}</strong> 篇与 "<strong>{{ .query }}</strong>" 相关的文章</p>
+        
+        <main class="posts-section">
+            {{ if gt (len .posts) 0 }}
+                {{ range .posts }}
+                <article class="post-card">
+                    <h2 class="post-card-title">
+                        <a href="/blog/{{ .Slug }}">{{ .Title }}</a>
+                    </h2>
+                    <div class="post-meta">
+                        <span><i class="far fa-calendar"></i> {{ .PublishedAt.Format "2006-01-02" }}</span>
+                        <span><i class="far fa-eye"></i> {{ .Views }} 阅读</span>
+                    </div>
+                    {{ if .Excerpt }}
+                    <p class="post-excerpt">{{ .Excerpt }}</p>
+                    {{ end }}
+                </article>
+                {{ end }}
+            {{ else }}
+                <div style="text-align: center; color: var(--text-tertiary); padding: 60px 0;">
+                    <i class="fas fa-search" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                    <p>没有找到相关文章</p>
+                    <p style="font-size: 14px; margin-top: 8px;">试试其他关键词？</p>
+                </div>
+            {{ end }}
+        </main>
+        {{ else }}
+        <div style="text-align: center; color: var(--text-tertiary); padding: 60px 0;">
+            <p>请输入关键词进行搜索</p>
+        </div>
+        {{ end }}
+    </div>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <p>&copy; 2026 {{ .site.title }}. Powered by Catter CMS</p>
+        </div>
+    </footer>
+</body>
+</html>

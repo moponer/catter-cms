@@ -81,17 +81,17 @@ config:
   appearance:
     # 配色方案
     colors:
-      primary: "#3B82F6"              # 主色调
-      secondary: "#764ba2"            # 次要颜色
-      accent: "#06B6D4"               # 强调色
-      background: "#f5f7fa"           # 背景色
-      text: "#1f2937"                 # 文字颜色
-      textMuted: "#6b7280"            # 次要文字
-      border: "#e5e7eb"               # 边框颜色
-      success: "#10b981"              # 成功色
-      warning: "#f59e0b"              # 警告色
-      error: "#ef4444"                # 错误色
-      info: "#0ea5e9"                 # 信息色
+      primary: "#2d3436"              # 主色调 - 深灰墨黑
+      secondary: "#636e72"            # 次要颜色 - 中灰
+      accent: "#e17055"               # 强调色 - 暖橙
+      background: "#ffffff"           # 背景色 - 纯白
+      text: "#2d3436"                 # 文字颜色
+      textMuted: "#636e72"            # 次要文字
+      border: "#dfe6e9"               # 边框颜色
+      success: "#00b894"              # 成功色
+      warning: "#fdcb6e"              # 警告色
+      error: "#d63031"                # 错误色
+      info: "#74b9ff"                 # 信息色
     
     # 字体配置
     typography:
@@ -133,15 +133,15 @@ config:
       config:
         title: "欢迎来到我的博客"           # 主标题
         subtitle: "分享技术、记录生活、探索未知"  # 副标题
-        backgroundType: "gradient"        # 背景类型(color/image/gradient)
-        backgroundColor: "#3B82F6"        # 背景颜色
-        backgroundGradient: "linear-gradient(135deg, #3B82F6 0%, #764ba2 100%)"  # 渐变背景
+        backgroundType: "color"           # 背景类型 - 使用纯色
+        backgroundColor: "#2d3436"        # 背景颜色 - 深灰
+        backgroundGradient: ""            # 不使用渐变
         backgroundImage: ""                # 背景图片URL
         backgroundVideo: ""                # 背景视频URL
-        overlayOpacity: 0.5                # 遮罩透明度(0-1)
+        overlayOpacity: 1                  # 遮罩透明度
         textAlign: "center"                # 文字对齐(left/center/right)
         textColor: "#ffffff"               # 文字颜色
-        height: "500px"                    # 高度
+        height: "400px"                    # 高度
         showCta: true                      # 显示主要按钮
         ctaText: "查看文章"                 # 按钮文本
         ctaUrl: "/blog"                    # 按钮链接
@@ -546,20 +546,20 @@ configDefinition:
       - name: "appearance.colors.primary"
         label: "主色调"
         type: "color"
-        default: "#3B82F6"
-        description: "网站的主色调，影响按钮、链接等元素"
+        default: "#2d3436"
+        description: "网站的主色调，影响导航、标题等元素"
       
       - name: "appearance.colors.secondary"
         label: "次要颜色"
         type: "color"
-        default: "#764ba2"
-        description: "次要按钮和装饰元素的颜色"
+        default: "#636e72"
+        description: "次要文字和装饰元素的颜色"
       
       - name: "appearance.colors.accent"
         label: "强调色"
         type: "color"
-        default: "#06B6D4"
-        description: "用于强调和突出显示的元素"
+        default: "#e17055"
+        description: "用于强调和突出显示的元素，如按钮、链接悬停"
       
       - name: "appearance.typography.baseFont"
         label: "基础字体"
@@ -632,7 +632,7 @@ configDefinition:
       - name: "modules.hero.config.backgroundColor"
         label: "背景颜色"
         type: "color"
-        default: "#3B82F6"
+        default: "#2d3436"
         show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'color'"
       
       - name: "modules.hero.config.backgroundImage"
@@ -1380,21 +1380,21 @@ settings:
     - name: "default"
       label: "默认"
       colors:
-        primary: "#3B82F6"
-        secondary: "#764ba2"
-        accent: "#06B6D4"
-    - name: "dark"
-      label: "深色"
+        primary: "#2d3436"
+        secondary: "#636e72"
+        accent: "#e17055"
+    - name: "warm"
+      label: "暖色"
       colors:
-        primary: "#6366f1"
-        secondary: "#8b5cf6"
-        accent: "#06b6d4"
-    - name: "nature"
-      label: "自然"
+        primary: "#d63031"
+        secondary: "#e17055"
+        accent: "#fdcb6e"
+    - name: "green"
+      label: "自然绿"
       colors:
-        primary: "#10b981"
-        secondary: "#059669"
-        accent: "#84cc16"
+        primary: "#00b894"
+        secondary: "#55a3a4"
+        accent: "#81ecec"
   
   # 其他设置
   readingTimeWordsPerMinute: 200      # 阅读速度(字/分钟)

@@ -98,10 +98,11 @@ config:
         title: "专业企业官网解决方案"
         subtitle: "打造您的企业品牌形象"
         description: "提供专业的企业官网解决方案，帮助企业快速建立品牌形象，展示产品和服务"
-        backgroundType: "image"
-        backgroundImage: "/themes/enterprise-website/assets/images/hero-bg.jpg"
-        backgroundGradient: "linear-gradient(135deg, #059669 0%, #047857 100%)"
-        overlayOpacity: 0.85
+        backgroundType: "color"
+        backgroundColor: "#2d3436"
+        backgroundImage: ""
+        backgroundGradient: ""
+        overlayOpacity: 1
         textAlign: "center"
         textColor: "#ffffff"
         height: "650px"
