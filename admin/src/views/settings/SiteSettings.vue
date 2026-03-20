@@ -29,6 +29,40 @@
                 <el-option label="纽约 (UTC-5)" value="America/New_York" />
               </el-select>
             </el-form-item>
+            <el-form-item label="站点Logo">
+              <div class="upload-container">
+                <el-upload
+                  class="logo-uploader"
+                  :show-file-list="false"
+                  :before-upload="(file) => handleUpload(file, 'logo')"
+                  accept="image/*"
+                >
+                  <img v-if="settings.basic.logo" :src="settings.basic.logo" class="logo-preview" />
+                  <el-icon v-else class="logo-uploader-icon"><Plus /></el-icon>
+                </el-upload>
+                <el-button v-if="settings.basic.logo" type="danger" link @click="settings.basic.logo = ''">
+                  移除Logo
+                </el-button>
+              </div>
+              <div class="form-hint">推荐尺寸: 200x50px，支持 PNG/JPG/SVG</div>
+            </el-form-item>
+            <el-form-item label="网站图标">
+              <div class="upload-container">
+                <el-upload
+                  class="favicon-uploader"
+                  :show-file-list="false"
+                  :before-upload="(file) => handleUpload(file, 'favicon')"
+                  accept="image/*"
+                >
+                  <img v-if="settings.basic.favicon" :src="settings.basic.favicon" class="favicon-preview" />
+                  <el-icon v-else class="favicon-uploader-icon"><Plus /></el-icon>
+                </el-upload>
+                <el-button v-if="settings.basic.favicon" type="danger" link @click="settings.basic.favicon = ''">
+                  移除图标
+                </el-button>
+              </div>
+              <div class="form-hint">推荐尺寸: 32x32px 或 16x16px，支持 ICO/PNG</div>
+            </el-form-item>
           </el-form>
         </el-card>
       </el-tab-pane>
@@ -98,6 +132,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { get, put, post } from '@/utils/request'
+import { Plus } from '@element-plus/icons-vue'
 
 const activeTab = ref('basic')
 const saving = ref(false)
@@ -109,7 +144,9 @@ const settings = reactive({
     site_description: '',
     site_url: '',
     contact_email: '',
-    timezone: 'Asia/Shanghai'
+    timezone: 'Asia/Shanghai',
+    logo: '',
+    favicon: ''
   },
   seo: {
     meta_title: '',
@@ -145,6 +182,28 @@ const loadSettings = async () => {
   } catch (error) {
     console.error('加载设置失败:', error)
   }
+}
+
+const handleUpload = async (file, type) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  try {
+    const res = await post('/api/media/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    const url = res.data?.url || res.url
+    if (type === 'logo') {
+      settings.basic.logo = url
+    } else if (type === 'favicon') {
+      settings.basic.favicon = url
+    }
+    ElMessage.success('上传成功')
+  } catch (error) {
+    console.error('上传失败:', error)
+    ElMessage.error('上传失败')
+  }
+  return false // 阻止默认上传
 }
 
 const handleSave = async () => {
@@ -197,11 +256,63 @@ onMounted(() => {
 .page-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: 600;
-  color: var(--color-text-primary);
   margin: 0;
 }
 
-:deep(.el-tabs__content) {
-  padding-top: 20px;
+.upload-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-uploader,
+.favicon-uploader {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration);
+}
+
+.logo-uploader:hover,
+.favicon-uploader:hover {
+  border-color: var(--el-color-primary);
+}
+
+.logo-uploader-icon,
+.favicon-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 120px;
+  height: 60px;
+  text-align: center;
+  line-height: 60px;
+}
+
+.favicon-uploader-icon {
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+}
+
+.logo-preview {
+  width: 120px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
+}
+
+.favicon-preview {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
+}
+
+.form-hint {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

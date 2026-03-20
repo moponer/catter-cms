@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ .site.title }} - {{ .pageTitle }}</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+line-height: 1.6;
+color: #1a1a2e;
+background: #f8f9fa;
+}
+
+header {
+background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+color: white;
+position: sticky;
+top: 0;
+z-index: 100;
+}
+
+.header-container {
+max-width: 1400px;
+margin: 0 auto;
+padding: 15px 30px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.logo {
+font-size: 1.8em;
+font-weight: 800;
+color: white;
+text-decoration: none;
+}
+
+.logo span { color: #e94560; }
+
+nav a {
+color: rgba(255,255,255,0.9);
+text-decoration: none;
+margin-left: 40px;
+font-weight: 500;
+}
+
+nav a:hover { color: #e94560; }
+
+.page-header {
+background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+color: white;
+padding: 60px 30px;
+text-align: center;
+}
+
+.page-header h1 {
+font-size: 2em;
+margin-bottom: 20px;
+}
+
+.search-form {
+display: flex;
+justify-content: center;
+gap: 12px;
+max-width: 500px;
+margin: 0 auto;
+}
+
+.search-input {
+flex: 1;
+padding: 14px 20px;
+border: none;
+border-radius: 8px;
+font-size: 16px;
+background: white;
+}
+
+.search-input:focus {
+outline: none;
+}
+
+.search-btn {
+padding: 14px 24px;
+background: #e94560;
+color: white;
+border: none;
+border-radius: 8px;
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+}
+
+.search-btn:hover {
+background: #d63651;
+}
+
+.main-container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 48px 30px;
+}
+
+.results-info {
+margin-bottom: 24px;
+color: #6b7280;
+font-size: 15px;
+}
+
+.posts-section {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+
+.post-card {
+background: white;
+border-radius: 12px;
+padding: 30px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+transition: all 0.3s;
+}
+
+.post-card:hover {
+box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+transform: translateY(-3px);
+}
+
+.post-card h2 a {
+color: #0f3460;
+text-decoration: none;
+font-size: 1.4em;
+}
+
+.post-card h2 a:hover { color: #e94560; }
+
+.post-meta {
+display: flex;
+gap: 20px;
+color: #6b7280;
+font-size: 0.9em;
+margin: 12px 0;
+}
+
+.post-excerpt {
+color: #6b7280;
+margin-top: 12px;
+}
+
+footer {
+background: #0f3460;
+color: white;
+padding: 40px 30px;
+text-align: center;
+margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+.search-form { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="header-container">
+<a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
+<nav>
+<a href="/">首页</a>
+<a href="/article">文章</a>
+<a href="/categories">分类</a>
+<a href="/tags">标签</a>
+</nav>
+</div>
+</header>
+
+<section class="page-header">
+<h1>搜索</h1>
+<form action="/search" method="get" class="search-form">
+<input type="text" name="q" class="search-input" placeholder="输入关键词搜索..." value="{{ .query }}">
+<button type="submit" class="search-btn">🔍 搜索</button>
+</form>
+</section>
+
+<div class="main-container">
+{{ if .query }}
+<p class="results-info">找到 <strong>{{ .count }}</strong> 篇与 "<strong>{{ .query }}</strong>" 相关的文章</p>
+
+<main class="posts-section">
+{{ if gt (len .posts) 0 }}
+{{ range .posts }}
+<article class="post-card">
+<h2><a href="/article/{{ .Slug }}">{{ .Title }}</a></h2>
+<div class="post-meta">
+{{ if .PublishedAt }}<span>📅 {{ .PublishedAt.Format "2006-01-02" }}</span>{{ end }}
+<span>👁 {{ .Views }} 阅读</span>
+</div>
+{{ if .Excerpt }}<p class="post-excerpt">{{ .Excerpt }}</p>{{ end }}
+</article>
+{{ end }}
+{{ else }}
+<div style="text-align: center; color: #9ca3af; padding: 60px 0;">
+<p style="font-size: 48px; margin-bottom: 16px;">🔍</p>
+<p>没有找到相关文章</p>
+<p style="font-size: 14px; margin-top: 8px;">试试其他关键词？</p>
+</div>
+{{ end }}
+</main>
+{{ else }}
+<div style="text-align: center; color: #9ca3af; padding: 60px 0;">
+<p>请输入关键词进行搜索</p>
+</div>
+{{ end }}
+</div>
+
+<footer>
+<p>&copy; 2026 {{ .site.title }}. All Rights Reserved.</p>
+</footer>
+</body>
+</html>

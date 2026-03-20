@@ -28,11 +28,11 @@
             </el-form-item>
 
             <el-form-item prop="content">
-              <MarkdownEditor
+              <TiptapEditor
                 ref="editorRef"
                 v-model="form.content"
-                placeholder="请输入文章内容，支持Markdown格式..."
-                height="calc(100vh - 400px)"
+                placeholder="请输入文章内容..."
+                :height="500"
               />
             </el-form-item>
           </el-form>
@@ -127,7 +127,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import TiptapEditor from '@/components/TiptapEditor.vue'
 import { get, post, put } from '@/utils/request'
 
 const route = useRoute()

@@ -263,18 +263,14 @@
               v-for="post in posts"
               :key="post.id"
               :label="post.title"
-              :value="`/blog/${post.slug}`"
+              :value="`/article/${post.slug}`"
             />
           </el-select>
         </el-form-item>
 
         <el-form-item label="图标">
-          <el-input v-model="itemForm.icon" placeholder="例如：Home">
-            <template #append>
-              <el-icon v-if="itemForm.icon"><component :is="itemForm.icon" /></el-icon>
-            </template>
-          </el-input>
-          <div class="form-hint">使用 Element Plus 图标名称，如：Home, Document, Folder</div>
+          <IconPicker v-model="itemForm.icon" />
+          <div class="form-hint">选择一个图标用于菜单项显示</div>
         </el-form-item>
 
         <el-form-item label="打开方式">
@@ -314,6 +310,7 @@ import {
   Link, Home, Document, Folder, Menu, Cellphone
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import IconPicker from '@/components/IconPicker.vue'
 
 // Types
 interface MenuLocation {
@@ -493,8 +490,8 @@ const fetchMenus = async () => {
 
 const fetchPages = async () => {
   try {
-    const res = await request.get('/api/pages', { params: { status: 'published', per_page: 100 } })
-    pages.value = res.data?.data || []
+    const res = await request.get('/api/pages', { params: { status: 'published', page_size: 100 } })
+    pages.value = res.data?.list || []
   } catch (error) {
     console.error('获取页面列表失败', error)
   }
@@ -502,8 +499,8 @@ const fetchPages = async () => {
 
 const fetchCategories = async () => {
   try {
-    const res = await request.get('/api/categories', { params: { per_page: 100 } })
-    categories.value = res.data?.data || []
+    const res = await request.get('/api/categories', { params: { page_size: 100 } })
+    categories.value = res.data?.list || []
   } catch (error) {
     console.error('获取分类列表失败', error)
   }
@@ -511,8 +508,8 @@ const fetchCategories = async () => {
 
 const fetchPosts = async () => {
   try {
-    const res = await request.get('/api/posts', { params: { status: 'published', per_page: 100 } })
-    posts.value = res.data?.data || []
+    const res = await request.get('/api/posts', { params: { status: 'published', page_size: 100 } })
+    posts.value = res.data?.list || []
   } catch (error) {
     console.error('获取文章列表失败', error)
   }
@@ -653,7 +650,34 @@ const handleSaveItem = async () => {
   }
 
   itemDialogVisible.value = false
-  ElMessage.success(isEditingItem.value ? '更新成功' : '添加成功')
+  
+  // 直接保存到服务器
+  await saveMenuToServer()
+}
+
+// 保存菜单到服务器
+const saveMenuToServer = async () => {
+  saving.value = true
+  try {
+    const existingMenu = menus.value.find(m => m.location === activeLocation.value)
+    if (existingMenu) {
+      await request.put(`/api/menus/${existingMenu.id}`, { ...existingMenu, items: menuItems.value })
+    } else {
+      await request.post('/api/menus', {
+        name: menuLocations.value.find(l => l.id === activeLocation.value)?.name,
+        location: activeLocation.value,
+        items: menuItems.value
+      })
+    }
+    
+    ElMessage.success('保存成功')
+    fetchMenus()
+  } catch (error) {
+    console.error('保存失败:', error)
+    ElMessage.error('保存失败')
+  } finally {
+    saving.value = false
+  }
 }
 
 const handleDeleteItem = async (item: MenuItem, index: number) => {
@@ -664,15 +688,19 @@ const handleDeleteItem = async (item: MenuItem, index: number) => {
       { type: 'warning' }
     )
     menuItems.value.splice(index, 1)
-    ElMessage.success('删除成功')
+    
+    // 直接保存到服务器
+    await saveMenuToServer()
   } catch {
     // Cancelled
   }
 }
 
-const handleDeleteChild = (parent: MenuItem, index: number) => {
+const handleDeleteChild = async (parent: MenuItem, index: number) => {
   parent.children?.splice(index, 1)
-  ElMessage.success('删除成功')
+  
+  // 直接保存到服务器
+  await saveMenuToServer()
 }
 
 const handleSaveMenu = async () => {

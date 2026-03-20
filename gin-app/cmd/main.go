@@ -16,13 +16,29 @@ import (
 	"catter-cms-gin/internal/services"
 )
 
+// getSiteData 获取站点基础数据
+func getSiteData() map[string]interface{} {
+	siteTitle := models.GetSettingAsString("site_title")
+	if siteTitle == "" {
+		siteTitle = "Catter CMS"
+	}
+	return map[string]interface{}{
+		"title":       siteTitle,
+		"description": models.GetSettingAsString("site_description"),
+		"url":         models.GetSettingAsString("site_url"),
+		"logo":        models.GetSettingAsString("logo"),
+		"favicon":     models.GetSettingAsString("favicon"),
+		"year":        2026,
+	}
+}
+
 // loadConfig 加载配置文件
 func loadConfig() *config.Config {
 	// 尝试多个路径加载配置文件
 	paths := []string{
-		"./config.yaml",           // 当前目录
-		"../config.yaml",          // 上级目录（从gin-app运行）
-		"../../config.yaml",       // 上两级目录
+		"./config.yaml",     // 当前目录
+		"../config.yaml",    // 上级目录（从gin-app运行）
+		"../../config.yaml", // 上两级目录
 	}
 
 	for _, path := range paths {
@@ -94,8 +110,8 @@ func main() {
 	r := gin.New()
 	// 禁用默认的Logger中间件，使用自定义的
 	// r.Use(gin.Logger())
-	r.Use(gin.Recovery())            // 错误恢复
-	r.Use(middleware.CORS())          // CORS
+	r.Use(gin.Recovery())                // 错误恢复
+	r.Use(middleware.CORS())             // CORS
 	r.Use(middleware.RequestIDHandler()) // 请求ID
 
 	// 设置信任的代理，避免安全警告
@@ -156,17 +172,17 @@ func main() {
 
 			// 主题 API - 先注册具体路径，再注册通配符路径
 			protected.GET("/themes", api.ListThemes)
-		protected.POST("/themes/upload", api.UploadTheme)
-		protected.GET("/themes/config/:slug", api.GetThemeConfig)
-		protected.PUT("/themes/config/:slug", api.SaveThemeConfig)
-		protected.GET("/themes/:slug/config/full", api.GetThemeConfigFull)
-		protected.PUT("/themes/:slug/config/full", api.SaveThemeConfigFull)
-		protected.POST("/themes/:slug/config/reset", api.ResetThemeConfig)
-		protected.POST("/themes/:slug/activate", api.ActivateTheme)
-		protected.DELETE("/themes/:slug", api.DeleteTheme)
-		protected.GET("/themes/:slug", api.GetTheme)
+			protected.POST("/themes/upload", api.UploadTheme)
+			protected.GET("/themes/config/:slug", api.GetThemeConfig)
+			protected.PUT("/themes/config/:slug", api.SaveThemeConfig)
+			protected.GET("/themes/:slug/config/full", api.GetThemeConfigFull)
+			protected.PUT("/themes/:slug/config/full", api.SaveThemeConfigFull)
+			protected.POST("/themes/:slug/config/reset", api.ResetThemeConfig)
+			protected.POST("/themes/:slug/activate", api.ActivateTheme)
+			protected.DELETE("/themes/:slug", api.DeleteTheme)
+			protected.GET("/themes/:slug", api.GetTheme)
 
-		// 页面 API
+			// 页面 API
 			protected.GET("/pages", api.ListPages)
 			protected.GET("/pages/:id", api.GetPage)
 			protected.POST("/pages", api.CreatePage)
@@ -181,15 +197,15 @@ func main() {
 			protected.DELETE("/users/:id", api.DeleteUser)
 
 			// 评论 API
-		protected.GET("/comments", api.ListComments)
-		protected.GET("/admin/comments", api.ListComments)
-		protected.DELETE("/comments/:id", api.DeleteComment)
-		protected.POST("/comments/:id/approve", api.ApproveComment)
-		protected.POST("/comments/:id/reject", api.RejectComment)
+			protected.GET("/comments", api.ListComments)
+			protected.GET("/admin/comments", api.ListComments)
+			protected.DELETE("/comments/:id", api.DeleteComment)
+			protected.POST("/comments/:id/approve", api.ApproveComment)
+			protected.POST("/comments/:id/reject", api.RejectComment)
 
 			// Sitemap管理 API
-		protected.GET("/admin/sitemap/info", api.GetSitemapInfo)
-		protected.POST("/admin/sitemap/rebuild", api.RebuildSitemap)
+			protected.GET("/admin/sitemap/info", api.GetSitemapInfo)
+			protected.POST("/admin/sitemap/rebuild", api.RebuildSitemap)
 
 			// 系统信息 API
 			protected.GET("/admin/system/info", api.GetSystemInfo)
@@ -243,7 +259,7 @@ func main() {
 		// 尝试当前目录下的 admin/dist
 		adminDistPath = "./admin/dist"
 	}
-	
+
 	if _, err := os.Stat(adminDistPath); err == nil {
 		// 登录页面路由 - 必须在静态文件之前注册
 		r.GET("/login", func(c *gin.Context) {
@@ -276,21 +292,47 @@ func main() {
 	}
 
 	// 静态文件必须放在通配符路由之前
-	r.Static("/themes", "./templates/themes")
-	r.Static("/uploads", "./uploads")
-	r.Static("/public", "./public")
+	// 检测静态文件路径（支持从根目录或 gin-app 目录运行）
+
+	// 检测 templates/themes 路径
+	themesPath := "./templates/themes"
+	if _, err := os.Stat(themesPath); err != nil {
+		themesPath = "../templates/themes"
+	}
+	r.Static("/themes", themesPath)
+
+	// 检测 templates/fontawesome 路径
+	fontawesomePath := "./templates/fontawesome"
+	if _, err := os.Stat(fontawesomePath); err != nil {
+		fontawesomePath = "../templates/fontawesome"
+	}
+	r.Static("/fontawesome", fontawesomePath)
+
+	// 检测 uploads 路径
+	uploadsPath := "./uploads"
+	if _, err := os.Stat(uploadsPath); err != nil {
+		uploadsPath = "../uploads"
+	}
+	r.Static("/uploads", uploadsPath)
+
+	// 检测 public 路径
+	publicPath := "./public"
+	if _, err := os.Stat(publicPath); err != nil {
+		publicPath = "../public"
+	}
+	r.Static("/public", publicPath)
 
 	// 前台页面路由（放在静态文件之后）
 	r.GET("/", homeHandler)
-	r.GET("/blog", blogListHandler)              // 文章列表页
-	r.GET("/blog/:slug", blogShowHandler)        // 文章详情页
-	r.GET("/page/:slug", pageShowHandler)        // 独立页面
-	r.GET("/categories", categoriesListHandler)  // 分类列表页
-	r.GET("/category/:slug", categoryHandler)    // 分类文章列表页
-	r.GET("/tags", tagsListHandler)              // 标签列表页
-	r.GET("/tag/:slug", tagHandler)              // 标签文章列表页
-	r.GET("/archives", archivesHandler)          // 文章归档页
-	r.GET("/search", searchHandler)              // 搜索页
+	r.GET("/article", blogListHandler)          // 文章列表页
+	r.GET("/article/:slug", blogShowHandler)    // 文章详情页
+	r.GET("/page/:slug", pageShowHandler)       // 独立页面
+	r.GET("/categories", categoriesListHandler) // 分类列表页
+	r.GET("/category/:slug", categoryHandler)   // 分类文章列表页
+	r.GET("/tags", tagsListHandler)             // 标签列表页
+	r.GET("/tag/:slug", tagHandler)             // 标签文章列表页
+	r.GET("/archives", archivesHandler)         // 文章归档页
+	r.GET("/search", searchHandler)             // 搜索页
 
 	// 启动服务器
 	addr := fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
@@ -328,12 +370,10 @@ func homeHandler(c *gin.Context) {
 	models.DB.Find(&tags)
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       "Catter CMS",
-			"description": "一个现代化的博客系统",
-			"year":        "2026",
-		},
+		"site":        siteData,
+		"pageTitle":   "首页",
 		"posts":       posts,
 		"recentPosts": recentPosts,
 		"categories":  categories,
@@ -456,19 +496,17 @@ func blogShowHandler(c *gin.Context) {
 		Find(&recentPosts)
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       post.Title,
-			"description": post.Excerpt,
-			"year":        "2026",
-		},
+		"site":        siteData,
+		"pageTitle":   post.Title,
 		"post":        post,
 		"categories":  categories,
 		"recentPosts": recentPosts,
 	}
 
 	// 尝试渲染主题模板
-	if content, err := services.RenderTemplate("blog_show", data); err == nil {
+	if content, err := services.RenderTemplate("article_show", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
@@ -525,21 +563,34 @@ func pageShowHandler(c *gin.Context) {
 		Limit(5).
 		Find(&recentPosts)
 
-	// 尝试渲染主题模板
+	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       page.Title,
-			"description": page.Excerpt,
-			"year":        "2026",
-		},
+		"site":        siteData,
+		"pageTitle":   page.Title,
 		"page":        page,
 		"recentPosts": recentPosts,
 	}
 
-	if content, err := services.RenderTemplate("page", data); err == nil {
+	// 使用页面指定的模板，如果没有则使用默认的 "page" 模板
+	templateName := "page"
+	if page.Template != "" && page.Template != "default" {
+		templateName = "page-" + page.Template
+	}
+
+	if content, err := services.RenderTemplate(templateName, data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
+	}
+
+	// 如果指定模板不存在，回退到默认模板
+	if templateName != "page" {
+		if content, err := services.RenderTemplate("page", data); err == nil {
+			c.Header("Content-Type", "text/html; charset=utf-8")
+			c.String(http.StatusOK, string(content))
+			return
+		}
 	}
 
 	// 默认页面
@@ -593,12 +644,10 @@ func categoryHandler(c *gin.Context) {
 	models.DB.Find(&tags)
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       category.Name,
-			"description": category.Description,
-			"year":        "2026",
-		},
+		"site":       siteData,
+		"pageTitle":  category.Name,
 		"category":   category,
 		"posts":      posts,
 		"categories": categories,
@@ -680,11 +729,10 @@ func blogListHandler(c *gin.Context) {
 	models.DB.Find(&tags)
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       "文章列表",
-			"description": "所有文章",
-		},
+		"site":       siteData,
+		"pageTitle":  "文章",
 		"posts":      posts,
 		"categories": categories,
 		"tags":       tags,
@@ -697,14 +745,16 @@ func blogListHandler(c *gin.Context) {
 	}
 
 	// 尝试渲染主题模板
-	if content, err := services.RenderTemplate("blog_list", data); err == nil {
+	if content, err := services.RenderTemplate("article_list", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
+	} else {
+		log.Printf("[ERROR] article_list template render failed: %v", err)
 	}
 
 	// 默认页面
-	c.String(http.StatusOK, "<h1>文章列表页</h1><p>请创建 blog_list.plush.html 模板</p>")
+	c.String(http.StatusOK, "<h1>文章列表</h1><p>请创建 article_list.html 模板</p>")
 }
 
 // categoriesListHandler 分类列表页
@@ -729,11 +779,10 @@ func categoriesListHandler(c *gin.Context) {
 	}
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       "分类",
-			"description": "所有文章分类",
-		},
+		"site":       siteData,
+		"pageTitle":  "分类",
 		"categories": categoriesWithCount,
 	}
 
@@ -769,12 +818,11 @@ func tagsListHandler(c *gin.Context) {
 	}
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       "标签",
-			"description": "所有文章标签",
-		},
-		"tags": tagsWithCount,
+		"site":      siteData,
+		"pageTitle": "标签",
+		"tags":      tagsWithCount,
 	}
 
 	// 尝试渲染主题模板
@@ -807,13 +855,12 @@ func tagHandler(c *gin.Context) {
 		Find(&posts)
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       tag.Name,
-			"description": "标签: " + tag.Name,
-		},
-		"tag":   tag,
-		"posts": posts,
+		"site":      siteData,
+		"pageTitle": tag.Name,
+		"tag":       tag,
+		"posts":     posts,
 	}
 
 	// 尝试渲染主题模板
@@ -844,13 +891,12 @@ func archivesHandler(c *gin.Context) {
 	}
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       "文章归档",
-			"description": "按日期归档的所有文章",
-		},
-		"archives": archives,
-		"posts":    posts,
+		"site":      siteData,
+		"pageTitle": "文章归档",
+		"archives":  archives,
+		"posts":     posts,
 	}
 
 	// 尝试渲染主题模板
@@ -869,9 +915,9 @@ func searchHandler(c *gin.Context) {
 
 	var posts []models.Post
 	if query != "" {
-		models.DB.Where("status = ? AND (title LIKE ? OR content LIKE ?)", 
-			"published", 
-			"%"+query+"%", 
+		models.DB.Where("status = ? AND (title LIKE ? OR content LIKE ?)",
+			"published",
+			"%"+query+"%",
 			"%"+query+"%").
 			Preload("Category").
 			Order("published_at DESC").
@@ -879,14 +925,13 @@ func searchHandler(c *gin.Context) {
 	}
 
 	// 准备模板数据
+	siteData := getSiteData()
 	data := map[string]interface{}{
-		"site": map[string]interface{}{
-			"title":       "搜索",
-			"description": "搜索: " + query,
-		},
-		"query":      query,
-		"posts":      posts,
-		"count":      len(posts),
+		"site":      siteData,
+		"pageTitle": "搜索",
+		"query":     query,
+		"posts":     posts,
+		"count":     len(posts),
 	}
 
 	// 尝试渲染主题模板

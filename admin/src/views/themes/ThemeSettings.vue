@@ -509,6 +509,7 @@ const handleConfigure = async (theme) => {
     const formValues = {}
     
     // 1. 首先加载已保存的配置值（从后端返回的config对象中，排除configForm等元数据）
+    // 后端已经将 theme.yml 默认值和数据库值合并，所以直接使用
     const savedConfig = { ...config }
     delete savedConfig.configForm  // 删除配置表单定义
     delete savedConfig.name
@@ -517,19 +518,29 @@ const handleConfigure = async (theme) => {
     delete savedConfig.description
     delete savedConfig.author
     
+    console.log('保存的配置（删除元数据后）:', savedConfig)
+    
+    // 将嵌套结构转换为扁平结构
+    const flattenConfig = nestedToFlatten(savedConfig)
+    console.log('扁平化配置:', flattenConfig)
+    
     // 将已保存的配置值放入表单
-    Object.keys(savedConfig).forEach(key => {
-      if (savedConfig[key] !== undefined && savedConfig[key] !== null) {
-        formValues[key] = savedConfig[key]
+    // 后端已经返回了完整的合并配置（theme.yml 默认值 + 数据库值）
+    Object.keys(flattenConfig).forEach(key => {
+      // 保留所有值，包括 false 和空字符串（用户可能明确设置为这些值）
+      if (flattenConfig[key] !== undefined && flattenConfig[key] !== null) {
+        formValues[key] = flattenConfig[key]
       }
     })
     
-    // 2. 从 configDefinition 的 fields 中提取默认值，填充未设置的字段
+    // 2. 从 configDefinition 的 fields 中提取默认值，只填充后端没有返回的字段
+    // 这是兜底逻辑，确保所有字段都有值
     if (config.configForm && Array.isArray(config.configForm)) {
       config.configForm.forEach(group => {
         if (group.fields && Array.isArray(group.fields)) {
           group.fields.forEach(field => {
-            // 只在字段没有已保存值时使用默认值
+            // 只在字段完全没有值（undefined）时使用默认值
+            // 注意：false 和空字符串是有效值，不应该被默认值覆盖
             if (formValues[field.name] === undefined && field.default !== undefined) {
               formValues[field.name] = field.default
             }
@@ -537,6 +548,7 @@ const handleConfigure = async (theme) => {
         }
       })
     }
+    console.log('最终表单值:', formValues)
     configForm.value = formValues
 
     configVisible.value = true
@@ -694,6 +706,29 @@ const handleUploadError = (error) => {
   uploading.value = false
   console.error('上传失败:', error)
   ElMessage.error('主题上传失败')
+}
+
+// 将嵌套结构转换为扁平结构（用于前端加载配置）
+const nestedToFlatten = (obj, prefix = '', result = {}) => {
+  if (typeof obj !== 'object' || obj === null) {
+    if (prefix) {
+      result[prefix] = obj
+    }
+    return result
+  }
+  
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const newKey = prefix ? `${prefix}.${key}` : key
+      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+        nestedToFlatten(obj[key], newKey, result)
+      } else {
+        result[newKey] = obj[key]
+      }
+    }
+  }
+  
+  return result
 }
 
 onMounted(() => {

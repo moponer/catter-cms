@@ -174,6 +174,7 @@ func GetThemeConfigFull(c *gin.Context) {
 // SaveThemeConfigFull 保存主题完整配置
 func SaveThemeConfigFull(c *gin.Context) {
 	slug := c.Param("slug")
+	fmt.Printf("[DEBUG] SaveThemeConfigFull called with slug=%s\n", slug)
 
 	theme := services.GetTheme(slug)
 	if theme == nil {
@@ -184,16 +185,21 @@ func SaveThemeConfigFull(c *gin.Context) {
 	// 解析配置
 	var config map[string]interface{}
 	if err := c.ShouldBindJSON(&config); err != nil {
+		fmt.Printf("[ERROR] Failed to bind JSON: %v\n", err)
 		BadRequest(c, "请求参数错误")
 		return
 	}
+	
+	fmt.Printf("[DEBUG] Received config from frontend: %+v\n", config)
 
 	// 保存配置到数据库
 	if err := services.UpdateThemeConfig(slug, config); err != nil {
+		fmt.Printf("[ERROR] Failed to update theme config: %v\n", err)
 		InternalError(c, "保存配置失败: "+err.Error())
 		return
 	}
 
+	fmt.Printf("[DEBUG] Config saved successfully\n")
 	SuccessWithMessage(c, "配置保存成功", config)
 }
 

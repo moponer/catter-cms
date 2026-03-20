@@ -1,11 +1,11 @@
 # ========================================
 # Enterprise Website 企业官网主题配置
-# 版本: 2.0.0
+# 版本: 2.1.0 (精简版)
 # ========================================
 
 # 主题基本信息
 name: "Enterprise Website"
-version: "2.0.0"
+version: "2.1.0"
 apiVersion: "2.0"
 description: "通用企业官网主题，适合各类企业展示使用"
 author: "Catter Team"
@@ -22,748 +22,142 @@ requires:
 
 # 主题能力声明
 capabilities:
-  layouts:
-    - default
-    - home
-    - about
-    - services
-    - contact
-  modules:
-    - hero
-    - about
-    - services
-    - team
-    - testimonials
-    - contact
-    - footer
-  widgets:
-    - search
-    - categories
-    - tags
-    - recent-posts
-  postFormats:
-    - standard
+  layouts: [default, home, about, services, contact]
+  modules: [hero, about, services, team, testimonials, contact, footer]
+  widgets: [search, categories, tags, recent-posts]
+  postFormats: [standard]
   customFields: true
   customTemplates: true
   colorSchemes: true
   darkMode: false
 
+# ========================================
 # 默认配置
+# ========================================
 config:
-  default_locale: "zh-CN"
-
   # 外观配置
   appearance:
     colors:
-      primary: "#059669"
-      secondary: "#047857"
-      accent: "#10B981"
-      background: "#f9fafb"
-      text: "#111827"
-      textMuted: "#6b7280"
-      border: "#d1d5db"
-      success: "#10b981"
-      warning: "#f59e0b"
-      error: "#ef4444"
-    
+      primary: "#1a202c"
+      secondary: "#2d3748"
+      accent: "#4299e1"
     typography:
       baseFont: "'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif"
-      headingFont: "inherit"
-      codeFont: "'Fira Code', 'Consolas', 'Courier New', monospace"
-      fontSize:
-        base: "15px"
-        scale: 1.125
-      lineHeight:
-        base: 1.6
-        heading: 1.3
-    
     layout:
       width: "1200px"
-      container: "boxed"
-      gap: "24px"
-      sectionGap: "72px"
-      borderRadius: "8px"
-    
-    animations:
-      enabled: true
-      duration: "350ms"
-      easing: "ease-out"
-  
-  # 模块配置
+
+  # Hero模块
   modules:
-    # Hero模块
     hero:
       enabled: true
       config:
-        title: "专业企业官网解决方案"
-        subtitle: "打造您的企业品牌形象"
-        description: "提供专业的企业官网解决方案，帮助企业快速建立品牌形象，展示产品和服务"
+        title: "专业企业解决方案"
+        subtitle: "助力企业数字化转型"
         backgroundType: "color"
-        backgroundColor: "#2d3436"
-        backgroundImage: ""
-        backgroundGradient: ""
-        overlayOpacity: 1
-        textAlign: "center"
-        textColor: "#ffffff"
-        height: "650px"
+        backgroundColor: "#1a202c"
+        ctaText: "了解更多"
+        ctaUrl: "/about"
         showCta: true
-        ctaText: "联系我们"
-        ctaUrl: "/contact"
-        ctaStyle: "primary"
-        showSecondaryCta: true
-        secondaryCtaText: "了解更多"
-        secondaryCtaUrl: "/about"
-        secondaryCtaStyle: "outline"
-    
-    # 关于我们模块
-    about:
-      enabled: true
-      config:
-        title: "关于我们"
-        subtitle: "了解我们的故事"
-        layout: "image-right"
-        showImage: true
-        showStats: true
-        stats:
-          - number: "10+"
-            label: "年经验"
-          - number: "500+"
-            label: "成功案例"
-          - number: "100+"
-            label: "专业团队"
-          - number: "99%"
-            label: "客户满意度"
-    
-    # 服务模块
-    services:
-      enabled: true
-      config:
-        title: "我们的服务"
-        subtitle: "为您提供专业的一站式服务"
-        columns: 3
-        items:
-          - icon: "desktop"
-            title: "网站建设"
-            description: "专业的网站设计与开发，打造符合企业形象的官方网站"
-            link: "/services/web"
-          - icon: "smartphone"
-            title: "移动应用"
-            description: "iOS和Android应用开发，提供优秀的移动体验"
-            link: "/services/mobile"
-          - icon: "cloud"
-            title: "云服务"
-            description: "云服务器和云存储解决方案，保障业务稳定运行"
-            link: "/services/cloud"
-          - icon: "shield"
-            title: "网络安全"
-            description: "企业级安全防护，保护您的数据安全"
-            link: "/services/security"
-          - icon: "chart"
-            title: "数据分析"
-            description: "专业的数据分析服务，助力业务决策"
-            link: "/services/analytics"
-          - icon: "users"
-            title: "技术咨询"
-            description: "专业的技术咨询服务，为企业提供解决方案"
-            link: "/services/consulting"
-    
-    # 团队模块
-    team:
-      enabled: true
-      config:
-        title: "我们的团队"
-        subtitle: "专业的团队，专业的服务"
-        columns: 4
-        items:
-          - name: "张三"
-            role: "CEO & 创始人"
-            image: ""
-            description: "10年互联网行业经验"
-            linkedin: ""
-            twitter: ""
-          - name: "李四"
-            role: "技术总监"
-            image: ""
-            description: "15年技术研发经验"
-            linkedin: ""
-            twitter: ""
-          - name: "王五"
-            role: "产品总监"
-            image: ""
-            description: "12年产品管理经验"
-            linkedin: ""
-            twitter: ""
-          - name: "赵六"
-            role: "设计总监"
-            image: ""
-            description: "10年UI/UX设计经验"
-            linkedin: ""
-            twitter: ""
-    
-    # 客户评价模块
-    testimonials:
-      enabled: true
-      config:
-        title: "客户评价"
-        subtitle: "听听客户怎么说"
-        columns: 3
-        items:
-          - name: "客户A"
-            role: "某科技公司CEO"
-            company: "科技公司"
-            content: "非常专业的团队，网站做得非常漂亮，服务态度也很好！"
-            rating: 5
-            avatar: ""
-          - name: "客户B"
-            role: "某企业CTO"
-            company: "企业集团"
-            content: "技术实力强，项目按时交付，质量有保障！"
-            rating: 5
-            avatar: ""
-          - name: "客户C"
-            role: "某公司经理"
-            company: "服务公司"
-            content: "沟通顺畅，响应及时，解决问题能力强！"
-            rating: 5
-            avatar: ""
-    
-    # 联系模块
-    contact:
-      enabled: true
-      config:
-        title: "联系我们"
-        subtitle: "有任何问题？随时联系我们"
-        layout: "split"
-        showForm: true
-        showInfo: true
-        formFields:
-          - name: "姓名"
-            type: "text"
-            required: true
-          - name: "邮箱"
-            type: "email"
-            required: true
-          - name: "电话"
-            type: "tel"
-            required: false
-          - name: "主题"
-            type: "text"
-            required: true
-          - name: "留言"
-            type: "textarea"
-            required: true
-        contactInfo:
-          address: "北京市朝阳区XXX大厦"
-          phone: "+86 123-4567-8901"
-          email: "contact@example.com"
-          workingHours: "周一至周五 9:00-18:00"
-  
-  # 页面配置
-  pages:
-    home:
-      title: "首页"
-      template: "home.plush.html"
-      layout: "home"
-      enabled: true
-      config:
-        showHero: true
-        showAbout: true
-        showServices: true
-        showTeam: true
-        showTestimonials: true
-        showContact: true
-    
-    about:
-      title: "关于我们"
-      template: "about.plush.html"
-      layout: "about"
-      enabled: true
-    
-    services:
-      title: "产品服务"
-      template: "services.plush.html"
-      layout: "services"
-      enabled: true
-    
-    products:
-      title: "产品展示"
-      template: "products.plush.html"
-      layout: "default"
-      enabled: true
-    
-    solutions:
-      title: "解决方案"
-      template: "solutions.plush.html"
-      layout: "default"
-      enabled: true
-    
-    news:
-      title: "新闻动态"
-      template: "news.plush.html"
-      layout: "default"
-      enabled: true
-      per_page: 12
-    
-    contact:
-      title: "联系我们"
-      template: "contact.plush.html"
-      layout: "contact"
-      enabled: true
-  
-  # SEO配置
-  seo:
-    title: "企业官网 - 专业的企业展示平台"
-    description: "提供专业的企业官网解决方案，帮助企业快速建立品牌形象，展示产品和服务"
-    keywords: ["企业官网", "企业网站", "品牌展示", "产品展示", "企业服务"]
-    author: "Catter Team"
-    canonicalUrl: ""
-    robots: "index, follow"
-    
-    opengraph:
-      enabled: true
-      type: "website"
-      image: "/assets/images/og-image.jpg"
-      imageAlt: "企业官网预览图"
-    
-    twitter:
-      enabled: false
-      card: "summary_large_image"
-    
-    schema:
-      enabled: true
-      type: "Organization"
-      logo: "/assets/images/logo.png"
-      publisher: "Enterprise Website"
-  
+
   # 自定义代码
   custom:
-    css: |
-      body {
-        background-color: var(--background-color);
-        color: var(--text-color);
-        font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
-      }
-      
-      .enterprise-header {
-        background-color: white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
-      
-      .enterprise-hero {
-        background: linear-gradient(135deg, var(--primary_color) 0%, var(--secondary_color) 100%);
-        color: white;
-        padding: 100px 0;
-      }
-      
-      .service-card {
-        background: white;
-        border-radius: 8px;
-        padding: 32px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-      }
-      
-      .service-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-      }
-      
-      .contact-form {
-        background: white;
-        padding: 40px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      }
-    
-    js: |
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('Enterprise Website主题已加载');
-        
-        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-        const mobileMenu = document.querySelector('.mobile-menu');
-        
-        if (mobileMenuBtn && mobileMenu) {
-          mobileMenuBtn.addEventListener('click', function() {
-            mobileMenu.classList.toggle('hidden');
-          });
-        }
-        
-        const contactForm = document.querySelector('#contact-form');
-        if (contactForm) {
-          contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            console.log('表单提交:', formData);
-          });
-        }
-      });
-  
-  # 高级配置
-  advanced:
-    performance:
-      lazyLoadImages: true
-      lazyLoadIframes: true
-      preconnectUrls: []
-      preloadCritical: true
-    
-    social:
-      wechat: ""
-      weibo: ""
-      qq: ""
-      email: "contact@example.com"
-    
-    analytics:
-      enabled: false
-      provider: "none"
-      googleId: ""
-    
-    features:
-      readingProgress: false
-      backToTop: true
-      toc: true
-      wordCount: true
-      readingTime: true
+    css: ""
+    js: ""
 
 # ========================================
-# 配置定义（用于生成管理后台配置表单）
+# 配置定义(用于生成管理后台配置表单)
 # ========================================
 configDefinition:
-  # 布局设置
-  - section: "布局设置"
-    icon: "grid"
-    description: "配置网站的布局方式"
-    fields:
-      - name: "appearance.layout.width"
-        type: "text"
-        label: "内容宽度"
-        placeholder: "例如: 1200px, 90%"
-        default: "1200px"
-        description: "网站内容区域的最大宽度"
-      
-      - name: "appearance.layout.container"
-        type: "select"
-        label: "容器模式"
-        options:
-          - label: "盒状布局"
-            value: "boxed"
-          - label: "全宽布局"
-            value: "fullwidth"
-        default: "boxed"
-      
-      - name: "appearance.layout.sectionGap"
-        type: "text"
-        label: "区块间距"
-        placeholder: "例如: 72px, 4.5rem"
-        default: "72px"
-        description: "各区块之间的间距"
-  
-  # 样式设置
-  - section: "样式设置"
-    icon: "brush"
-    description: "自定义主题的外观样式"
+  # 外观配置
+  - section: "外观"
+    icon: "palette"
+    description: "配置主题颜色、字体等外观设置"
     fields:
       - name: "appearance.colors.primary"
-        type: "color"
         label: "主色调"
-        default: "#059669"
-        description: "网站的主要品牌颜色"
-      
+        type: "color"
+        showAlpha: false
+        default: "#1a202c"
+        description: "网站的主色调"
+
       - name: "appearance.colors.secondary"
-        type: "color"
         label: "次要颜色"
-        default: "#047857"
-        description: "次要按钮和装饰元素的颜色"
-      
+        type: "color"
+        showAlpha: false
+        default: "#2d3748"
+        description: "次要颜色"
+
       - name: "appearance.colors.accent"
-        type: "color"
         label: "强调色"
-        default: "#10B981"
-        description: "用于强调和突出显示的元素"
-      
-      - name: "appearance.colors.background"
         type: "color"
-        label: "背景色"
-        default: "#f9fafb"
-        description: "网站主要背景颜色"
-      
-      - name: "appearance.colors.text"
-        type: "color"
-        label: "文字颜色"
-        default: "#111827"
-        description: "主要文字颜色"
-      
-      - name: "appearance.layout.borderRadius"
-        type: "slider"
-        label: "圆角大小"
-        description: "调整卡片和按钮的圆角大小"
-        min: 0
-        max: 20
-        step: 1
-        default: 8
-      
-      - name: "appearance.animations.enabled"
-        type: "switch"
-        label: "启用动画"
-        description: "启用页面元素的动画效果"
-        activeText: "启用"
-        inactiveText: "禁用"
-        default: true
-  
-  # Hero设置
-  - section: "Hero设置"
+        showAlpha: false
+        default: "#4299e1"
+        description: "用于按钮、链接等强调元素"
+
+      - name: "appearance.layout.width"
+        label: "内容宽度"
+        type: "text"
+        placeholder: "例如: 1200px"
+        default: "1200px"
+
+  # Hero模块
+  - section: "Hero模块"
     icon: "view"
-    description: "配置网站顶部Hero区域的显示内容和样式"
+    description: "配置首页Hero区域"
     fields:
       - name: "modules.hero.enabled"
-        type: "switch"
         label: "启用Hero模块"
-        activeText: "显示"
-        inactiveText: "隐藏"
+        type: "switch"
         default: true
-      
+
       - name: "modules.hero.config.title"
-        type: "text"
         label: "主标题"
-        default: "专业企业官网解决方案"
+        type: "text"
+        default: "专业企业解决方案"
         show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.subtitle"
-        type: "text"
         label: "副标题"
-        default: "打造您的企业品牌形象"
-        show_if: "modules.hero.enabled"
-      
-      - name: "modules.hero.config.description"
         type: "textarea"
-        label: "描述文字"
-        rows: 3
-        default: "提供专业的企业官网解决方案，帮助企业快速建立品牌形象"
+        default: "助力企业数字化转型"
         show_if: "modules.hero.enabled"
-      
-      - name: "modules.hero.config.backgroundType"
-        type: "select"
-        label: "背景类型"
-        options:
-          - label: "图片"
-            value: "image"
-          - label: "渐变色"
-            value: "gradient"
-          - label: "纯色"
-            value: "color"
-        default: "image"
-        show_if: "modules.hero.enabled"
-      
-      - name: "modules.hero.config.backgroundImage"
-        type: "image"
-        label: "背景图片"
-        show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'image'"
-      
-      - name: "modules.hero.config.backgroundGradient"
-        type: "textarea"
-        label: "渐变背景"
-        rows: 2
-        default: "linear-gradient(135deg, #059669 0%, #047857 100%)"
-        show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'gradient'"
-      
-      - name: "modules.hero.config.overlayOpacity"
-        type: "slider"
-        label: "遮罩透明度"
-        description: "背景图片上的遮罩层透明度"
-        min: 0
-        max: 100
-        step: 5
-        default: 85
-        show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.showCta"
+        label: "显示按钮"
         type: "switch"
-        label: "显示主要按钮"
-        activeText: "显示"
-        inactiveText: "隐藏"
         default: true
         show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.ctaText"
+        label: "按钮文本"
         type: "text"
-        label: "主要按钮文本"
-        default: "联系我们"
+        default: "了解更多"
         show_if: "modules.hero.enabled && modules.hero.config.showCta"
-      
+
       - name: "modules.hero.config.ctaUrl"
+        label: "按钮链接"
         type: "text"
-        label: "主要按钮链接"
-        default: "/contact"
+        default: "/page/about"
+        placeholder: "例如: /page/about, /page/services"
+        description: "点击按钮后跳转的目标地址"
         show_if: "modules.hero.enabled && modules.hero.config.showCta"
-  
-  # 关于我们设置
-  - section: "关于我们"
-    icon: "info"
-    description: "配置关于我们模块"
-    fields:
-      - name: "modules.about.enabled"
-        type: "switch"
-        label: "启用关于模块"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-      
-      - name: "modules.about.config.title"
-        type: "text"
-        label: "模块标题"
-        default: "关于我们"
-        show_if: "modules.about.enabled"
-      
-      - name: "modules.about.config.subtitle"
-        type: "text"
-        label: "模块副标题"
-        default: "了解我们的故事"
-        show_if: "modules.about.enabled"
-      
-      - name: "modules.about.config.showStats"
-        type: "switch"
-        label: "显示统计数据"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-        show_if: "modules.about.enabled"
-  
-  # 服务设置
-  - section: "服务设置"
-    icon: "star"
-    description: "配置服务展示模块"
-    fields:
-      - name: "modules.services.enabled"
-        type: "switch"
-        label: "启用服务模块"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-      
-      - name: "modules.services.config.title"
-        type: "text"
-        label: "模块标题"
-        default: "我们的服务"
-        show_if: "modules.services.enabled"
-      
-      - name: "modules.services.config.subtitle"
-        type: "text"
-        label: "模块副标题"
-        default: "为您提供专业的一站式服务"
-        show_if: "modules.services.enabled"
-      
-      - name: "modules.services.config.columns"
-        type: "select"
-        label: "列数"
-        options:
-          - label: "2列"
-            value: "2"
-          - label: "3列"
-            value: "3"
-          - label: "4列"
-            value: "4"
-        default: "3"
-        show_if: "modules.services.enabled"
-  
-  # 团队设置
-  - section: "团队设置"
-    icon: "user"
-    description: "配置团队展示模块"
-    fields:
-      - name: "modules.team.enabled"
-        type: "switch"
-        label: "启用团队模块"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-      
-      - name: "modules.team.config.title"
-        type: "text"
-        label: "模块标题"
-        default: "我们的团队"
-        show_if: "modules.team.enabled"
-      
-      - name: "modules.team.config.columns"
-        type: "select"
-        label: "列数"
-        options:
-          - label: "3列"
-            value: "3"
-          - label: "4列"
-            value: "4"
-        default: "4"
-        show_if: "modules.team.enabled"
-  
-  # 联系设置
-  - section: "联系设置"
-    icon: "phone"
-    description: "配置联系页面"
-    fields:
-      - name: "modules.contact.enabled"
-        type: "switch"
-        label: "启用联系模块"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-      
-      - name: "modules.contact.config.title"
-        type: "text"
-        label: "模块标题"
-        default: "联系我们"
-        show_if: "modules.contact.enabled"
-      
-      - name: "modules.contact.config.showForm"
-        type: "switch"
-        label: "显示联系表单"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-        show_if: "modules.contact.enabled"
-  
-  # SEO设置
-  - section: "SEO设置"
-    icon: "search"
-    description: "配置网站的搜索引擎优化设置"
-    fields:
-      - name: "seo.title"
-        type: "text"
-        label: "网站标题"
-        default: "企业官网 - 专业的企业展示平台"
-        required: true
-      
-      - name: "seo.description"
-        type: "textarea"
-        label: "网站描述"
-        rows: 3
-        default: "提供专业的企业官网解决方案，帮助企业快速建立品牌形象"
-        required: true
-      
-      - name: "seo.keywords"
-        type: "text"
-        label: "关键词"
-        placeholder: "用逗号分隔多个关键词"
-        default: "企业官网,企业网站,品牌展示,产品展示"
-  
+
   # 自定义代码
   - section: "自定义代码"
     icon: "code"
-    description: "添加自定义CSS、JavaScript和HTML代码"
+    description: "添加自定义CSS和JavaScript代码"
     fields:
       - name: "custom.css"
-        type: "code"
         label: "自定义CSS"
-        language: "css"
-        rows: 10
-        description: "添加自定义CSS样式，会覆盖主题的默认样式"
-      
-      - name: "custom.js"
         type: "code"
+        language: "css"
+        rows: 8
+
+      - name: "custom.js"
         label: "自定义JavaScript"
+        type: "code"
         language: "javascript"
-        rows: 10
-        description: "添加自定义JavaScript代码"
+        rows: 8
 
 # 菜单位置定义
 menuLocations:
@@ -781,37 +175,20 @@ widgetAreas:
   - id: "sidebar"
     name: "侧边栏"
     description: "侧边栏小工具区域"
-    maxWidgets: 10
-  - id: "footer"
-    name: "底部"
-    description: "底部小工具区域"
-    maxWidgets: 4
-    columns: 4
+    maxWidgets: 6
 
 # 主题特定设置
 settings:
-  # 配色方案
   colorSchemes:
-    - name: "green"
-      label: "商务绿"
+    - name: "default"
+      label: "默认"
       colors:
-        primary: "#059669"
-        secondary: "#047857"
-        accent: "#10B981"
-    - name: "blue"
-      label: "科技蓝"
+        primary: "#1a202c"
+        secondary: "#2d3748"
+        accent: "#4299e1"
+    - name: "corporate"
+      label: "商务蓝"
       colors:
-        primary: "#2563EB"
-        secondary: "#1E40AF"
-        accent: "#3B82F6"
-    - name: "orange"
-      label: "活力橙"
-      colors:
-        primary: "#EA580C"
-        secondary: "#C2410C"
-        accent: "#F97316"
-  
-  # 其他设置
-  readingTimeWordsPerMinute: 200
-  excerptSeparator: "<!--more-->"
-  commentProvider: "none"
+        primary: "#1e3a5f"
+        secondary: "#2c5282"
+        accent: "#3182ce"

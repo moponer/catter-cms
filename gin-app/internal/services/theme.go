@@ -4,13 +4,18 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
+	"sync"
 
+	"catter-cms-gin/config"
 	"catter-cms-gin/internal/models"
 
+	"github.com/yuin/goldmark"
 	"gopkg.in/yaml.v3"
 )
 
@@ -63,9 +68,11 @@ type Theme struct {
 
 // ThemeService 主题服务
 type ThemeService struct {
-	activeTheme *Theme
-	themes      map[string]*Theme
-	themesPath  string
+	activeTheme   *Theme
+	themes        map[string]*Theme
+	themesPath    string
+	templateMu    sync.RWMutex
+	templateCache map[string]*template.Template // 模板缓存: "themeName/templateName" -> *template.Template
 }
 
 // 全局主题服务
@@ -73,14 +80,49 @@ var themeService *ThemeService
 
 // InitThemeService 初始化主题服务
 func InitThemeService() error {
+	var themesPath string
+
+	// 1. 优先使用配置文件中的 theme_path
+	if cfg := config.Get(); cfg != nil && cfg.Server.ThemePath != "" {
+		if _, err := os.Stat(cfg.Server.ThemePath); err == nil {
+			themesPath = cfg.Server.ThemePath
+			log.Printf("[INFO] Using theme_path from config: %s", themesPath)
+		} else {
+			log.Printf("[WARN] Config theme_path '%s' not found, trying auto-detection", cfg.Server.ThemePath)
+		}
+	}
+
+	// 2. 配置不存在或无效时，自动检测路径
+	if themesPath == "" {
+		themesPaths := []string{
+			"./templates/themes",         // 根目录运行（方案一：独立部署）
+			"../templates/themes",        // gin-app 目录运行（方案二）
+			"./gin-app/templates/themes", // 根目录但模板在 gin-app 下
+		}
+
+		for _, path := range themesPaths {
+			if _, err := os.Stat(path); err == nil {
+				themesPath = path
+				log.Printf("[INFO] Auto-detected themes at: %s", themesPath)
+				break
+			}
+		}
+	}
+
+	if themesPath == "" {
+		log.Printf("[WARN] Themes directory not found, themes will not be available")
+		themesPath = "./templates/themes" // fallback
+	}
+
 	themeService = &ThemeService{
-		themes:     make(map[string]*Theme),
-		themesPath: "./templates/themes",
+		themes:        make(map[string]*Theme),
+		themesPath:    themesPath,
+		templateCache: make(map[string]*template.Template),
 	}
 
 	// 加载主题
 	if err := themeService.LoadThemes(themeService.themesPath); err != nil {
-		fmt.Printf("Warning: failed to load themes: %v\n", err)
+		log.Printf("[WARN] Failed to load themes: %v", err)
 	}
 
 	// 从数据库获取激活的主题
@@ -130,15 +172,14 @@ func (s *ThemeService) LoadThemes(themesPath string) error {
 			continue // 跳过没有 theme.yml 的目录
 		}
 
-		// 加载主题
 		theme, err := s.LoadTheme(entry.Name(), themePath)
 		if err != nil {
-			fmt.Printf("Warning: failed to load theme %s: %v\n", entry.Name(), err)
+			log.Printf("[WARN] Failed to load theme %s: %v", entry.Name(), err)
 			continue
 		}
 
 		s.themes[entry.Name()] = theme
-		fmt.Printf("Loaded theme: %s (v%s)\n", theme.Name, theme.Version)
+		log.Printf("[INFO] Loaded theme: %s (v%s)", theme.Name, theme.Version)
 	}
 
 	return nil
@@ -166,15 +207,13 @@ func (s *ThemeService) LoadTheme(name, path string) (*Theme, error) {
 	// 从数据库加载主题配置
 	savedConfig, err := models.GetThemeConfig(name)
 	if err != nil {
-		fmt.Printf("Warning: failed to load theme config for %s: %v\n", name, err)
+		log.Printf("[WARN] Failed to load theme config for %s: %v", name, err)
 	} else if len(savedConfig) > 0 {
-		// 合并保存的配置
+		// 使用深合并，避免嵌套字段被整体替换
 		if theme.Config == nil {
 			theme.Config = make(map[string]interface{})
 		}
-		for key, value := range savedConfig {
-			theme.Config[key] = value
-		}
+		theme.Config = models.DeepMerge(theme.Config, savedConfig)
 	}
 
 	return theme, nil
@@ -191,7 +230,7 @@ func (s *ThemeService) SetActiveTheme(name string) error {
 
 	// 持久化到数据库
 	if err := models.SetActiveTheme(name); err != nil {
-		fmt.Printf("Warning: failed to save active theme to database: %v\n", err)
+		log.Printf("[WARN] Failed to save active theme to database: %v", err)
 	}
 
 	return nil
@@ -256,7 +295,29 @@ func SaveThemeConfigToDB(themeName string, config map[string]interface{}) error 
 	return models.SaveThemeConfig(themeName, config)
 }
 
-// RenderTemplate 渲染模板 - 使用 Go 标准模板引擎
+// getTemplateCacheKey 生成模板缓存 key
+func getTemplateCacheKey(themeName, templateName string) string {
+	return themeName + "/" + templateName
+}
+
+// clearTemplateCache 清除指定主题的模板缓存
+func clearTemplateCache(themeName string) {
+	if themeService == nil {
+		return
+	}
+	themeService.templateMu.Lock()
+	defer themeService.templateMu.Unlock()
+
+	prefix := themeName + "/"
+	for key := range themeService.templateCache {
+		if strings.HasPrefix(key, prefix) {
+			delete(themeService.templateCache, key)
+		}
+	}
+	log.Printf("[INFO] Cleared template cache for theme: %s", themeName)
+}
+
+// RenderTemplate 渲染模板 - 使用 Go 标准模板引擎（带缓存）
 func RenderTemplate(templateName string, data map[string]interface{}) (template.HTML, error) {
 	theme := GetActiveTheme()
 	if theme == nil {
@@ -269,64 +330,67 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 		return "", fmt.Errorf("template not found: %s", templateName)
 	}
 
-	// 读取模板内容
-	content, err := os.ReadFile(templatePath)
-	if err != nil {
-		return "", err
-	}
-
 	// 准备模板数据
 	templateData := make(map[string]interface{})
-	
+
 	// 复制所有传入的数据
 	for key, value := range data {
 		templateData[key] = value
 	}
-	
+
 	// 添加主题配置
 	templateData["config"] = theme.Config
 	if theme.Config == nil {
 		templateData["config"] = make(map[string]interface{})
 	}
-	
+
 	// 添加站点信息到config中（用于模板访问）
 	if site, ok := data["site"].(map[string]interface{}); ok {
-		if templateData["config"].(map[string]interface{}) != nil {
-			configMap := templateData["config"].(map[string]interface{})
+		if configMap, ok := templateData["config"].(map[string]interface{}); ok {
 			configMap["siteTitle"] = site["title"]
 			configMap["siteDescription"] = site["description"]
 			configMap["siteYear"] = site["year"]
 		}
 	}
-	
+
 	// 添加菜单数据
 	headerMenu, _ := models.GetMenuByLocation("header")
 	templateData["headerMenu"] = headerMenu
-	
+
 	footerMenu, _ := models.GetMenuByLocation("footer")
 	templateData["footerMenu"] = footerMenu
-	
+
 	sidebarMenu, _ := models.GetMenuByLocation("sidebar")
 	templateData["sidebarMenu"] = sidebarMenu
-	
-	fmt.Printf("[DEBUG] Template data prepared: headerMenu=%+v\n", headerMenu)
 
-	// 使用 Go 标准模板引擎渲染
-	return renderWithStandardTemplate(templateName, string(content), templateData)
-}
+	// 尝试从缓存获取模板
+	cacheKey := getTemplateCacheKey(theme.Name, templateName)
+	themeService.templateMu.RLock()
+	cachedTmpl, found := themeService.templateCache[cacheKey]
+	themeService.templateMu.RUnlock()
 
-// renderWithStandardTemplate 使用标准模板引擎渲染
-func renderWithStandardTemplate(templateName, content string, data map[string]interface{}) (template.HTML, error) {
-	// 创建模板并添加自定义函数
-	tmpl := template.New(templateName).Funcs(getTemplateFuncs())
-	
-	_, err := tmpl.Parse(content)
-	if err != nil {
-		return "", fmt.Errorf("template parse error: %v", err)
+	if !found {
+		// 缓存未命中，读取并解析模板
+		content, err := os.ReadFile(templatePath)
+		if err != nil {
+			return "", err
+		}
+
+		tmpl, err := template.New(templateName).Funcs(getTemplateFuncs()).Parse(string(content))
+		if err != nil {
+			return "", fmt.Errorf("template parse error: %v", err)
+		}
+
+		// 写入缓存
+		themeService.templateMu.Lock()
+		themeService.templateCache[cacheKey] = tmpl
+		themeService.templateMu.Unlock()
+		cachedTmpl = tmpl
 	}
 
+	// 执行模板（每次执行需要 clone，因为 Execute 会修改 state）
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, data); err != nil {
+	if err := cachedTmpl.Execute(&buf, templateData); err != nil {
 		return "", fmt.Errorf("template execute error: %v", err)
 	}
 
@@ -336,26 +400,18 @@ func renderWithStandardTemplate(templateName, content string, data map[string]in
 // getTemplateFuncs 获取模板自定义函数
 func getTemplateFuncs() template.FuncMap {
 	theme := GetActiveTheme()
-	
+
 	return template.FuncMap{
-		// config函数 - 用于访问主题配置
-		"config": func(key string) interface{} {
-			if theme == nil || theme.Config == nil {
-				return ""
-			}
-			return theme.Config[key]
-		},
-		
 		// getConfig函数 - 用于获取嵌套配置值（支持点分隔路径）
 		"getConfig": func(path string, defaultValue interface{}) interface{} {
 			if theme == nil || theme.Config == nil {
 				return defaultValue
 			}
-			
+
 			// 分割路径
 			keys := strings.Split(path, ".")
 			current := theme.Config
-			
+
 			for i, key := range keys {
 				if i == len(keys)-1 {
 					// 最后一层，返回值
@@ -371,30 +427,24 @@ func getTemplateFuncs() template.FuncMap {
 					return defaultValue
 				}
 			}
-			
+
 			return defaultValue
 		},
-		
+
 		// len函数 - 用于获取长度
 		"len": func(v interface{}) int {
-			switch val := v.(type) {
-			case []interface{}:
-				return len(val)
-			case []models.Post:
-				return len(val)
-			case []models.Category:
-				return len(val)
-			case []models.Tag:
-				return len(val)
-			case []models.MenuItem:
-				return len(val)
-			case string:
-				return len(val)
+			if v == nil {
+				return 0
+			}
+			rv := reflect.ValueOf(v)
+			switch rv.Kind() {
+			case reflect.Slice, reflect.Array, reflect.Map, reflect.String:
+				return rv.Len()
 			default:
 				return 0
 			}
 		},
-		
+
 		// asset_path函数 - 用于生成资源路径
 		"asset_path": func(path string) string {
 			if theme == nil {
@@ -402,7 +452,7 @@ func getTemplateFuncs() template.FuncMap {
 			}
 			return "/themes/" + theme.Name + "/" + path
 		},
-		
+
 		// current_theme函数 - 获取当前主题名称
 		"current_theme": func() string {
 			if theme == nil {
@@ -410,12 +460,12 @@ func getTemplateFuncs() template.FuncMap {
 			}
 			return theme.Name
 		},
-		
+
 		// safe函数 - 标记HTML为安全（不转义）
 		"safe": func(s string) template.HTML {
 			return template.HTML(s)
 		},
-		
+
 		// default函数 - 提供默认值
 		"default": func(value interface{}, defaultValue interface{}) interface{} {
 			if value == nil || value == "" {
@@ -423,47 +473,107 @@ func getTemplateFuncs() template.FuncMap {
 			}
 			return value
 		},
-		
+
 		// lower函数 - 转小写
 		"lower": func(s string) string {
 			return strings.ToLower(s)
 		},
-		
+
 		// upper函数 - 转大写
 		"upper": func(s string) string {
 			return strings.ToUpper(s)
 		},
-		
+
 		// trim函数 - 去除空格
 		"trim": func(s string) string {
 			return strings.TrimSpace(s)
 		},
-		
-		// gt函数 - 大于比较
-		"gt": func(a, b int) bool {
-			return a > b
+
+		// gt函数 - 大于比较（支持 int 和 int64）
+		"gt": func(a, b interface{}) bool {
+			toInt64 := func(v interface{}) int64 {
+				switch n := v.(type) {
+				case int:
+					return int64(n)
+				case int64:
+					return n
+				case float64:
+					return int64(n)
+				default:
+					return 0
+				}
+			}
+			return toInt64(a) > toInt64(b)
 		},
-		
-		// lt函数 - 小于比较
-		"lt": func(a, b int) bool {
-			return a < b
+
+		// lt函数 - 小于比较（支持 int 和 int64）
+		"lt": func(a, b interface{}) bool {
+			toInt64 := func(v interface{}) int64 {
+				switch n := v.(type) {
+				case int:
+					return int64(n)
+				case int64:
+					return n
+				case float64:
+					return int64(n)
+				default:
+					return 0
+				}
+			}
+			return toInt64(a) < toInt64(b)
 		},
-		
+
 		// eq函数 - 等于比较
 		"eq": func(a, b interface{}) bool {
 			return a == b
 		},
-		
-		// add函数 - 加法
-		"add": func(a, b int) int {
-			return a + b
+
+		// add函数 - 加法（支持 int 和 int64）
+		"add": func(a, b interface{}) interface{} {
+			switch va := a.(type) {
+			case int:
+				if vb, ok := b.(int); ok {
+					return va + vb
+				}
+				if vb, ok := b.(int64); ok {
+					return int64(va) + vb
+				}
+			case int64:
+				if vb, ok := b.(int64); ok {
+					return va + vb
+				}
+				if vb, ok := b.(int); ok {
+					return va + int64(vb)
+				}
+			case float64:
+				if vb, ok := b.(float64); ok {
+					return va + vb
+				}
+			}
+			return 0
 		},
-		
-		// sub函数 - 减法
-		"sub": func(a, b int) int {
-			return a - b
+
+		// sub函数 - 减法（支持 int 和 int64）
+		"sub": func(a, b interface{}) interface{} {
+			switch va := a.(type) {
+			case int:
+				if vb, ok := b.(int); ok {
+					return va - vb
+				}
+				if vb, ok := b.(int64); ok {
+					return int64(va) - vb
+				}
+			case int64:
+				if vb, ok := b.(int64); ok {
+					return va - vb
+				}
+				if vb, ok := b.(int); ok {
+					return va - int64(vb)
+				}
+			}
+			return 0
 		},
-		
+
 		// iterate函数 - 生成数字序列（用于分页）
 		"iterate": func(n int64) []int {
 			result := make([]int, int(n))
@@ -471,6 +581,23 @@ func getTemplateFuncs() template.FuncMap {
 				result[i] = i
 			}
 			return result
+		},
+
+		// markdownHTML函数 - 将 Markdown 转换为 HTML
+		// 如果内容已经是 HTML（以 < 开头），则直接输出
+		"markdownHTML": func(content string) template.HTML {
+			// 检测是否已经是 HTML 内容
+			trimmed := strings.TrimSpace(content)
+			if strings.HasPrefix(trimmed, "<") {
+				// 已经是 HTML，直接返回
+				return template.HTML(content)
+			}
+			// 是 Markdown，转换为 HTML
+			var buf bytes.Buffer
+			if err := goldmark.Convert([]byte(content), &buf); err != nil {
+				return template.HTML(content)
+			}
+			return template.HTML(buf.String())
 		},
 	}
 }
@@ -489,11 +616,11 @@ func convertPlushToGoTemplate(content string) string {
 	// 将 <%= (config["appearance"] && config["appearance"]["colors"] && config["appearance"]["colors"]["primary"]) || "#3B82F6" %>
 	// 简化为 {{ index .config "appearance.colors.primary" | default "#3B82F6" }}
 	// 但由于Go模板的限制，我们先用更简单的方式处理
-	
+
 	// 3. 处理简单的config访问
 	// <%= config.siteTitle %> -> {{ .config.siteTitle }}
 	result = regexp.MustCompile(`<%=\s*config\.(\w+)\s*%>`).ReplaceAllString(result, "{{ .config.$1 }}")
-	
+
 	// 4. 处理config["key"]访问
 	// <%= config["siteTitle"] %> -> {{ index .config "siteTitle" }}
 	result = regexp.MustCompile(`<%=\s*config\["([^"]+)"\]\s*%>`).ReplaceAllString(result, `{{ index .config "$1" }}`)
@@ -517,48 +644,48 @@ func convertPlushToGoTemplate(content string) string {
 
 	// 7. 替换 <% ... %> 为 {{ ... }} (for控制语句)
 	result = strings.ReplaceAll(result, "<%", "{{")
-	
+
 	// 8. 处理for循环语法
 	// plush: <%= for (item) in items { %> 或 <%= for (item) in items { %>
 	// go: {{ range .items }}
 	// 需要提取变量名和集合名
 	forPattern := regexp.MustCompile(`{{\s*for\s+\((\w+)\)\s+in\s+(\w+)\s*{?\s*}}`)
 	result = forPattern.ReplaceAllString(result, "{{ range .{{- $2 := . }}$2 }}\n{{- range $i, $1 := . }}")
-	
+
 	// 更简单的for循环处理
 	result = regexp.MustCompile(`{{\s*for\s+\((\w+)\)\s+in\s+(\w+)\s*}}`).ReplaceAllString(result, "{{ range .{{- $2 := . }}$2 }}")
-	
+
 	// 修正：直接使用Go模板的range语法
 	result = regexp.MustCompile(`{{\s*for\s+\((\w+)\)\s+in\s+(\w+)\s*{?\s*}}`).ReplaceAllString(result, "{{ range .{{- $2 }} }}")
-	
+
 	// 9. 处理if条件
 	// plush: <%= if (condition) { %> ... <% } %>
 	// go: {{ if .condition }} ... {{ end }}
 	result = regexp.MustCompile(`{{\s*if\s+\(([^)]+)\)\s*{?\s*}}`).ReplaceAllString(result, "{{ if $1 }}")
-	
+
 	// 10. 处理else if
 	result = regexp.MustCompile(`{{\s*}\s*else\s*if\s+\(([^)]+)\)\s*{?\s*}}`).ReplaceAllString(result, "{{ else if $1 }}")
-	
+
 	// 11. 处理else
 	result = regexp.MustCompile(`{{\s*}\s*else\s*{?\s*}}`).ReplaceAllString(result, "{{ else }}")
-	
+
 	// 12. 处理end/}
 	result = regexp.MustCompile(`{{\s*}\s*}}`).ReplaceAllString(result, "{{ end }}")
-	
+
 	// 13. 清理空的模板控制语句
 	result = regexp.MustCompile(`{{\s*}}`).ReplaceAllString(result, "")
-	
+
 	// 14. 处理布尔比较
 	// == false -> not
 	result = regexp.MustCompile(`(\w+)\s*==\s*false`).ReplaceAllString(result, "not .$1")
-	
+
 	// == true -> 直接访问
 	result = regexp.MustCompile(`(\w+)\s*==\s*true`).ReplaceAllString(result, ".$1")
 
 	// 15. 清理let语句中的变量赋值（已废弃）
 	// 例如：{{ showSidebar = layout != "one-column" }} 这种表达式Go模板无法处理
 	// 需要在后端预处理或使用自定义函数
-	
+
 	return result
 }
 
@@ -604,22 +731,18 @@ func GetThemeFullConfig(themeName string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("theme not found: %s", themeName)
 	}
 
-	// 合并主题默认配置和数据库配置
+	// 从默认配置开始
 	config := make(map[string]interface{})
-
-	// 先加载默认配置
 	if theme.Config != nil {
 		for key, value := range theme.Config {
 			config[key] = value
 		}
 	}
 
-	// 从数据库加载配置并覆盖
+	// 从数据库加载配置并深合并
 	savedConfig, err := models.GetThemeConfig(themeName)
 	if err == nil && savedConfig != nil {
-		for key, value := range savedConfig {
-			config[key] = value
-		}
+		config = models.DeepMerge(config, savedConfig)
 	}
 
 	return config, nil
@@ -627,31 +750,25 @@ func GetThemeFullConfig(themeName string) (map[string]interface{}, error) {
 
 // UpdateThemeConfig 更新主题配置（保存到数据库并更新内存）
 func UpdateThemeConfig(themeName string, config map[string]interface{}) error {
-	fmt.Printf("[DEBUG] UpdateThemeConfig called with themeName=%s\n", themeName)
-	
 	// 保存到数据库
 	if err := models.SaveThemeConfig(themeName, config); err != nil {
-		fmt.Printf("[ERROR] Failed to save config to database: %v\n", err)
 		return err
 	}
-	fmt.Printf("[DEBUG] Config saved to database successfully\n")
 
 	// 从数据库重新加载配置（会自动转换为嵌套结构）
 	reloadedConfig, err := models.GetThemeConfig(themeName)
 	if err != nil {
-		fmt.Printf("[ERROR] Failed to reload config: %v\n", err)
 		return fmt.Errorf("failed to reload theme config: %v", err)
 	}
-	
-	fmt.Printf("[DEBUG] Reloaded config from database: %+v\n", reloadedConfig)
 
 	// 更新内存中的配置
 	theme := GetTheme(themeName)
 	if theme != nil {
 		theme.Config = reloadedConfig
-		fmt.Printf("[DEBUG] Memory config updated for theme %s\n", themeName)
+		// 清除该主题的模板缓存，下次渲染会重新加载
+		clearTemplateCache(themeName)
 	} else {
-		fmt.Printf("[WARN] Theme %s not found in memory\n", themeName)
+		log.Printf("[WARN] Theme %s not found in memory", themeName)
 	}
 
 	return nil

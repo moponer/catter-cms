@@ -7,11 +7,12 @@ import { createPinia } from 'pinia'
 import './styles/global.css'
 import './styles/element-theme.css'
 
-// 导入 Element Plus 样式
+// 导入 Element Plus
+import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 
-// 导入 Element Plus 图标
+// 导入 Element Plus 图标（全局导入以避免循环依赖）
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 const app = createApp(App)
@@ -21,6 +22,9 @@ app.use(createPinia())
 
 // 注册路由
 app.use(router)
+
+// 注册 Element Plus
+app.use(ElementPlus)
 
 // 全局注册 Element Plus 图标
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

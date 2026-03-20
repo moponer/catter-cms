@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .page.Title }} - {{ .site.title }}</title>
+    <title>{{ if .page.MetaTitle }}{{ .page.MetaTitle }}{{ else }}{{ .page.Title }} - {{ .site.title }}{{ end }}</title>
+    <meta name="description" content="{{ if .page.MetaDescription }}{{ .page.MetaDescription }}{{ else }}{{ .page.Excerpt }}{{ end }}">
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{ .page.Title }}">
+    <meta property="og:description" content="{{ if .page.Excerpt }}{{ .page.Excerpt }}{{ else }}{{ .site.description }}{{ end }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ .site.url }}/page/{{ .page.Slug }}">
+    <meta property="og:site_name" content="{{ .site.title }}">
+    
+    <link rel="stylesheet" href="/themes/fontawesome/css/all.min.css">
     
     <style>
         :root {
@@ -153,10 +158,17 @@
             <a href="/" class="logo">{{ .site.title }}</a>
             <nav>
                 <ul class="nav-menu">
-                    <li><a href="/">首页</a></li>
-                    <li><a href="/blog">文章</a></li>
-                    <li><a href="/categories">分类</a></li>
-                    <li><a href="/tags">标签</a></li>
+                    {{ if .headerMenu }}
+                        {{ range .headerMenu.Items }}
+                            <li><a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank"{{ end }}>{{ .Label }}</a></li>
+                        {{ end }}
+                    {{ else }}
+                        <li><a href="/">首页</a></li>
+                        <li><a href="/article">文章</a></li>
+                        <li><a href="/categories">分类</a></li>
+                        <li><a href="/tags">标签</a></li>
+                        <li><a href="/page/about">关于</a></li>
+                    {{ end }}
                 </ul>
             </nav>
         </div>

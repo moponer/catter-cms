@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ .site.title }} - {{ .pageTitle }}</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+line-height: 1.6;
+color: #1a1a2e;
+background: #f8f9fa;
+}
+
+header {
+background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+color: white;
+position: sticky;
+top: 0;
+z-index: 100;
+}
+
+.header-container {
+max-width: 1400px;
+margin: 0 auto;
+padding: 15px 30px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.logo {
+font-size: 1.8em;
+font-weight: 800;
+color: white;
+text-decoration: none;
+}
+
+.logo span { color: #e94560; }
+
+nav a {
+color: rgba(255,255,255,0.9);
+text-decoration: none;
+margin-left: 40px;
+font-weight: 500;
+}
+
+nav a:hover { color: #e94560; }
+
+.page-header {
+background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+color: white;
+padding: 80px 30px;
+text-align: center;
+}
+
+.page-header h1 {
+font-size: 2.5em;
+margin-bottom: 10px;
+}
+
+.main-container {
+max-width: 900px;
+margin: 0 auto;
+padding: 48px 30px;
+}
+
+.archive-group {
+margin-bottom: 40px;
+}
+
+.archive-year {
+font-size: 1.5em;
+font-weight: 700;
+color: #0f3460;
+margin-bottom: 20px;
+padding-bottom: 12px;
+border-bottom: 2px solid #e94560;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.archive-count {
+font-size: 14px;
+font-weight: 400;
+color: #6b7280;
+background: #f1f3f5;
+padding: 4px 12px;
+border-radius: 4px;
+}
+
+.archive-list {
+list-style: none;
+padding-left: 20px;
+border-left: 2px solid #e5e7eb;
+}
+
+.archive-item {
+position: relative;
+padding: 12px 0 12px 24px;
+}
+
+.archive-item::before {
+content: '';
+position: absolute;
+left: -7px;
+top: 20px;
+width: 12px;
+height: 12px;
+background: #e94560;
+border-radius: 50%;
+}
+
+.archive-item a {
+color: #1a1a2e;
+text-decoration: none;
+font-weight: 500;
+font-size: 16px;
+transition: color 0.2s;
+}
+
+.archive-item a:hover { color: #e94560; }
+
+.archive-date {
+color: #9ca3af;
+font-size: 13px;
+margin-left: 12px;
+}
+
+footer {
+background: #0f3460;
+color: white;
+padding: 40px 30px;
+text-align: center;
+margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+.main-container { padding: 24px; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="header-container">
+<a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
+<nav>
+<a href="/">首页</a>
+<a href="/article">文章</a>
+<a href="/categories">分类</a>
+<a href="/tags">标签</a>
+</nav>
+</div>
+</header>
+
+<section class="page-header">
+<h1>文章归档</h1>
+</section>
+
+<div class="main-container">
+{{ if .archives }}
+{{ range $key, $posts := .archives }}
+<div class="archive-group">
+<h2 class="archive-year">
+{{ $key }}
+<span class="archive-count">{{ len $posts }} 篇</span>
+</h2>
+<ul class="archive-list">
+{{ range $posts }}
+<li class="archive-item">
+<a href="/article/{{ .Slug }}">{{ .Title }}</a>
+{{ if .PublishedAt }}
+<span class="archive-date">{{ .PublishedAt.Format "01-02" }}</span>
+{{ end }}
+</li>
+{{ end }}
+</ul>
+</div>
+{{ end }}
+{{ else }}
+<div style="text-align: center; color: #9ca3af; padding: 60px 0;">
+<p>暂无文章</p>
+</div>
+{{ end }}
+</div>
+
+<footer>
+<p>&copy; 2026 {{ .site.title }}. All Rights Reserved.</p>
+</footer>
+</body>
+</html>

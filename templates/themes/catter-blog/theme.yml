@@ -1,12 +1,12 @@
 # ========================================
 # Catter Blog 主题配置文件
-# 版本: 2.0.0 (支持模块化和高级配置)
+# 版本: 2.1.0 (精简版)
 # ========================================
 
 # 基础信息
 name: "Catter Blog"
-version: "2.0.0"
-apiVersion: "2.0"                     # 主题API版本
+version: "2.1.0"
+apiVersion: "2.0"
 description: "现代化的博客主题，支持响应式设计和模块化配置"
 author: "Catter Team"
 authorEmail: "support@cattercms.com"
@@ -28,515 +28,61 @@ requires:
 
 # 主题能力声明
 capabilities:
-  # 布局类型
-  layouts:
-    - default
-    - blog
-    - fullwidth
-    - landing
-  
-  # 支持的功能模块
-  modules:
-    - hero                    # Hero区域
-    - features                # 特性展示
-    - testimonials            # 客户评价
-    - cta                     # 行动召唤
-    - posts                   # 文章列表
-    - sidebar                 # 侧边栏
-    - related-posts           # 相关文章
-    - newsletter              # 订阅表单
-    - social-links            # 社交链接
-    - author-info             # 作者信息
-  
-  # 支持的小工具
-  widgets:
-    - search                  # 搜索框
-    - categories              # 分类列表
-    - tags                    # 标签云
-    - recent-posts            # 最近文章
-    - popular-posts           # 热门文章
-    - social-links            # 社交链接
-    - newsletter              # 订阅
-    - author-info             # 作者信息
-    - custom-html             # 自定义HTML
-  
-  # 支持的文章格式
-  postFormats:
-    - standard                # 标准文章
-    - gallery                 # 图集文章
-    - video                   # 视频文章
-    - audio                   # 音频文章
-  
-  # 其他能力
-  customFields: true         # 支持自定义字段
-  customTemplates: true      # 支持自定义模板
-  colorSchemes: true         # 支持配色方案
-  darkMode: true             # 支持深色模式
+  layouts: [default, blog, fullwidth, landing]
+  modules: [hero, features, posts, sidebar, related-posts, author-info]
+  widgets: [search, categories, tags, recent-posts, author-info, custom-html]
+  postFormats: [standard, gallery, video, audio]
+  customFields: true
+  customTemplates: true
+  colorSchemes: true
+  darkMode: false
 
+# ========================================
 # 默认配置
+# ========================================
 config:
-  # ========================================
   # 外观配置
-  # ========================================
   appearance:
-    # 配色方案
     colors:
-      primary: "#2d3436"              # 主色调 - 深灰墨黑
-      secondary: "#636e72"            # 次要颜色 - 中灰
-      accent: "#e17055"               # 强调色 - 暖橙
-      background: "#ffffff"           # 背景色 - 纯白
-      text: "#2d3436"                 # 文字颜色
-      textMuted: "#636e72"            # 次要文字
-      border: "#dfe6e9"               # 边框颜色
-      success: "#00b894"              # 成功色
-      warning: "#fdcb6e"              # 警告色
-      error: "#d63031"                # 错误色
-      info: "#74b9ff"                 # 信息色
-    
-    # 字体配置
+      primary: "#2d3436"
+      secondary: "#636e72"
+      accent: "#e17055"
     typography:
-      baseFont: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-      headingFont: "inherit"          # 标题字体
-      codeFont: "'Fira Code', 'Consolas', 'Courier New', monospace"
-      fontSize:
-        base: "14px"                  # 基础字号
-        scale: 1.125                  # 字号缩放比例
-      lineHeight:
-        base: 1.5                     # 基础行高
-        heading: 1.25                 # 标题行高
-    
-    # 布局配置
+      baseFont: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     layout:
-      width: "1200px"                 # 内容最大宽度
-      sidebar: "right"                # 侧边栏位置(left/right/none)
-      container: "boxed"              # 容器模式(boxed/fullwidth)
-      gap: "24px"                     # 间距
-      sectionGap: "48px"              # 区块间距
-      borderRadius: "8px"             # 圆角
-    
-    # 动画配置
-    animations:
-      enabled: true                   # 启用动画
-      duration: "250ms"               # 动画时长
-      easing: "ease"                  # 动画缓动函数
-      fadeIn: true                    # 淡入动画
-      slideUp: true                   # 上滑动画
-      stagger: "50ms"                 # 交错延迟
-  
-  # ========================================
-  # 模块配置
-  # ========================================
+      width: "1200px"
+      sidebar: "right"
+
+  # Hero模块
   modules:
-    # Hero模块配置
     hero:
       enabled: true
       config:
-        title: "欢迎来到我的博客"           # 主标题
-        subtitle: "分享技术、记录生活、探索未知"  # 副标题
-        backgroundType: "color"           # 背景类型 - 使用纯色
-        backgroundColor: "#2d3436"        # 背景颜色 - 深灰
-        backgroundGradient: ""            # 不使用渐变
-        backgroundImage: ""                # 背景图片URL
-        backgroundVideo: ""                # 背景视频URL
-        overlayOpacity: 1                  # 遮罩透明度
-        textAlign: "center"                # 文字对齐(left/center/right)
-        textColor: "#ffffff"               # 文字颜色
-        height: "400px"                    # 高度
-        showCta: true                      # 显示主要按钮
-        ctaText: "查看文章"                 # 按钮文本
-        ctaUrl: "/blog"                    # 按钮链接
-        ctaStyle: "primary"                # 按钮样式(primary/secondary/outline)
-        showSecondaryCta: false            # 显示次要按钮
-        secondaryCtaText: "了解更多"         # 次要按钮文本
-        secondaryCtaUrl: "/about"          # 次要按钮链接
-        secondaryCtaStyle: "outline"       # 次要按钮样式
-    
-    # 特性展示模块
-    features:
-      enabled: true
-      config:
-        title: "核心特性"                   # 模块标题
-        subtitle: "为什么选择我们的博客平台"  # 模块副标题
-        columns: 3                         # 列数(1-4)
-        items:                           # 特性列表
-          - icon: "rocket"                # 图标
-            title: "快速部署"               # 标题
-            description: "一键部署，快速上线"  # 描述
-            link: "/features/deployment"  # 链接
-          - icon: "shield"
-            title: "安全可靠"
-            description: "企业级安全防护"
-            link: "/features/security"
-          - icon: "palette"
-            title: "精美设计"
-            description: "现代化的UI设计"
-            link: "/features/design"
-    
-    # 文章列表模块(博客首页)
-    posts:
-      enabled: true
-      config:
-        title: "最新文章"                   # 模块标题
-        subtitle: ""                       # 模块副标题
-        layout: "grid"                    # 布局方式(list/grid/masonry)
-        columns: 2                        # 列数(仅grid/masonry)
-        perPage: 6                        # 每页文章数
-        excerptLength: 150                # 摘要长度
-        showThumbnail: true               # 显示缩略图
-        showAuthor: true                  # 显示作者
-        showDate: true                    # 显示日期
-        showCategory: true                # 显示分类
-        showTags: true                    # 显示标签
-        showReadTime: true                # 显示阅读时间
-        showExcerpt: true                 # 显示摘要
-    
-    # 侧边栏模块
-    sidebar:
-      enabled: true
-      config:
-        position: "right"                 # 位置(left/right)
-        width: "300px"                    # 宽度
-        sticky: true                      # 粘性定位
-    
-    # 相关文章模块
-    relatedPosts:
-      enabled: true
-      config:
-        title: "相关文章"                   # 标题
-        count: 3                          # 显示数量
-        by: "category"                   # 关联方式(category/tag/both)
-        showThumbnail: true               # 显示缩略图
-        showDate: true                    # 显示日期
-  
-  # ========================================
-  # 小工具配置
-  # ========================================
-  widgets:
-    # 搜索小工具
-    search:
-      enabled: true
-      area: "sidebar"                   # 显示区域(sidebar/footer)
-      config:
-        title: "搜索"                     # 标题
-        placeholder: "搜索文章..."         # 占位符
-        showButton: true                 # 显示搜索按钮
-        buttonText: "搜索"                # 按钮文本
-        showPopular: true                # 显示热门搜索
-    
-    # 分类小工具
-    categories:
-      enabled: true
-      area: "sidebar"
-      config:
-        title: "分类"                     # 标题
-        showCount: true                  # 显示文章数量
-        showHierarchy: true              # 显示层级
-        depth: 3                         # 显示深度
-        orderBy: "name"                 # 排序方式(name/count)
-        order: "ASC"                    # 排序顺序(ASC/DESC)
-    
-    # 标签小工具
-    tags:
-      enabled: true
-      area: "sidebar"
-      config:
-        title: "热门标签"                  # 标题
-        count: 20                        # 显示数量
-        minSize: 12                      # 最小字号(px)
-        maxSize: 24                      # 最大字号(px)
-        orderBy: "count"                # 排序方式(count/name)
-        showCount: false                 # 显示文章数量
-    
-    # 最近文章小工具
-    recentPosts:
-      enabled: true
-      area: "sidebar"
-      config:
-        title: "最近文章"                  # 标题
-        count: 5                         # 显示数量
-        showThumbnail: true              # 显示缩略图
-        showDate: true                   # 显示日期
-        showCategory: false              # 显示分类
-    
-    # 社交链接小工具
-    socialLinks:
-      enabled: true
-      area: "sidebar"
-      config:
-        title: "关注我"                    # 标题
-        links:                          # 社交链接
-          - platform: "github"          # 平台
-            url: "https://github.com"   # URL
-            icon: "github"              # 图标
-          - platform: "twitter"
-            url: "https://twitter.com"
-            icon: "twitter"
-          - platform: "email"
-            url: "mailto:contact@example.com"
-            icon: "email"
-    
-    # 自定义HTML小工具
-    customHtml:
-      enabled: false
-      area: "sidebar"
-      config:
-        title: "自定义内容"                  # 标题
-        content: ""                      # HTML内容
-  
-  # ========================================
-  # 菜单配置
-  # ========================================
-  menus:
-    # 顶部导航菜单
-    header:
-      - label: "首页"                     # 菜单标签
-        url: "/"                        # 链接
-        icon: "home"                    # 图标
-        target: "_self"                # 打开方式
-        enabled: true                   # 是否启用
-        children: []                    # 子菜单
-      - label: "博客"
-        url: "/blog"
-        icon: "document"
-        target: "_self"
-        enabled: true
-        children:
-          - label: "技术文章"
-            url: "/blog/tech"
-            icon: "code"
-          - label: "教程指南"
-            url: "/blog/tutorials"
-            icon: "book"
-      - label: "分类"
-        url: "/categories"
-        icon: "folder"
-        target: "_self"
-        enabled: true
-      - label: "关于"
-        url: "/about"
-        icon: "info"
-        target: "_self"
-        enabled: true
-    
-    # 底部菜单
-    footer:
-      - label: "关于我们"
-        url: "/about"
-        icon: "info"
-        enabled: true
-      - label: "联系我们"
-        url: "/contact"
-        icon: "mail"
-        enabled: true
-      - label: "隐私政策"
-        url: "/privacy"
-        icon: "shield"
-        enabled: true
-      - label: "RSS订阅"
-        url: "/rss.xml"
-        icon: "rss"
-        enabled: true
-  
-  # ========================================
-  # 页面配置
-  # ========================================
-  pages:
-    # 首页配置
-    home:
-      title: "首页"                       # 页面标题
-      template: "home"                  # 模板名称
-      layout: "default"                 # 布局
-      enabled: true                     # 是否启用
-      config: {}                        # 页面特定配置
-    
-    # 博客列表页
-    blog:
-      title: "博客"
-      template: "blog"
-      layout: "blog"
-      enabled: true
-      config:
-        showSidebar: true               # 显示侧边栏
-        postsPerPage: 10               # 每页文章数
-    
-    # 文章详情页
-    blog_show:
-      title: ""
-      template: "blog_show"
-      layout: "blog"
-      enabled: true
-      config:
-        showSidebar: true               # 显示侧边栏
-        showRelatedPosts: true          # 显示相关文章
-        showComments: true              # 显示评论
-        showShareButtons: true          # 显示分享按钮
-    
-    # 分类页面
-    category:
-      title: "分类: {{.Category.Name}}"
-      template: "category"
-      layout: "blog"
-      enabled: true
-      config:
-        showPostCount: true             # 显示文章数量
-        showDescription: true           # 显示分类描述
-        postsPerPage: 20
-    
-    # 标签页面
-    tag:
-      title: "标签: {{.Tag.Name}}"
-      template: "tag"
-      layout: "blog"
-      enabled: true
-      config:
-        showPostCount: true
-        postsPerPage: 30
-  
-  # ========================================
-  # 分类法配置
-  # ========================================
-  taxonomies:
-    # 分类配置
-    category:
-      enabled: true                     # 启用分类
-      template: "category"            # 分类模板
-      showDescription: true            # 显示描述
-      showPostCount: true              # 显示文章数量
-      perPage: 20                      # 每页数量
-    
-    # 标签配置
-    tag:
-      enabled: true                     # 启用标签
-      template: "tag"                 # 标签模板
-      showDescription: false           # 显示描述
-      showPostCount: true              # 显示文章数量
-      perPage: 30                      # 每页数量
-      showCloud: true                  # 显示标签云
-  
-  # ========================================
-  # SEO配置
-  # ========================================
-  seo:
-    # 基础SEO
-    title: "Catter Blog - 技术博客"      # 网站标题
-    description: "一个现代化的技术博客,分享编程、技术和生活"  # 网站描述
-    keywords: ["博客", "技术", "编程", "Web开发"]  # 关键词
-    author: "博主"                     # 作者
-    canonicalUrl: ""                  # 规范URL
-    robots: "index, follow"           # 爬虫规则
-    
-    # Open Graph
-    opengraph:
-      enabled: true                   # 启用Open Graph
-      type: "website"                # 类型
-      image: "/assets/images/og-image.jpg"  # 默认图片
-      imageAlt: "博客预览图"           # 图片描述
-    
-    # Twitter Card
-    twitter:
-      enabled: true                   # 启用Twitter Card
-      card: "summary_large_image"    # 卡片类型
-      creator: "@username"           # 创建者
-      site: "@username"              # 网站
-      image: "/assets/images/twitter-card.jpg"  # 图片
-    
-    # 结构化数据
-    schema:
-      enabled: true                   # 启用结构化数据
-      type: "Blog"                   # 类型
-      logo: "/assets/images/logo.png"  # Logo
-      publisher: "Catter Blog"       # 发布者
-    
-    # 站点地图
-    sitemap:
-      enabled: true                   # 启用站点地图
-      priority: 0.8                  # 优先级
-      changefreq: "daily"           # 更新频率
-      includeCategories: true        # 包含分类
-      includeTags: true              # 包含标签
-      includeAuthors: true           # 包含作者
-  
-  # ========================================
-  # 自定义代码
-  # ========================================
-  custom:
-    # 自定义CSS
-    css: |
-      /* 自定义样式 */
-      .custom-class {
-        color: var(--primary-color);
-      }
-    
-    # 自定义JavaScript
-    js: |
-      // 自定义脚本
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('Custom JS loaded');
-      });
-    
-    # 自定义Head内容
-    head: |
-      <!-- 自定义meta、link等 -->
-      <meta name="theme-color" content="#3B82F6">
-    
-    # Body顶部内容
-    bodyTop: |
-      <!-- 公告栏等 -->
-    
-    # Body底部内容
-    bodyBottom: |
-      <!-- 统计代码等 -->
-  
-  # ========================================
-  # 高级配置
-  # ========================================
-  advanced:
-    # 性能优化
-    performance:
-      lazyLoadImages: true            # 图片懒加载
-      lazyLoadIframes: true           # iframe懒加载
-      preconnectUrls: []              # 预连接URL
-      preloadCritical: true           # 预加载关键资源
-    
-    # 评论系统
-    comments:
-      enabled: false                  # 启用评论
-      provider: "none"               # 提供商(none/disqus/valine)
-      disqus:
-        shortname: ""                 # Disqus短名称
-      valine:
-        appId: ""                     # LeanCloud App ID
-        appKey: ""                    # LeanCloud App Key
-        placeholder: "说点什么..."     # 占位符
-    
-    # 社交媒体
-    social:
-      twitter: ""                     # Twitter用户名
-      github: ""                      # GitHub用户名
-      weibo: ""                       # 微博用户名
-      email: ""                       # 邮箱
-      rss: true                       # 显示RSS链接
-    
-    # 统计分析
-    analytics:
-      enabled: false                  # 启用统计
-      provider: "none"               # 提供商(none/google)
-      googleId: ""                  # Google Analytics ID
-    
-    # 广告
-    ads:
-      enabled: false                  # 启用广告
-      autoAds: false                 # 自动广告
-    
-    # 其他
-    readingProgress: true            # 阅读进度条
-    backToTop: true                  # 返回顶部按钮
-    toc: true                       # 文章目录
-    wordCount: true                 # 字数统计
-    readingTime: true               # 阅读时间
-    postViews: true                 # 文章浏览量
+        title: "欢迎来到我的博客"
+        subtitle: "分享技术、记录生活、探索未知"
+        backgroundType: "color"
+        backgroundColor: "#2d3436"
+        ctaText: "查看文章"
+        ctaUrl: "/article"
+        showCta: true
 
+  # 博主信息
+  widgets:
+    author:
+      enabled: true
+      title: "关于博主"
+      name: "博主"
+      bio: "热爱技术，热爱生活"
+      showSocial: true
+
+  # 自定义代码
+  custom:
+    css: ""
+    js: ""
+
+# ========================================
 # 配置定义(用于生成管理后台配置表单)
+# ========================================
 configDefinition:
   # 外观配置
   - section: "外观"
@@ -546,836 +92,169 @@ configDefinition:
       - name: "appearance.colors.primary"
         label: "主色调"
         type: "color"
+        showAlpha: false
         default: "#2d3436"
         description: "网站的主色调，影响导航、标题等元素"
-      
+
       - name: "appearance.colors.secondary"
         label: "次要颜色"
         type: "color"
+        showAlpha: false
         default: "#636e72"
         description: "次要文字和装饰元素的颜色"
-      
+
       - name: "appearance.colors.accent"
         label: "强调色"
         type: "color"
+        showAlpha: false
         default: "#e17055"
-        description: "用于强调和突出显示的元素，如按钮、链接悬停"
-      
+        description: "用于按钮、链接悬停等强调元素"
+
       - name: "appearance.typography.baseFont"
         label: "基础字体"
         type: "select"
         options:
           - label: "系统字体"
-            value: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-          - label: "Inter"
-            value: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            value: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
           - label: "Noto Sans SC"
             value: "'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        default: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-      
+        default: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+
       - name: "appearance.layout.width"
         label: "内容宽度"
         type: "text"
         placeholder: "例如: 1200px, 90%"
         default: "1200px"
         description: "网站内容区域的最大宽度"
-      
-      - name: "appearance.layout.sidebar"
-        label: "侧边栏位置"
-        type: "select"
-        options:
-          - label: "右侧"
-            value: "right"
-          - label: "左侧"
-            value: "left"
-          - label: "隐藏"
-            value: "none"
-        default: "right"
-  
-  # Hero模块配置
+
+  # Hero模块
   - section: "Hero模块"
     icon: "view"
-    description: "配置网站顶部Hero区域的显示内容和样式"
+    description: "配置网站顶部Hero区域"
     fields:
       - name: "modules.hero.enabled"
         label: "启用Hero模块"
         type: "switch"
         default: true
-      
+
       - name: "modules.hero.config.title"
         label: "主标题"
         type: "text"
         default: "欢迎来到我的博客"
         show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.subtitle"
         label: "副标题"
         type: "textarea"
         default: "分享技术、记录生活、探索未知"
         show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.backgroundType"
         label: "背景类型"
         type: "select"
         options:
           - label: "纯色"
             value: "color"
-          - label: "图片"
-            value: "image"
           - label: "渐变"
             value: "gradient"
-          - label: "视频"
-            value: "video"
-        default: "gradient"
+          - label: "图片"
+            value: "image"
+        default: "color"
         show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.backgroundColor"
         label: "背景颜色"
         type: "color"
+        showAlpha: false
         default: "#2d3436"
         show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'color'"
-      
-      - name: "modules.hero.config.backgroundImage"
-        label: "背景图片"
-        type: "image"
-        show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'image'"
-      
+
       - name: "modules.hero.config.showCta"
         label: "显示按钮"
         type: "switch"
         default: true
         show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.ctaText"
         label: "按钮文本"
         type: "text"
         default: "查看文章"
         show_if: "modules.hero.enabled && modules.hero.config.showCta"
-  
-  # SEO配置
-  - section: "SEO设置"
-    icon: "search"
-    description: "配置网站的搜索引擎优化设置"
-    fields:
-      - name: "seo.title"
-        label: "网站标题"
-        type: "text"
-        default: "Catter Blog - 技术博客"
-        required: true
-      
-      - name: "seo.description"
-        label: "网站描述"
-        type: "textarea"
-        default: "一个现代化的技术博客，分享编程、技术和生活"
-        required: true
-      
-      - name: "seo.keywords"
-        label: "关键词"
-        type: "tags"
-        placeholder: "输入关键词后按回车"
-        default: ["博客", "技术", "编程"]
-      
-      - name: "seo.opengraph.image"
-        label: "Open Graph图片"
-        type: "image"
-        description: "在社交媒体上分享时显示的图片"
-  
-  # 首页布局配置
-  - section: "首页布局"
-    icon: "layout"
-    description: "配置首页的文章列表、侧边栏等布局"
-    fields:
-      - name: "pages.home.layout"
-        label: "首页布局"
-        type: "select"
-        options:
-          - label: "双栏布局（带侧边栏）"
-            value: "two-column"
-          - label: "单栏布局（无侧边栏）"
-            value: "one-column"
-          - label: "三栏布局"
-            value: "three-column"
-        default: "two-column"
-      
-      - name: "pages.home.sidebarPosition"
-        label: "侧边栏位置"
-        type: "select"
-        options:
-          - label: "右侧"
-            value: "right"
-          - label: "左侧"
-            value: "left"
-        default: "right"
-        show_if: "pages.home.layout == 'two-column' || pages.home.layout == 'three-column'"
-      
-      - name: "pages.home.postsPerPage"
-        label: "每页文章数"
-        type: "number"
-        default: 10
-        min: 1
-        max: 50
-      
-      - name: "pages.home.showExcerpt"
-        label: "显示文章摘要"
-        type: "switch"
-        default: true
-      
-      - name: "pages.home.excerptLength"
-        label: "摘要长度"
-        type: "number"
-        default: 150
-        min: 50
-        max: 500
-        show_if: "pages.home.showExcerpt"
-      
-      - name: "pages.home.showFeaturedImage"
-        label: "显示特色图片"
-        type: "switch"
-        default: true
-      
-      - name: "pages.home.showMeta"
-        label: "显示文章元信息"
-        type: "switch"
-        default: true
-        description: "显示作者、日期、分类等信息"
-      
-      - name: "pages.home.sidebarWidgets"
-        label: "侧边栏小工具"
-        type: "multi-select"
-        options:
-          - label: "搜索框"
-            value: "search"
-          - label: "作者信息"
-            value: "author"
-          - label: "最近文章"
-            value: "recent-posts"
-          - label: "热门文章"
-            value: "popular-posts"
-          - label: "分类列表"
-            value: "categories"
-          - label: "标签云"
-            value: "tags"
-          - label: "社交链接"
-            value: "social"
-          - label: "订阅表单"
-            value: "newsletter"
-        default: ["search", "author", "recent-posts", "categories", "tags"]
-        show_if: "pages.home.layout == 'two-column' || pages.home.layout == 'three-column'"
 
-  # 文章页布局配置
-  - section: "文章页布局"
-    icon: "file-text"
-    description: "配置文章详情页的显示布局和元素"
-    fields:
-      - name: "pages.post.layout"
-        label: "文章页布局"
-        type: "select"
-        options:
-          - label: "双栏布局（带侧边栏）"
-            value: "two-column"
-          - label: "单栏布局（无侧边栏）"
-            value: "one-column"
-          - label: "阅读模式（宽屏居中）"
-            value: "reading"
-        default: "two-column"
-      
-      - name: "pages.post.sidebarPosition"
-        label: "侧边栏位置"
-        type: "select"
-        options:
-          - label: "右侧"
-            value: "right"
-          - label: "左侧"
-            value: "left"
-        default: "right"
-        show_if: "pages.post.layout == 'two-column'"
-      
-      - name: "pages.post.showToc"
-        label: "显示文章目录"
-        type: "switch"
-        default: true
-        description: "自动根据文章标题生成目录"
-      
-      - name: "pages.post.tocPosition"
-        label: "目录位置"
-        type: "select"
-        options:
-          - label: "侧边栏"
-            value: "sidebar"
-          - label: "文章顶部"
-            value: "top"
-          - label: "浮动跟随"
-            value: "floating"
-        default: "sidebar"
-        show_if: "pages.post.showToc"
-      
-      - name: "pages.post.showAuthor"
-        label: "显示作者信息"
-        type: "switch"
-        default: true
-      
-      - name: "pages.post.showRelated"
-        label: "显示相关文章"
-        type: "switch"
-        default: true
-      
-      - name: "pages.post.relatedCount"
-        label: "相关文章数量"
-        type: "number"
-        default: 6
-        min: 3
-        max: 12
-        show_if: "pages.post.showRelated"
-      
-      - name: "pages.post.showShare"
-        label: "显示分享按钮"
-        type: "switch"
-        default: true
-      
-      - name: "pages.post.showPrevNext"
-        label: "显示上一篇/下一篇"
-        type: "switch"
-        default: true
-      
-      - name: "pages.post.sidebarWidgets"
-        label: "侧边栏小工具"
-        type: "multi-select"
-        options:
-          - label: "文章目录"
-            value: "toc"
-          - label: "作者信息"
-            value: "author"
-          - label: "最近文章"
-            value: "recent-posts"
-          - label: "相关文章"
-            value: "related"
-          - label: "分类列表"
-            value: "categories"
-          - label: "标签云"
-            value: "tags"
-          - label: "广告位"
-            value: "ad"
-        default: ["toc", "author", "recent-posts"]
-        show_if: "pages.post.layout == 'two-column'"
+      - name: "modules.hero.config.ctaUrl"
+        label: "按钮链接"
+        type: "text"
+        default: "/article"
+        placeholder: "例如: /article, /page/about"
+        description: "点击按钮后跳转的目标地址"
+        show_if: "modules.hero.enabled && modules.hero.config.showCta"
 
-  # 分类页布局配置
-  - section: "分类页布局"
-    icon: "folder"
-    description: "配置分类文章列表页的显示布局"
-    fields:
-      - name: "pages.category.layout"
-        label: "分类页布局"
-        type: "select"
-        options:
-          - label: "双栏布局（带侧边栏）"
-            value: "two-column"
-          - label: "单栏布局（无侧边栏）"
-            value: "one-column"
-        default: "two-column"
-      
-      - name: "pages.category.sidebarPosition"
-        label: "侧边栏位置"
-        type: "select"
-        options:
-          - label: "右侧"
-            value: "right"
-          - label: "左侧"
-            value: "left"
-        default: "right"
-        show_if: "pages.category.layout == 'two-column'"
-      
-      - name: "pages.category.postsPerPage"
-        label: "每页文章数"
-        type: "number"
-        default: 10
-        min: 1
-        max: 50
-      
-      - name: "pages.category.showDescription"
-        label: "显示分类描述"
-        type: "switch"
-        default: true
-      
-      - name: "pages.category.showSubcategories"
-        label: "显示子分类"
-        type: "switch"
-        default: true
-      
-      - name: "pages.category.sidebarWidgets"
-        label: "侧边栏小工具"
-        type: "multi-select"
-        options:
-          - label: "搜索框"
-            value: "search"
-          - label: "分类列表"
-            value: "categories"
-          - label: "标签云"
-            value: "tags"
-          - label: "最近文章"
-            value: "recent-posts"
-        default: ["search", "categories", "tags"]
-        show_if: "pages.category.layout == 'two-column'"
-
-  # 侧边栏小工具配置
-  - section: "侧边栏"
-    icon: "layout"
-    description: "配置侧边栏小工具的启用、排序和显示"
-    fields:
-      - name: "sidebar.enabled"
-        label: "启用侧边栏"
-        type: "switch"
-        default: true
-        description: "是否显示侧边栏"
-      
-      - name: "sidebar.position"
-        label: "侧边栏位置"
-        type: "select"
-        options:
-          - label: "右侧"
-            value: "right"
-          - label: "左侧"
-            value: "left"
-        default: "right"
-        show_if: "sidebar.enabled"
-      
-      - name: "sidebar.width"
-        label: "侧边栏宽度"
-        type: "text"
-        default: "300px"
-        placeholder: "例如: 300px, 25%"
-        show_if: "sidebar.enabled"
-      
-      - name: "sidebar.sticky"
-        label: "固定侧边栏"
-        type: "switch"
-        default: true
-        description: "滚动时侧边栏固定在视口"
-        show_if: "sidebar.enabled"
-      
-      - name: "sidebar.widgets"
-        label: "小工具排序"
-        type: "widget-sort"
-        description: "拖拽排序小工具，取消勾选可禁用"
-        options:
-          - label: "搜索框"
-            value: "search"
-            icon: "search"
-          - label: "博主信息"
-            value: "author"
-            icon: "user"
-          - label: "最近文章"
-            value: "recent-posts"
-            icon: "file-text"
-          - label: "热门文章"
-            value: "popular-posts"
-            icon: "trending-up"
-          - label: "分类列表"
-            value: "categories"
-            icon: "folder"
-          - label: "标签云"
-            value: "tags"
-            icon: "tag"
-          - label: "站点统计"
-            value: "stats"
-            icon: "bar-chart"
-          - label: "公告"
-            value: "announcement"
-            icon: "bell"
-          - label: "自定义HTML"
-            value: "custom-html"
-            icon: "code"
-        default: ["search", "author", "recent-posts", "categories", "tags"]
-        show_if: "sidebar.enabled"
-  
-  # 搜索小工具配置
-  - section: "搜索小工具"
-    icon: "search"
-    description: "配置侧边栏搜索框"
-    fields:
-      - name: "widgets.search.enabled"
-        label: "启用搜索小工具"
-        type: "switch"
-        default: true
-      
-      - name: "widgets.search.title"
-        label: "标题"
-        type: "text"
-        default: "搜索"
-        show_if: "widgets.search.enabled"
-      
-      - name: "widgets.search.placeholder"
-        label: "占位符文本"
-        type: "text"
-        default: "搜索文章..."
-        show_if: "widgets.search.enabled"
-      
-      - name: "widgets.search.showButton"
-        label: "显示搜索按钮"
-        type: "switch"
-        default: true
-        show_if: "widgets.search.enabled"
-      
-      - name: "widgets.search.buttonText"
-        label: "按钮文本"
-        type: "text"
-        default: "搜索"
-        show_if: "widgets.search.enabled && widgets.search.showButton"
-  
-  # 博主信息小工具配置
+  # 博主信息
   - section: "博主信息"
     icon: "user"
-    description: "配置博主信息小工具"
+    description: "配置侧边栏博主信息"
     fields:
       - name: "widgets.author.enabled"
         label: "启用博主信息"
         type: "switch"
         default: true
-      
-      - name: "widgets.author.title"
-        label: "标题"
-        type: "text"
-        default: "关于博主"
-        show_if: "widgets.author.enabled"
-      
+
       - name: "widgets.author.name"
         label: "博主名称"
         type: "text"
         default: "博主"
         show_if: "widgets.author.enabled"
-      
-      - name: "widgets.author.avatar"
-        label: "头像图片"
-        type: "image"
-        show_if: "widgets.author.enabled"
-      
+
       - name: "widgets.author.bio"
         label: "个人简介"
         type: "textarea"
-        placeholder: "写一段简短的自我介绍..."
+        default: "热爱技术，热爱生活"
         show_if: "widgets.author.enabled"
-      
-      - name: "widgets.author.showSocial"
-        label: "显示社交链接"
-        type: "switch"
-        default: true
-        show_if: "widgets.author.enabled"
-  
-  # 最近文章小工具配置
-  - section: "最近文章"
-    icon: "file-text"
-    description: "配置最近文章小工具"
-    fields:
-      - name: "widgets.recent-posts.enabled"
-        label: "启用最近文章"
-        type: "switch"
-        default: true
-      
-      - name: "widgets.recent-posts.title"
-        label: "标题"
-        type: "text"
-        default: "最近文章"
-        show_if: "widgets.recent-posts.enabled"
-      
-      - name: "widgets.recent-posts.count"
-        label: "显示数量"
-        type: "number"
-        default: 5
-        min: 1
-        max: 20
-        show_if: "widgets.recent-posts.enabled"
-      
-      - name: "widgets.recent-posts.showThumbnail"
-        label: "显示缩略图"
-        type: "switch"
-        default: true
-        show_if: "widgets.recent-posts.enabled"
-      
-      - name: "widgets.recent-posts.showDate"
-        label: "显示日期"
-        type: "switch"
-        default: true
-        show_if: "widgets.recent-posts.enabled"
-  
-  # 热门文章小工具配置
-  - section: "热门文章"
-    icon: "trending-up"
-    description: "配置热门文章小工具"
-    fields:
-      - name: "widgets.popular-posts.enabled"
-        label: "启用热门文章"
-        type: "switch"
-        default: false
-      
-      - name: "widgets.popular-posts.title"
-        label: "标题"
-        type: "text"
-        default: "热门文章"
-        show_if: "widgets.popular-posts.enabled"
-      
-      - name: "widgets.popular-posts.count"
-        label: "显示数量"
-        type: "number"
-        default: 5
-        min: 1
-        max: 10
-        show_if: "widgets.popular-posts.enabled"
-      
-      - name: "widgets.popular-posts.period"
-        label: "统计周期"
-        type: "select"
-        options:
-          - label: "全部时间"
-            value: "all"
-          - label: "最近30天"
-            value: "30days"
-          - label: "最近7天"
-            value: "7days"
-        default: "all"
-        show_if: "widgets.popular-posts.enabled"
-  
-  # 分类小工具配置
-  - section: "分类列表"
-    icon: "folder"
-    description: "配置分类列表小工具"
-    fields:
-      - name: "widgets.categories.enabled"
-        label: "启用分类列表"
-        type: "switch"
-        default: true
-      
-      - name: "widgets.categories.title"
-        label: "标题"
-        type: "text"
-        default: "分类"
-        show_if: "widgets.categories.enabled"
-      
-      - name: "widgets.categories.showCount"
-        label: "显示文章数量"
-        type: "switch"
-        default: true
-        show_if: "widgets.categories.enabled"
-      
-      - name: "widgets.categories.showHierarchy"
-        label: "显示层级"
-        type: "switch"
-        default: true
-        show_if: "widgets.categories.enabled"
-  
-  # 标签云小工具配置
-  - section: "标签云"
-    icon: "tag"
-    description: "配置标签云小工具"
-    fields:
-      - name: "widgets.tags.enabled"
-        label: "启用标签云"
-        type: "switch"
-        default: true
-      
-      - name: "widgets.tags.title"
-        label: "标题"
-        type: "text"
-        default: "标签云"
-        show_if: "widgets.tags.enabled"
-      
-      - name: "widgets.tags.count"
-        label: "显示数量"
-        type: "number"
-        default: 20
-        min: 5
-        max: 50
-        show_if: "widgets.tags.enabled"
-      
-      - name: "widgets.tags.showCount"
-        label: "显示文章数量"
-        type: "switch"
-        default: false
-        show_if: "widgets.tags.enabled"
-  
-  # 站点统计小工具配置
-  - section: "站点统计"
-    icon: "bar-chart"
-    description: "配置站点统计小工具"
-    fields:
-      - name: "widgets.stats.enabled"
-        label: "启用站点统计"
-        type: "switch"
-        default: false
-      
-      - name: "widgets.stats.title"
-        label: "标题"
-        type: "text"
-        default: "站点统计"
-        show_if: "widgets.stats.enabled"
-  
-  # 公告小工具配置
-  - section: "公告"
-    icon: "bell"
-    description: "配置公告小工具"
-    fields:
-      - name: "widgets.announcement.enabled"
-        label: "启用公告"
-        type: "switch"
-        default: false
-      
-      - name: "widgets.announcement.title"
-        label: "标题"
-        type: "text"
-        default: "公告"
-        show_if: "widgets.announcement.enabled"
-      
-      - name: "widgets.announcement.content"
-        label: "公告内容"
-        type: "textarea"
-        rows: 5
-        placeholder: "输入公告内容，支持HTML..."
-        show_if: "widgets.announcement.enabled"
-  
-  # 自定义HTML小工具配置
-  - section: "自定义HTML"
-    icon: "code"
-    description: "配置自定义HTML小工具"
-    fields:
-      - name: "widgets.custom-html.enabled"
-        label: "启用自定义HTML"
-        type: "switch"
-        default: false
-      
-      - name: "widgets.custom-html.title"
-        label: "标题"
-        type: "text"
-        default: "自定义内容"
-        show_if: "widgets.custom-html.enabled"
-      
-      - name: "widgets.custom-html.html"
-        label: "HTML内容"
-        type: "code"
-        language: "html"
-        rows: 10
-        placeholder: "输入HTML代码..."
-        show_if: "widgets.custom-html.enabled"
 
   # 自定义代码
   - section: "自定义代码"
     icon: "code"
-    description: "添加自定义CSS、JavaScript和HTML代码"
+    description: "添加自定义CSS和JavaScript代码"
     fields:
       - name: "custom.css"
         label: "自定义CSS"
         type: "code"
         language: "css"
-        description: "添加自定义CSS样式，会覆盖主题的默认样式。作用于所有页面的<head>中。"
-        rows: 10
-      
+        rows: 8
+        placeholder: "/* 自定义样式 */"
+
       - name: "custom.js"
         label: "自定义JavaScript"
         type: "code"
         language: "javascript"
-        description: "添加自定义JavaScript代码。作用于所有页面的</body>前。"
-        rows: 10
+        rows: 8
+        placeholder: "// 自定义脚本"
 
 # 菜单位置定义
 menuLocations:
   header:
     name: "顶部导航"
     description: "网站顶部主导航菜单"
-    maxDepth: 3                       # 最大层级
+    maxDepth: 3
   footer:
     name: "底部导航"
     description: "网站底部导航菜单"
     maxDepth: 2
-  sidebar:
-    name: "侧边栏菜单"
-    description: "侧边栏菜单"
-    maxDepth: 2
-  mobile:
-    name: "移动端菜单"
-    description: "移动端专用菜单"
-    maxDepth: 3
 
 # 小工具区域定义
 widgetAreas:
   - id: "sidebar"
     name: "侧边栏"
     description: "侧边栏小工具区域"
-    maxWidgets: 10
+    maxWidgets: 6
   - id: "footer"
     name: "底部"
     description: "底部小工具区域"
     maxWidgets: 4
     columns: 4
-  - id: "header"
-    name: "顶部"
-    description: "顶部小工具区域"
-    maxWidgets: 2
-  - id: "home_before_posts"
-    name: "首页文章前"
-    description: "首页文章列表上方的小工具区域"
-    maxWidgets: 3
 
-# 自定义字段支持
-customFields:
-  # 文章自定义字段
-  post:
-    - name: "subtitle"
-      label: "副标题"
-      type: "text"
-      description: "文章的副标题，会显示在标题下方"
-    
-    - name: "cover_image"
-      label: "封面图"
-      type: "image"
-      description: "文章的封面图片"
-    
-    - name: "show_toc"
-      label: "显示目录"
-      type: "switch"
-      default: true
-      description: "在文章中显示目录导航"
-    
-    - name: "enable_comments"
-      label: "启用评论"
-      type: "switch"
-      default: true
-      description: "允许用户评论这篇文章"
-  
-  # 页面自定义字段
-  page:
-    - name: "layout"
-      label: "布局"
-      type: "select"
-      options:
-        - label: "默认"
-          value: "default"
-        - label: "全宽"
-          value: "fullwidth"
-        - label: "落地页"
-          value: "landing"
-      default: "default"
-    
-    - name: "show_sidebar"
-      label: "显示侧边栏"
-      type: "switch"
-      default: true
-
-# 主题钩子(用于扩展)
-# 主题可以在特定位置注册钩子,其他插件可以挂载内容
-hooks:
-  - name: "header_before"
-    description: "头部之前"
-  - name: "header_after"
-    description: "头部之后"
-  - name: "content_before"
-    description: "内容之前"
-  - name: "content_after"
-    description: "内容之后"
-  - name: "footer_before"
-    description: "底部之前"
-  - name: "footer_after"
-    description: "底部之后"
-
-# 主题特定设置(非标准配置,主题可自由定义)
+# 主题特定设置
 settings:
-  # 配色方案
   colorSchemes:
     - name: "default"
       label: "默认"
@@ -1395,9 +274,4 @@ settings:
         primary: "#00b894"
         secondary: "#55a3a4"
         accent: "#81ecec"
-  
-  # 其他设置
-  readingTimeWordsPerMinute: 200      # 阅读速度(字/分钟)
-  excerptSeparator: "<!--more-->"     # 摘要分隔符
-  commentProvider: "none"            # 评论提供商
-  commentConfig: {}                  # 评论配置
+  readingTimeWordsPerMinute: 200

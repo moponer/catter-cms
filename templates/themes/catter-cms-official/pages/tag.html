@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ .site.title }} - {{ .tag.Name }}</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+line-height: 1.6;
+color: #1a1a2e;
+background: #f8f9fa;
+}
+
+header {
+background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+color: white;
+position: sticky;
+top: 0;
+z-index: 100;
+}
+
+.header-container {
+max-width: 1400px;
+margin: 0 auto;
+padding: 15px 30px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.logo {
+font-size: 1.8em;
+font-weight: 800;
+color: white;
+text-decoration: none;
+}
+
+.logo span { color: #e94560; }
+
+nav a {
+color: rgba(255,255,255,0.9);
+text-decoration: none;
+margin-left: 40px;
+font-weight: 500;
+}
+
+nav a:hover { color: #e94560; }
+
+.page-header {
+background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+color: white;
+padding: 80px 30px;
+text-align: center;
+}
+
+.page-header h1 {
+font-size: 2.5em;
+margin-bottom: 10px;
+}
+
+.page-header p {
+opacity: 0.9;
+}
+
+.main-container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 48px 30px;
+}
+
+.posts-section {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+
+.post-card {
+background: white;
+border-radius: 12px;
+padding: 30px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+transition: all 0.3s;
+}
+
+.post-card:hover {
+box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+transform: translateY(-3px);
+}
+
+.post-card h2 a {
+color: #0f3460;
+text-decoration: none;
+font-size: 1.4em;
+}
+
+.post-card h2 a:hover { color: #e94560; }
+
+.post-meta {
+display: flex;
+gap: 20px;
+color: #6b7280;
+font-size: 0.9em;
+margin-top: 12px;
+}
+
+footer {
+background: #0f3460;
+color: white;
+padding: 40px 30px;
+text-align: center;
+margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+.main-container { padding: 24px; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="header-container">
+<a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
+<nav>
+<a href="/">首页</a>
+<a href="/article">文章</a>
+<a href="/categories">分类</a>
+<a href="/tags">标签</a>
+</nav>
+</div>
+</header>
+
+<section class="page-header">
+<h1>{{ .tag.Name }}</h1>
+<p>标签下的所有文章</p>
+</section>
+
+<div class="main-container">
+<main class="posts-section">
+{{ if gt (len .posts) 0 }}
+{{ range .posts }}
+<article class="post-card">
+<h2><a href="/article/{{ .Slug }}">{{ .Title }}</a></h2>
+<div class="post-meta">
+{{ if .PublishedAt }}<span>📅 {{ .PublishedAt.Format "2006-01-02" }}</span>{{ end }}
+<span>👁 {{ .Views }} 阅读</span>
+</div>
+</article>
+{{ end }}
+{{ else }}
+<div style="text-align: center; color: #9ca3af; padding: 40px 0;">
+<p>该标签下暂无文章</p>
+</div>
+{{ end }}
+</main>
+</div>
+
+<footer>
+<p>&copy; 2026 {{ .site.title }}. All Rights Reserved.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ .site.title }} - {{ .pageTitle }}</title>
+<meta name="description" content="{{ .site.description }}">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: 'Helvetica Neue', Arial, -apple-system, sans-serif;
+line-height: 1.7;
+color: #2d3748;
+background: #f7fafc;
+}
+
+.navbar {
+background: #1a202c;
+padding: 0 60px;
+position: sticky;
+top: 0;
+z-index: 1000;
+}
+
+.navbar-inner {
+max-width: 1400px;
+margin: 0 auto;
+display: flex;
+justify-content: space-between;
+align-items: center;
+height: 70px;
+}
+
+.brand {
+color: white;
+text-decoration: none;
+font-size: 1.5em;
+font-weight: 700;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.brand-icon {
+width: 40px;
+height: 40px;
+background: linear-gradient(135deg, #4299e1, #667eea);
+border-radius: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 1.2em;
+}
+
+.nav-links a {
+color: #a0aec0;
+text-decoration: none;
+margin-left: 50px;
+font-weight: 500;
+transition: color 0.3s;
+}
+
+.nav-links a:hover { color: white; }
+
+.page-header {
+background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+padding: 100px 60px;
+text-align: center;
+color: white;
+}
+
+.page-header h1 {
+font-size: 2.5em;
+margin-bottom: 10px;
+}
+
+.page-header p {
+color: #a0aec0;
+font-size: 1.1em;
+}
+
+.main-container {
+max-width: 900px;
+margin: 60px auto;
+padding: 0 60px;
+}
+
+.archive-group {
+margin-bottom: 50px;
+}
+
+.archive-year {
+font-size: 1.8em;
+font-weight: 700;
+color: #1a202c;
+margin-bottom: 25px;
+padding-bottom: 15px;
+border-bottom: 3px solid #4299e1;
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.archive-count {
+font-size: 0.6em;
+font-weight: 400;
+color: #718096;
+background: #f1f5f9;
+padding: 5px 12px;
+border-radius: 6px;
+}
+
+.archive-list {
+list-style: none;
+padding-left: 25px;
+border-left: 3px solid #e5e7eb;
+}
+
+.archive-item {
+position: relative;
+padding: 15px 0 15px 30px;
+}
+
+.archive-item::before {
+content: '';
+position: absolute;
+left: -9px;
+top: 22px;
+width: 15px;
+height: 15px;
+background: #4299e1;
+border-radius: 50%;
+}
+
+.archive-item a {
+color: #1a202c;
+text-decoration: none;
+font-weight: 500;
+font-size: 1.1em;
+transition: color 0.2s;
+}
+
+.archive-item a:hover { color: #4299e1; }
+
+.archive-date {
+color: #718096;
+font-size: 0.9em;
+margin-left: 15px;
+}
+
+.empty-state {
+text-align: center;
+padding: 60px 0;
+color: #718096;
+}
+
+footer {
+background: #1a202c;
+color: white;
+padding: 40px 60px;
+text-align: center;
+margin-top: 60px;
+}
+
+footer p { color: #a0aec0; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+<div class="navbar-inner">
+<a href="/" class="logo brand">
+<div class="brand-icon">E</div>
+{{ .site.title }}
+</a>
+<div class="nav-links">
+<a href="/">首页</a>
+<a href="/article">文章</a>
+<a href="/categories">分类</a>
+<a href="/tags">标签</a>
+</div>
+</div>
+</nav>
+
+<div class="page-header">
+<h1>文章归档</h1>
+<p>按时间浏览所有文章</p>
+</div>
+
+<div class="main-container">
+{{ if .archives }}
+{{ range $key, $posts := .archives }}
+<div class="archive-group">
+<h2 class="archive-year">
+{{ $key }}
+<span class="archive-count">{{ len $posts }} 篇</span>
+</h2>
+<ul class="archive-list">
+{{ range $posts }}
+<li class="archive-item">
+<a href="/article/{{ .Slug }}">{{ .Title }}</a>
+{{ if .PublishedAt }}
+<span class="archive-date">{{ .PublishedAt.Format "01-02" }}</span>
+{{ end }}
+</li>
+{{ end }}
+</ul>
+</div>
+{{ end }}
+{{ else }}
+<div class="empty-state">
+<p>暂无文章</p>
+</div>
+{{ end }}
+</div>
+
+<footer>
+<p>&copy; {{ .site.year }} {{ .site.title }}. All Rights Reserved.</p>
+</footer>
+</body>
+</html>

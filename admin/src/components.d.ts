@@ -36,6 +36,7 @@ declare module 'vue' {
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
     ElOption: typeof import('element-plus/es')['ElOption']
     ElPagination: typeof import('element-plus/es')['ElPagination']
+    ElPopover: typeof import('element-plus/es')['ElPopover']
     ElProgress: typeof import('element-plus/es')['ElProgress']
     ElRadio: typeof import('element-plus/es')['ElRadio']
     ElRadioButton: typeof import('element-plus/es')['ElRadioButton']
@@ -56,10 +57,14 @@ declare module 'vue' {
     GlobalSearch: typeof import('./components/GlobalSearch.vue')['default']
     Header: typeof import('./components/layout/Header.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    IconPicker: typeof import('./components/IconPicker.vue')['default']
     MarkdownEditor: typeof import('./components/MarkdownEditor.vue')['default']
+    MediaPicker: typeof import('./components/MediaPicker.vue')['default']
+    RichTextEditor: typeof import('./components/RichTextEditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sidebar: typeof import('./components/layout/Sidebar.vue')['default']
+    TiptapEditor: typeof import('./components/TiptapEditor.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

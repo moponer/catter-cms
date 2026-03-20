@@ -45,20 +45,14 @@ export default defineConfig({
     // 代码分割优化
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vue 核心库
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          // Element Plus UI 库
-          'element-plus': ['element-plus', '@element-plus/icons-vue'],
-          // 工具库
-          'utils': ['axios', '@vueuse/core'],
-        },
+        // 使用默认的分块策略，避免循环依赖问题
+        manualChunks: undefined,
       },
     },
     // 启用 gzip 压缩大小报告
     reportCompressedSize: true,
-    // chunk 大小警告阈值
-    chunkSizeWarningLimit: 1000,
+    // chunk 大小警告阈值（提高到 2000kB）
+    chunkSizeWarningLimit: 2000,
   },
   // 优化依赖预构建
   optimizeDeps: {

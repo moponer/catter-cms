@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>搜索: {{ .query }} - {{ .site.title }}</title>
+    <title>{{ .site.title }} - {{ .pageTitle }}</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/themes/fontawesome/css/all.min.css">
     
     <style>
         :root {
@@ -210,10 +207,17 @@
             <a href="/" class="logo">{{ .site.title }}</a>
             <nav>
                 <ul class="nav-menu">
-                    <li><a href="/">首页</a></li>
-                    <li><a href="/blog">文章</a></li>
-                    <li><a href="/categories">分类</a></li>
-                    <li><a href="/tags">标签</a></li>
+                    {{ if .headerMenu }}
+                        {{ range .headerMenu.Items }}
+                            <li><a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank"{{ end }}>{{ .Label }}</a></li>
+                        {{ end }}
+                    {{ else }}
+                        <li><a href="/">首页</a></li>
+                        <li><a href="/article">文章</a></li>
+                        <li><a href="/categories">分类</a></li>
+                        <li><a href="/tags">标签</a></li>
+                        <li><a href="/page/about">关于</a></li>
+                    {{ end }}
                 </ul>
             </nav>
         </div>
@@ -224,7 +228,7 @@
         <form action="/search" method="get" class="search-form">
             <input type="text" name="q" class="search-input" placeholder="输入关键词搜索..." value="{{ .query }}">
             <button type="submit" class="search-btn">
-                <i class="fas fa-search"></i> 搜索
+                <i class="fa-solid fa-search"></i> 搜索
             </button>
         </form>
     </section>
@@ -238,11 +242,13 @@
                 {{ range .posts }}
                 <article class="post-card">
                     <h2 class="post-card-title">
-                        <a href="/blog/{{ .Slug }}">{{ .Title }}</a>
+                        <a href="/article/{{ .Slug }}">{{ .Title }}</a>
                     </h2>
                     <div class="post-meta">
-                        <span><i class="far fa-calendar"></i> {{ .PublishedAt.Format "2006-01-02" }}</span>
-                        <span><i class="far fa-eye"></i> {{ .Views }} 阅读</span>
+                        {{ if .PublishedAt }}
+                        <span><i class="fa-solid fa-calendar"></i> {{ .PublishedAt.Format "2006-01-02" }}</span>
+                        {{ end }}
+                        <span><i class="fa-solid fa-eye"></i> {{ .Views }} 阅读</span>
                     </div>
                     {{ if .Excerpt }}
                     <p class="post-excerpt">{{ .Excerpt }}</p>

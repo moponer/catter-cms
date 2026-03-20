@@ -3,6 +3,8 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 )
 
@@ -35,7 +37,74 @@ func GetThemeConfig(themeName string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to unmarshal theme config: %v", err)
 	}
 
-	return config, nil
+	// 将扁平结构转换为嵌套结构
+	return flattenToNested(config), nil
+}
+
+// flattenToNested 将扁平结构（点号分隔的键）转换为嵌套结构
+func flattenToNested(flat map[string]interface{}) map[string]interface{} {
+	if flat == nil {
+		return make(map[string]interface{})
+	}
+
+	nested := make(map[string]interface{})
+	for key, value := range flat {
+		// 检查键名是否包含点号
+		if strings.Contains(key, ".") {
+			// 按照点号分割键名
+			parts := strings.Split(key, ".")
+			current := nested
+
+			// 遍历所有部分，除了最后一个
+			for i := 0; i < len(parts)-1; i++ {
+				part := parts[i]
+				if _, exists := current[part]; !exists {
+					current[part] = make(map[string]interface{})
+				}
+				if nextMap, ok := current[part].(map[string]interface{}); ok {
+					current = nextMap
+				} else {
+					// 如果已存在但不是map，覆盖它
+					newMap := make(map[string]interface{})
+					current[part] = newMap
+					current = newMap
+				}
+			}
+
+			// 设置最后一个部分的值
+			current[parts[len(parts)-1]] = value
+		} else {
+			// 没有点号，直接设置
+			nested[key] = value
+		}
+	}
+	return nested
+}
+
+// DeepMerge 将 src 深度合并到 dst，src 中的值会覆盖 dst 中的同名值
+// 对于 map 类型，会递归合并而不是整体替换
+func DeepMerge(dst, src map[string]interface{}) map[string]interface{} {
+	if dst == nil {
+		dst = make(map[string]interface{})
+	}
+	if src == nil {
+		return dst
+	}
+
+	for key, srcVal := range src {
+		if dstVal, exists := dst[key]; exists {
+			// 如果两边都是 map，递归合并
+			srcMap, srcOk := srcVal.(map[string]interface{})
+			dstMap, dstOk := dstVal.(map[string]interface{})
+			if srcOk && dstOk {
+				dst[key] = DeepMerge(dstMap, srcMap)
+				continue
+			}
+		}
+		// 否则直接覆盖
+		dst[key] = srcVal
+	}
+	return dst
 }
 
 // SaveThemeConfig 保存主题配置
@@ -54,12 +123,22 @@ func SaveThemeConfig(themeName string, config map[string]interface{}) error {
 			ThemeName: themeName,
 			Config:    string(configJSON),
 		}
-		return DB.Create(&themeConfig).Error
+		if err := DB.Create(&themeConfig).Error; err != nil {
+			log.Printf("[ERROR] Failed to create theme config for %s: %v", themeName, err)
+			return err
+		}
+		log.Printf("[INFO] Created theme config for %s", themeName)
+		return nil
 	}
 
 	// 更新现有配置
 	themeConfig.Config = string(configJSON)
-	return DB.Save(&themeConfig).Error
+	if err = DB.Save(&themeConfig).Error; err != nil {
+		log.Printf("[ERROR] Failed to update theme config for %s: %v", themeName, err)
+		return err
+	}
+	log.Printf("[INFO] Updated theme config for %s", themeName)
+	return nil
 }
 
 // DeleteThemeConfig 删除主题配置

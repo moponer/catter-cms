@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .site.title }} - {{ .pageTitle }}</title>
+    <meta name="description" content="{{ .site.description }}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; line-height: 1.7; color: #2d3748; background: #f7fafc; }
+        a { text-decoration: none; color: inherit; }
+
+        header { background: #1a202c; padding: 0 60px; position: fixed; width: 100%; top: 0; z-index: 1000; }
+        .header-inner { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        .brand { color: white; font-size: 1.5em; font-weight: 700; }
+        .brand span { color: #4299e1; }
+        nav { display: flex; gap: 40px; }
+        nav a { color: #a0aec0; font-size: 0.95em; }
+        nav a:hover, nav a.active { color: white; }
+
+        .page-header { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); color: white; padding: 130px 60px 60px; text-align: center; }
+        .page-header h1 { font-size: 2.5em; margin-bottom: 10px; }
+
+        .news-list { max-width: 1200px; margin: 60px auto; padding: 0 30px; }
+        .news-card { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); display: grid; grid-template-columns: 250px 1fr; transition: all 0.3s; }
+        .news-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+        .news-thumb { background: linear-gradient(135deg, #1a202c, #2d3748); display: flex; align-items: center; justify-content: center; font-size: 3em; color: #4299e1; min-height: 200px; }
+        .news-body { padding: 30px; display: flex; flex-direction: column; justify-content: center; }
+        .news-date { color: #a0aec0; font-size: 0.85em; margin-bottom: 8px; }
+        .news-body h2 { font-size: 1.4em; color: #1a202c; margin-bottom: 10px; line-height: 1.4; }
+        .news-body p { color: #718096; font-size: 0.95em; line-height: 1.7; margin-bottom: 15px; }
+        .read-more { color: #4299e1; font-weight: 600; font-size: 0.95em; }
+        .read-more:hover { color: #3182ce; }
+
+        .pagination { display: flex; justify-content: center; gap: 10px; margin: 40px 0; }
+        .pagination a { padding: 8px 16px; background: white; border-radius: 6px; color: #4a5568; font-weight: 500; }
+        .pagination a:hover, .pagination a.active { background: #4299e1; color: white; }
+
+        footer { background: #1a202c; color: #a0aec0; padding: 60px 60px 30px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+        footer h4 { color: white; margin-bottom: 20px; }
+        footer a { display: block; padding: 5px 0; color: #a0aec0; font-size: 0.95em; }
+        footer a:hover { color: #4299e1; }
+        .footer-bottom { max-width: 1200px; margin: 40px auto 0; padding-top: 30px; border-top: 1px solid #2d3748; text-align: center; }
+
+        @media (max-width: 768px) {
+            nav { display: none; }
+            .news-card { grid-template-columns: 1fr; }
+            .news-thumb { min-height: 150px; }
+            .footer-inner { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <a href="/" class="brand">{{ .site.title }}<span>.</span></a>
+            <nav>
+                <a href="/page/services">服务</a>
+                <a href="/page/solutions">方案</a>
+                <a href="/page/products">产品</a>
+                <a href="/article" class="active">新闻</a>
+                <a href="/page/about">关于</a>
+                <a href="/page/contact">联系</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="page-header">
+        <h1>{{ .pageTitle }}</h1>
+    </div>
+
+    <div class="news-list">
+        {{ range .posts }}
+        <article class="news-card">
+            <div class="news-thumb">📰</div>
+            <div class="news-body">
+                <div class="news-date">{{ if .PublishedAt }}{{ .PublishedAt.Format "2006年01月02日" }}{{ end }}</div>
+                <h2><a href="/article/{{ .Slug }}">{{ .Title }}</a></h2>
+                {{ if .Excerpt }}
+                <p>{{ .Excerpt }}</p>
+                {{ end }}
+                <a href="/article/{{ .Slug }}" class="read-more">阅读全文 →</a>
+            </div>
+        </article>
+        {{ else }}
+        <p style="text-align: center; color: #718096; padding: 60px 0;">暂无文章</p>
+        {{ end }}
+    </div>
+
+    {{ if gt .pagination.totalPages 1 }}
+    <div class="pagination">
+        {{ if gt .pagination.page 1 }}
+        <a href="/article?page={{ sub .pagination.page 1 }}">上一页</a>
+        {{ end }}
+        {{ range $i := iterate .pagination.totalPages }}
+        {{ $pageNum := add $i 1 }}
+        <a href="/article?page={{ $pageNum }}" class="{{ if eq $pageNum $.pagination.page }}active{{ end }}">{{ $pageNum }}</a>
+        {{ end }}
+        {{ if lt .pagination.page .pagination.totalPages }}
+        <a href="/article?page={{ add .pagination.page 1 }}">下一页</a>
+        {{ end }}
+    </div>
+    {{ end }}
+
+    <footer>
+        <div class="footer-inner">
+            <div>
+                <h4>{{ .site.title }}</h4>
+                <p style="margin-top: 15px; font-size: 0.95em;">专业的企业数字化解决方案提供商</p>
+            </div>
+            <div>
+                <h4>解决方案</h4>
+                <a href="/page/services">软件开发</a>
+                <a href="/page/services">云服务</a>
+                <a href="/page/services">数据安全</a>
+            </div>
+            <div>
+                <h4>产品中心</h4>
+                <a href="/page/products">企业管理系统</a>
+                <a href="/page/products">客户关系管理</a>
+            </div>
+            <div>
+                <h4>联系我们</h4>
+                <a href="/page/about">关于我们</a>
+                <a href="/page/contact">联系方式</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {{ .site.year }} {{ .site.title }}. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

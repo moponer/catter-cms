@@ -1,6 +1,6 @@
 module catter-cms-gin
 
-go 1.21
+go 1.22
 
 require (
 	github.com/gin-gonic/gin v1.9.1
@@ -51,6 +51,7 @@ require (
 	github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
+	github.com/yuin/goldmark v1.7.16 // indirect
 	golang.org/x/arch v0.7.0 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect

@@ -1,11 +1,11 @@
 # ========================================
 # Catter CMS Official 官网主题配置
-# 版本: 2.0.0
+# 版本: 2.1.0 (精简版)
 # ========================================
 
 # 主题基本信息
 name: "Catter CMS Official"
-version: "2.0.0"
+version: "2.1.0"
 apiVersion: "2.0"
 description: "Catter CMS官方官网主题，现代化设计风格"
 author: "Catter Team"
@@ -22,613 +22,142 @@ requires:
 
 # 主题能力声明
 capabilities:
-  layouts:
-    - default
-    - landing
-    - features
-    - pricing
-    - docs
-  modules:
-    - hero
-    - features
-    - testimonials
-    - pricing
-    - cta
-    - footer
-  widgets:
-    - search
-    - categories
-    - tags
-    - recent-posts
-  postFormats:
-    - standard
-    - video
+  layouts: [default, landing, features, pricing, docs]
+  modules: [hero, features, testimonials, pricing, cta, footer]
+  widgets: [search, categories, tags, recent-posts]
+  postFormats: [standard, video]
   customFields: true
   customTemplates: true
   colorSchemes: true
   darkMode: false
 
+# ========================================
 # 默认配置
+# ========================================
 config:
-  default_locale: "zh-CN"
-
   # 外观配置
   appearance:
     colors:
-      primary: "#1a1a2e"
+      primary: "#0f3460"
       secondary: "#16213e"
-      accent: "#f39c12"
-      background: "#ffffff"
-      text: "#1f2937"
-      textMuted: "#6b7280"
-      border: "#e5e7eb"
-      success: "#27ae60"
-      warning: "#f39c12"
-      error: "#e74c3c"
-    
+      accent: "#e94560"
     typography:
-      baseFont: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-      headingFont: "inherit"
-      codeFont: "'Fira Code', 'Consolas', 'Courier New', monospace"
-      fontSize:
-        base: "14px"
-        scale: 1.125
-      lineHeight:
-        base: 1.6
-        heading: 1.25
-    
+      baseFont: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     layout:
-      width: "1280px"
-      container: "boxed"
-      gap: "24px"
-      sectionGap: "64px"
-      borderRadius: "8px"
-    
-    animations:
-      enabled: true
-      duration: "300ms"
-      easing: "ease-out"
-  
-  # 模块配置
+      width: "1200px"
+
+  # Hero模块
   modules:
-    # Hero模块
     hero:
       enabled: true
       config:
         title: "Catter CMS"
-        subtitle: "现代化内容管理系统"
-        description: "基于Go和Vue 3构建的强大而灵活的内容管理系统，让内容管理变得简单高效"
-        backgroundType: "color"
-        backgroundColor: "#1a1a2e"
-        backgroundGradient: ""
-        backgroundImage: ""
-        overlayOpacity: 1
-        textAlign: "center"
-        textColor: "#ffffff"
-        height: "600px"
-        showCta: true
+        subtitle: "现代化的内容管理系统"
+        backgroundType: "gradient"
+        backgroundColor: "#0f3460"
         ctaText: "立即开始"
-        ctaUrl: "/docs"
-        ctaStyle: "primary"
-        showSecondaryCta: true
-        secondaryCtaText: "查看演示"
-        secondaryCtaUrl: "/demo"
-        secondaryCtaStyle: "outline"
-        showBadges: true
-        badges:
-          - label: "开源免费"
-            color: "success"
-          - label: "易于使用"
-            color: "primary"
-          - label: "高度可定制"
-            color: "accent"
-    
-    # 特性展示模块
-    features:
-      enabled: true
-      config:
-        title: "核心特性"
-        subtitle: "为什么选择 Catter CMS"
-        columns: 3
-        items:
-          - icon: "zap"
-            title: "快速部署"
-            description: "一键部署，快速上线，无需复杂配置"
-            link: "/docs/deployment"
-          - icon: "shield"
-            title: "安全可靠"
-            description: "企业级安全防护，保护您的数据安全"
-            link: "/docs/security"
-          - icon: "palette"
-            title: "灵活主题"
-            description: "强大的主题系统，轻松定制网站外观"
-            link: "/docs/themes"
-          - icon: "code"
-            title: "API优先"
-            description: "RESTful API设计，便于二次开发"
-            link: "/docs/api"
-          - icon: "users"
-            title: "权限管理"
-            description: "完善的权限系统，灵活的角色管理"
-            link: "/docs/permissions"
-          - icon: "database"
-            title: "多数据库"
-            description: "支持MySQL、PostgreSQL等多种数据库"
-            link: "/docs/database"
-    
-    # 价格模块
-    pricing:
-      enabled: true
-      config:
-        title: "价格方案"
-        subtitle: "选择适合您的方案"
-        columns: 3
-        items:
-          - name: "免费版"
-            price: "0"
-            period: "永久免费"
-            description: "适合个人博客和小型网站"
-            features:
-              - "无限文章"
-              - "基础主题"
-              - "5个主题"
-              - "社区支持"
-            highlight: false
-            ctaText: "立即使用"
-            ctaUrl: "/signup?plan=free"
-          - name: "专业版"
-            price: "99"
-            period: "月"
-            description: "适合中小型企业和团队"
-            features:
-              - "包含免费版所有功能"
-              - "高级主题"
-              - "20个主题"
-              - "优先支持"
-              - "自定义域名"
-              - "API访问"
-            highlight: true
-            badge: "推荐"
-            ctaText: "开始试用"
-            ctaUrl: "/signup?plan=pro"
-          - name: "企业版"
-            price: "299"
-            period: "月"
-            description: "适合大型企业和团队"
-            features:
-              - "包含专业版所有功能"
-              - "无限主题"
-              - "专属客服"
-              - "定制开发"
-              - "私有部署"
-              - "SLA保障"
-            highlight: false
-            ctaText: "联系销售"
-            ctaUrl: "/contact?plan=enterprise"
-  
-  # 页面配置
-  pages:
-    home:
-      title: "首页"
-      template: "home.plush.html"
-      layout: "landing"
-      enabled: true
-      config:
-        showHero: true
-        showFeatures: true
-        showTestimonials: true
-        showPricing: true
-    
-    features:
-      title: "功能特性"
-      template: "features.plush.html"
-      layout: "features"
-      enabled: true
-    
-    pricing:
-      title: "价格方案"
-      template: "pricing.plush.html"
-      layout: "pricing"
-      enabled: true
-    
-    docs:
-      title: "文档中心"
-      template: "docs.plush.html"
-      layout: "default"
-      enabled: true
-    
-    about:
-      title: "关于我们"
-      template: "about.plush.html"
-      layout: "default"
-      enabled: true
-  
-  # SEO配置
-  seo:
-    title: "Catter CMS - 现代化内容管理系统"
-    description: "Catter CMS是一款基于Go语言和Vue 3构建的现代化内容管理系统，提供强大的内容管理和灵活的主题系统"
-    keywords: ["CMS", "内容管理系统", "Go", "Vue 3", "Buffalo", "Element Plus", "开源CMS"]
-    author: "Catter Team"
-    canonicalUrl: ""
-    robots: "index, follow"
-    
-    opengraph:
-      enabled: true
-      type: "website"
-      image: "/assets/images/og-image.jpg"
-      imageAlt: "Catter CMS 预览图"
-    
-    twitter:
-      enabled: true
-      card: "summary_large_image"
-      creator: "@cattercms"
-      site: "@cattercms"
-      image: "/assets/images/twitter-card.jpg"
-    
-    schema:
-      enabled: true
-      type: "WebSite"
-      logo: "/assets/images/logo.png"
-      publisher: "Catter CMS"
-  
+        ctaUrl: "/blog"
+        showCta: true
+
   # 自定义代码
   custom:
-    css: |
-      body {
-        background-color: var(--background-color);
-        color: var(--text-color);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      }
-      
-      .hero-section {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        color: white;
-        padding: 80px 0;
-      }
-      
-      .feature-card {
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 24px;
-        transition: all 0.3s ease;
-      }
-      
-      .feature-card:hover {
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        transform: translateY(-5px);
-      }
-    
-    js: |
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('Catter CMS Official主题已加载');
-        
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-          link.addEventListener('click', function(e) {
-            const target = this.getAttribute('href');
-            if (target.startsWith('#')) {
-              e.preventDefault();
-              const element = document.querySelector(target);
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-              }
-            }
-          });
-        });
-      });
-  
-  # 高级配置
-  advanced:
-    performance:
-      lazyLoadImages: true
-      lazyLoadIframes: true
-      preconnectUrls: []
-      preloadCritical: true
-    
-    social:
-      twitter: "@cattercms"
-      github: "catter-cms"
-      email: "contact@cattercms.com"
-      rss: true
-    
-    analytics:
-      enabled: false
-      provider: "none"
-      googleId: ""
-    
-    features:
-      readingProgress: false
-      backToTop: true
-      toc: true
-      wordCount: true
-      readingTime: true
+    css: ""
+    js: ""
 
 # ========================================
-# 配置定义（用于生成管理后台配置表单）
+# 配置定义(用于生成管理后台配置表单)
 # ========================================
 configDefinition:
-  # 布局设置
-  - section: "布局设置"
-    icon: "grid"
-    description: "配置网站的布局方式"
-    fields:
-      - name: "appearance.layout.width"
-        type: "text"
-        label: "内容宽度"
-        placeholder: "例如: 1280px, 90%"
-        default: "1280px"
-        description: "网站内容区域的最大宽度"
-      
-      - name: "appearance.layout.container"
-        type: "select"
-        label: "容器模式"
-        options:
-          - label: "盒状布局"
-            value: "boxed"
-          - label: "全宽布局"
-            value: "fullwidth"
-        default: "boxed"
-        description: "网站内容的容器模式"
-      
-      - name: "appearance.layout.sectionGap"
-        type: "text"
-        label: "区块间距"
-        placeholder: "例如: 64px, 4rem"
-        default: "64px"
-        description: "各区块之间的间距"
-  
-  # 样式设置
-  - section: "样式设置"
-    icon: "brush"
-    description: "自定义主题的外观样式"
+  # 外观配置
+  - section: "外观"
+    icon: "palette"
+    description: "配置主题颜色、字体等外观设置"
     fields:
       - name: "appearance.colors.primary"
-        type: "color"
         label: "主色调"
-        default: "#2563EB"
-        description: "网站的主要品牌颜色"
-      
+        type: "color"
+        showAlpha: false
+        default: "#0f3460"
+        description: "网站的主色调"
+
       - name: "appearance.colors.secondary"
-        type: "color"
         label: "次要颜色"
-        default: "#1E40AF"
-        description: "次要按钮和装饰元素的颜色"
-      
-      - name: "appearance.colors.accent"
         type: "color"
+        showAlpha: false
+        default: "#16213e"
+        description: "次要颜色"
+
+      - name: "appearance.colors.accent"
         label: "强调色"
-        default: "#3B82F6"
-        description: "用于强调和突出显示的元素"
-      
-      - name: "appearance.layout.borderRadius"
-        type: "slider"
-        label: "圆角大小"
-        description: "调整卡片和按钮的圆角大小"
-        min: 0
-        max: 20
-        step: 1
-        default: 8
-      
-      - name: "appearance.animations.enabled"
-        type: "switch"
-        label: "启用动画"
-        description: "启用页面元素的动画效果"
-        activeText: "启用"
-        inactiveText: "禁用"
-        default: true
-      
-      - name: "appearance.animations.duration"
-        type: "select"
-        label: "动画时长"
-        options:
-          - label: "快速 (200ms)"
-            value: "200ms"
-          - label: "中等 (300ms)"
-            value: "300ms"
-          - label: "缓慢 (500ms)"
-            value: "500ms"
-        default: "300ms"
-        show_if: "appearance.animations.enabled"
-  
-  # Hero设置
-  - section: "Hero设置"
+        type: "color"
+        showAlpha: false
+        default: "#e94560"
+        description: "用于按钮、链接等强调元素"
+
+      - name: "appearance.layout.width"
+        label: "内容宽度"
+        type: "text"
+        placeholder: "例如: 1200px"
+        default: "1200px"
+
+  # Hero模块
+  - section: "Hero模块"
     icon: "view"
-    description: "配置网站顶部Hero区域的显示内容和样式"
+    description: "配置首页Hero区域"
     fields:
       - name: "modules.hero.enabled"
-        type: "switch"
         label: "启用Hero模块"
-        activeText: "显示"
-        inactiveText: "隐藏"
+        type: "switch"
         default: true
-      
+
       - name: "modules.hero.config.title"
-        type: "text"
         label: "主标题"
+        type: "text"
         default: "Catter CMS"
         show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.subtitle"
-        type: "text"
         label: "副标题"
-        default: "现代化内容管理系统"
-        show_if: "modules.hero.enabled"
-      
-      - name: "modules.hero.config.description"
         type: "textarea"
-        label: "描述文字"
-        rows: 3
-        default: "基于Go和Vue 3构建的强大而灵活的内容管理系统"
+        default: "现代化的内容管理系统"
         show_if: "modules.hero.enabled"
-      
-      - name: "modules.hero.config.backgroundType"
-        type: "select"
-        label: "背景类型"
-        options:
-          - label: "渐变色"
-            value: "gradient"
-          - label: "纯色"
-            value: "color"
-          - label: "图片"
-            value: "image"
-        default: "gradient"
-        show_if: "modules.hero.enabled"
-      
-      - name: "modules.hero.config.backgroundGradient"
-        type: "textarea"
-        label: "渐变背景"
-        rows: 2
-        default: "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)"
-        show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'gradient'"
-        description: "CSS渐变样式"
-      
-      - name: "modules.hero.config.backgroundImage"
-        type: "image"
-        label: "背景图片"
-        show_if: "modules.hero.enabled && modules.hero.config.backgroundType == 'image'"
-      
+
       - name: "modules.hero.config.showCta"
+        label: "显示按钮"
         type: "switch"
-        label: "显示主要按钮"
-        activeText: "显示"
-        inactiveText: "隐藏"
         default: true
         show_if: "modules.hero.enabled"
-      
+
       - name: "modules.hero.config.ctaText"
+        label: "按钮文本"
         type: "text"
-        label: "主要按钮文本"
         default: "立即开始"
         show_if: "modules.hero.enabled && modules.hero.config.showCta"
-      
+
       - name: "modules.hero.config.ctaUrl"
+        label: "按钮链接"
         type: "text"
-        label: "主要按钮链接"
-        default: "/docs"
+        default: "/page/pricing"
+        placeholder: "例如: /page/pricing, /article"
+        description: "点击按钮后跳转的目标地址"
         show_if: "modules.hero.enabled && modules.hero.config.showCta"
-      
-      - name: "modules.hero.config.showSecondaryCta"
-        type: "switch"
-        label: "显示次要按钮"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-        show_if: "modules.hero.enabled"
-      
-      - name: "modules.hero.config.secondaryCtaText"
-        type: "text"
-        label: "次要按钮文本"
-        default: "查看演示"
-        show_if: "modules.hero.enabled && modules.hero.config.showSecondaryCta"
-  
-  # 特性设置
-  - section: "特性展示"
-    icon: "star"
-    description: "配置核心特性展示模块"
-    fields:
-      - name: "modules.features.enabled"
-        type: "switch"
-        label: "启用特性模块"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-      
-      - name: "modules.features.config.title"
-        type: "text"
-        label: "模块标题"
-        default: "核心特性"
-        show_if: "modules.features.enabled"
-      
-      - name: "modules.features.config.subtitle"
-        type: "text"
-        label: "模块副标题"
-        default: "为什么选择 Catter CMS"
-        show_if: "modules.features.enabled"
-      
-      - name: "modules.features.config.columns"
-        type: "select"
-        label: "列数"
-        options:
-          - label: "2列"
-            value: "2"
-          - label: "3列"
-            value: "3"
-          - label: "4列"
-            value: "4"
-        default: "3"
-        show_if: "modules.features.enabled"
-  
-  # 价格设置
-  - section: "价格方案"
-    icon: "price-tag"
-    description: "配置价格方案展示"
-    fields:
-      - name: "modules.pricing.enabled"
-        type: "switch"
-        label: "启用价格模块"
-        activeText: "显示"
-        inactiveText: "隐藏"
-        default: true
-      
-      - name: "modules.pricing.config.title"
-        type: "text"
-        label: "模块标题"
-        default: "价格方案"
-        show_if: "modules.pricing.enabled"
-      
-      - name: "modules.pricing.config.subtitle"
-        type: "text"
-        label: "模块副标题"
-        default: "选择适合您的方案"
-        show_if: "modules.pricing.enabled"
-  
-  # SEO设置
-  - section: "SEO设置"
-    icon: "search"
-    description: "配置网站的搜索引擎优化设置"
-    fields:
-      - name: "seo.title"
-        type: "text"
-        label: "网站标题"
-        default: "Catter CMS - 现代化内容管理系统"
-        required: true
-      
-      - name: "seo.description"
-        type: "textarea"
-        label: "网站描述"
-        rows: 3
-        default: "Catter CMS是一款基于Go语言和Vue 3构建的现代化内容管理系统"
-        required: true
-      
-      - name: "seo.keywords"
-        type: "text"
-        label: "关键词"
-        placeholder: "用逗号分隔多个关键词"
-        default: "CMS,内容管理系统,Go,Vue 3"
-      
-      - name: "seo.opengraph.image"
-        type: "image"
-        label: "Open Graph图片"
-        description: "在社交媒体上分享时显示的图片"
-  
+
   # 自定义代码
   - section: "自定义代码"
     icon: "code"
-    description: "添加自定义CSS、JavaScript和HTML代码"
+    description: "添加自定义CSS和JavaScript代码"
     fields:
       - name: "custom.css"
-        type: "code"
         label: "自定义CSS"
-        language: "css"
-        rows: 10
-        description: "添加自定义CSS样式，会覆盖主题的默认样式"
-      
-      - name: "custom.js"
         type: "code"
+        language: "css"
+        rows: 8
+
+      - name: "custom.js"
         label: "自定义JavaScript"
+        type: "code"
         language: "javascript"
-        rows: 10
-        description: "添加自定义JavaScript代码"
+        rows: 8
 
 # 菜单位置定义
 menuLocations:
@@ -646,173 +175,20 @@ widgetAreas:
   - id: "sidebar"
     name: "侧边栏"
     description: "侧边栏小工具区域"
-    maxWidgets: 10
-  - id: "footer"
-    name: "底部"
-    description: "底部小工具区域"
-    maxWidgets: 4
-    columns: 4
+    maxWidgets: 6
 
 # 主题特定设置
 settings:
-  # 配色方案
   colorSchemes:
     - name: "default"
-      label: "默认蓝色"
+      label: "默认"
       colors:
-        primary: "#2563EB"
-        secondary: "#1E40AF"
-        accent: "#3B82F6"
-    - name: "purple"
-      label: "优雅紫色"
+        primary: "#0f3460"
+        secondary: "#16213e"
+        accent: "#e94560"
+    - name: "modern"
+      label: "现代"
       colors:
-        primary: "#8B5CF6"
-        secondary: "#7C3AED"
-        accent: "#A78BFA"
-    - name: "green"
-      label: "清新绿色"
-      colors:
-        primary: "#10B981"
-        secondary: "#059669"
-        accent: "#34D399"
-  
-  # 其他设置
-  readingTimeWordsPerMinute: 200
-  excerptSeparator: "<!--more-->"
-  commentProvider: "none"
-  
-  menus:
-    main:
-      - label: 首页
-        url: /
-        icon: home
-      - label: 功能特性
-        url: /features
-        icon: star
-      - label: 价格方案
-        url: /pricing
-        icon: price-tag
-      - label: 文档
-        url: /docs
-        icon: document
-      - label: 关于我们
-        url: /about
-        icon: info
-    
-    footer:
-      - label: 产品
-        url: /product
-        icon: box
-        children:
-          - label: 功能介绍
-            url: /features
-          - label: 价格方案
-            url: /pricing
-          - label: 更新日志
-            url: /changelog
-      - label: 资源
-        url: /resources
-        icon: folder
-        children:
-          - label: 文档中心
-            url: /docs
-          - label: API文档
-            url: /api
-          - label: 社区论坛
-            url: /community
-      - label: 公司
-        url: /company
-        icon: office-building
-        children:
-          - label: 关于我们
-            url: /about
-          - label: 联系我们
-            url: /contact
-          - label: 加入我们
-            url: /careers
-  
-  pages:
-    home:
-      title: 首页
-      template: home.plush.html
-      layout: landing
-      enabled: true
-    
-    features:
-      title: 功能特性
-      template: features.plush.html
-      layout: features
-      enabled: true
-    
-    pricing:
-      title: 价格方案
-      template: pricing.plush.html
-      layout: pricing
-      enabled: true
-    
-    docs:
-      title: 文档中心
-      template: docs.plush.html
-      layout: default
-      enabled: true
-    
-    about:
-      title: 关于我们
-      template: about.plush.html
-      layout: default
-      enabled: true
-  
-  custom:
-    css: |
-      body {
-        background-color: var(--background-color);
-        color: var(--text-color);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      }
-      
-      .hero-section {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary_color) 100%);
-        color: white;
-        padding: 80px 0;
-      }
-      
-      .feature-card {
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 24px;
-        transition: all 0.3s ease;
-      }
-      
-      .feature-card:hover {
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        transform: translateY(-5px);
-      }
-    
-    js: |
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('Catter CMS Official主题已加载');
-        
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-          link.addEventListener('click', function(e) {
-            const target = this.getAttribute('href');
-            if (target.startsWith('#')) {
-              e.preventDefault();
-              const element = document.querySelector(target);
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-              }
-            }
-          });
-        });
-      });
-  
-  seo:
-    title: Catter CMS - 现代化内容管理系统
-    description: Catter CMS是一款基于Go语言和Vue 3构建的现代化内容管理系统，提供强大的内容管理和灵活的主题系统
-    keywords: CMS, 内容管理系统, Go, Vue 3, Buffalo, Element Plus, 开源CMS
-    author: Catter Team
-  
-  compatibility:
-    buffalo: ">=0.18.0"
-    browsers: ["Chrome >= 90", "Firefox >= 88", "Safari >= 12", "Edge >= 88"]
+        primary: "#2563eb"
+        secondary: "#1e40af"
+        accent: "#f59e0b"

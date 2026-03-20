@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .site.title }} - {{ .site.description }}</title>
+    <title>{{ .site.title }} - {{ .pageTitle }}</title>
     <meta name="description" content="{{ .site.description }}">
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{ .site.title }}">
+    <meta property="og:description" content="{{ .site.description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ .site.url }}">
+    <meta property="og:site_name" content="{{ .site.title }}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ .site.title }}">
+    <meta name="twitter:description" content="{{ .site.description }}">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/themes/fontawesome/css/all.min.css">
     
     <style>
         :root {
@@ -70,6 +77,14 @@
             color: var(--primary);
             text-decoration: none;
             letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-img {
+            height: 40px;
+            max-width: 200px;
+            object-fit: contain;
         }
 
         .nav-menu {
@@ -472,7 +487,13 @@
     <!-- 顶部导航 -->
     <header class="header">
         <div class="header-inner">
-            <a href="/" class="logo">{{ .site.title }}</a>
+            <a href="/" class="logo">
+                {{ if .site.logo }}
+                    <img src="{{ .site.logo }}" alt="{{ .site.title }}" class="logo-img">
+                {{ else }}
+                    {{ .site.title }}
+                {{ end }}
+            </a>
             <nav>
                 <ul class="nav-menu">
                     {{ if .headerMenu }}
@@ -481,26 +502,31 @@
                         {{ end }}
                     {{ else }}
                         <li><a href="/">首页</a></li>
-                        <li><a href="/blog">文章</a></li>
+                        <li><a href="/article">文章</a></li>
                         <li><a href="/categories">分类</a></li>
-                        <li><a href="/about">关于</a></li>
+                        <li><a href="/tags">标签</a></li>
+                        <li><a href="/page/about">关于</a></li>
                     {{ end }}
                 </ul>
             </nav>
         </div>
     </header>
 
-    <!-- Hero 区域 - 纯深灰色背景 -->
+    {{ if getConfig "modules.hero.enabled" true }}
+    <!-- Hero 区域 -->
     <section class="hero">
         <div class="hero-content">
             <h1>{{ getConfig "modules.hero.config.title" "欢迎来到我的博客" }}</h1>
             <p>{{ getConfig "modules.hero.config.subtitle" "分享技术、记录生活、探索未知" }}</p>
-            <a href="{{ getConfig "modules.hero.config.ctaUrl" "/blog" }}" class="hero-btn">
-                <i class="fas fa-book-open"></i>
+            {{ if getConfig "modules.hero.config.showCta" true }}
+            <a href="{{ getConfig "modules.hero.config.ctaUrl" "/article" }}" class="hero-btn">
+                <i class="fa-solid fa-book-open"></i>
                 {{ getConfig "modules.hero.config.ctaText" "开始阅读" }}
             </a>
+            {{ end }}
         </div>
     </section>
+    {{ end }}
 
     <!-- 主内容区 -->
     <div class="main-container">
@@ -515,20 +541,22 @@
                 <article class="post-card">
                     <div class="post-card-content">
                         <h3 class="post-card-title">
-                            <a href="/blog/{{ .Slug }}">{{ .Title }}</a>
+                            <a href="/article/{{ .Slug }}">{{ .Title }}</a>
                         </h3>
                         <div class="post-meta">
+                            {{ if .PublishedAt }}
                             <span class="post-meta-item">
-                                <i class="far fa-calendar"></i>
+                                <i class="fa-solid fa-calendar"></i>
                                 {{ .PublishedAt.Format "2006-01-02" }}
                             </span>
+                            {{ end }}
                             <span class="post-meta-item">
-                                <i class="far fa-eye"></i>
+                                <i class="fa-solid fa-eye"></i>
                                 {{ .Views }} 阅读
                             </span>
                             {{ if .Category }}
                             <span class="post-meta-item">
-                                <i class="far fa-folder"></i>
+                                <i class="fa-solid fa-folder"></i>
                                 {{ .Category.Name }}
                             </span>
                             {{ end }}
@@ -549,7 +577,7 @@
             {{ else }}
                 <div class="widget">
                     <p style="text-align: center; color: var(--text-tertiary); padding: 40px 0;">
-                        <i class="far fa-file-alt" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                        <i class="fa-solid fa-file-lines"></i>
                         暂无文章，敬请期待...
                     </p>
                 </div>
@@ -561,38 +589,40 @@
             <!-- 搜索 -->
             <div class="widget">
                 <h3 class="widget-title">
-                    <i class="fas fa-search"></i>
+                    <i class="fa-solid fa-search"></i>
                     搜索
                 </h3>
                 <form action="/search" method="get" class="search-form">
                     <input type="text" name="q" class="search-input" placeholder="搜索文章...">
                     <button type="submit" class="search-btn">
-                        <i class="fas fa-search"></i>
+                        <i class="fa-solid fa-search"></i>
                     </button>
                 </form>
             </div>
 
+            {{ if getConfig "widgets.author.enabled" true }}
             <!-- 作者信息 -->
             <div class="widget">
                 <div class="author-card">
                     <div class="author-avatar">
-                        <i class="fas fa-user"></i>
+                        <i class="fa-solid fa-user"></i>
                     </div>
                     <div class="author-name">{{ getConfig "widgets.author.name" "博主" }}</div>
                     <div class="author-bio">{{ getConfig "widgets.author.bio" "热爱技术，热爱生活" }}</div>
                 </div>
             </div>
+            {{ end }}
 
             <!-- 最近文章 -->
             <div class="widget">
                 <h3 class="widget-title">
-                    <i class="fas fa-clock"></i>
+                    <i class="fa-solid fa-clock"></i>
                     最近文章
                 </h3>
                 <ul class="widget-list">
                     {{ range .recentPosts }}
                     <li>
-                        <a href="/blog/{{ .Slug }}">
+                        <a href="/article/{{ .Slug }}">
                             <span>{{ .Title }}</span>
                         </a>
                     </li>
@@ -603,7 +633,7 @@
             <!-- 分类 -->
             <div class="widget">
                 <h3 class="widget-title">
-                    <i class="fas fa-folder"></i>
+                    <i class="fa-solid fa-folder"></i>
                     分类
                 </h3>
                 <ul class="widget-list">
@@ -621,8 +651,7 @@
             <!-- 标签 -->
             <div class="widget">
                 <h3 class="widget-title">
-                    <i class="fas fa-tags"></i>
-                    标签
+                    <i class="fa-solid fa-tags"></i> 标签
                 </h3>
                 <div class="post-tags" style="gap: 8px;">
                     {{ range .tags }}
@@ -643,8 +672,8 @@
                     {{ end }}
                 {{ else }}
                     <a href="/">首页</a>
-                    <a href="/blog">文章</a>
-                    <a href="/about">关于</a>
+                    <a href="/article">文章</a>
+                    <a href="/page/about">关于</a>
                 {{ end }}
             </div>
             <p>&copy; {{ .site.year }} {{ .site.title }}. Powered by Catter CMS</p>

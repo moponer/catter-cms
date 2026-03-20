@@ -1,21 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from '@/views/Login.vue'
-import Dashboard from '@/views/Dashboard.vue'
-import Posts from '@/views/posts/PostList.vue'
-import PostEdit from '@/views/posts/PostEdit.vue'
-import Categories from '@/views/categories/CategoryList.vue'
-import Tags from '@/views/tags/TagList.vue'
-import Users from '@/views/users/UserList.vue'
-import UserEdit from '@/views/users/UserEdit.vue'
-import Media from '@/views/media/MediaLibrary.vue'
-import Pages from '@/views/pages/PageList.vue'
-import PageEdit from '@/views/pages/PageEdit.vue'
-import Themes from '@/views/themes/ThemeSettings.vue'
-import Settings from '@/views/settings/SiteSettings.vue'
-import Comments from '@/views/comments/Index.vue'
-import ScheduledTasks from '@/views/scheduled-tasks/Index.vue'
-import Sitemap from '@/views/sitemap/Index.vue'
-import Menus from '@/views/menus/MenuList.vue'
+
+// 懒加载路由组件
+const Login = () => import('@/views/Login.vue')
+const Dashboard = () => import('@/views/Dashboard.vue')
+const PostList = () => import('@/views/posts/PostList.vue')
+const PostEdit = () => import('@/views/posts/PostEdit.vue')
+const CategoryList = () => import('@/views/categories/CategoryList.vue')
+const TagList = () => import('@/views/tags/TagList.vue')
+const UserList = () => import('@/views/users/UserList.vue')
+const UserEdit = () => import('@/views/users/UserEdit.vue')
+const MediaLibrary = () => import('@/views/media/MediaLibrary.vue')
+const PageList = () => import('@/views/pages/PageList.vue')
+const PageEdit = () => import('@/views/pages/PageEdit.vue')
+const ThemeSettings = () => import('@/views/themes/ThemeSettings.vue')
+const SiteSettings = () => import('@/views/settings/SiteSettings.vue')
+const Comments = () => import('@/views/comments/Index.vue')
+const ScheduledTasks = () => import('@/views/scheduled-tasks/Index.vue')
+const Sitemap = () => import('@/views/sitemap/Index.vue')
+const MenuList = () => import('@/views/menus/MenuList.vue')
 
 const routes = [
   {
@@ -33,7 +35,7 @@ const routes = [
   {
     path: '/posts',
     name: 'Posts',
-    component: Posts,
+    component: PostList,
     meta: { title: '文章列表', requiresAuth: true }
   },
   {
@@ -51,19 +53,19 @@ const routes = [
   {
     path: '/categories',
     name: 'Categories',
-    component: Categories,
+    component: CategoryList,
     meta: { title: '分类管理', requiresAuth: true }
   },
   {
     path: '/tags',
     name: 'Tags',
-    component: Tags,
+    component: TagList,
     meta: { title: '标签管理', requiresAuth: true }
   },
   {
     path: '/users',
     name: 'Users',
-    component: Users,
+    component: UserList,
     meta: { title: '用户管理', requiresAuth: true }
   },
   {
@@ -81,13 +83,13 @@ const routes = [
   {
     path: '/media',
     name: 'Media',
-    component: Media,
+    component: MediaLibrary,
     meta: { title: '媒体库', requiresAuth: true }
   },
   {
     path: '/pages',
     name: 'Pages',
-    component: Pages,
+    component: PageList,
     meta: { title: '页面管理', requiresAuth: true }
   },
   {
@@ -105,13 +107,13 @@ const routes = [
   {
     path: '/themes',
     name: 'Themes',
-    component: Themes,
+    component: ThemeSettings,
     meta: { title: '主题配置', requiresAuth: true }
   },
   {
     path: '/settings',
     name: 'Settings',
-    component: Settings,
+    component: SiteSettings,
     meta: { title: '系统设置', requiresAuth: true }
   },
   {
@@ -135,7 +137,7 @@ const routes = [
   {
     path: '/menus',
     name: 'Menus',
-    component: Menus,
+    component: MenuList,
     meta: { title: '菜单管理', requiresAuth: true }
   }
 ]
