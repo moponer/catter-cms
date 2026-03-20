@@ -333,3 +333,318 @@ sidebar:
 ---
 
 *文档完*
+
+---
+
+## 十、AI 原生支持方案
+
+### 10.1 设计理念
+
+```
+用户：帮我写一篇关于"物流行业趋势"的文章
+AI：调用 CMS API 创建文章...
+    ↓
+CMS：创建文章成功，自动生成 SEO，推荐标签
+```
+
+**核心原则：**
+- CMS 提供完整的 REST API
+- 用户在管理后台生成 API Key
+- AI 通过 API Key 认证调用 API
+- API Key 只存储在用户本地，不传给 AI
+
+### 10.2 架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AI 客户端（本地）                          │
+│  ChatGPT / Claude / Cursor / 其他 AI                        │
+│  ↓                                                          │
+│  配置: API_ENDPOINT + API_KEY（环境变量，不传给 AI）          │
+├─────────────────────────────────────────────────────────────┤
+│                    Catter CMS API                           │
+│  /api/v1/...（API Key 认证）                                 │
+│  /api/v1/ai/capabilities（AI 能力发现）                      │
+│  /api/v1/ai/guide（AI 操作指南）                             │
+│  /api/v1/ai/docs（AI 详细文档）                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 10.3 密钥安全
+
+**存储位置：**
+- 系统环境变量（最安全）
+- 本地配置文件（~/.catter/config）
+- AI 客户端配置文件
+
+**安全原则：**
+- API Key 永远不传给 AI
+- 不出现在对话中
+- 不出现在 AI 上下文中
+- 只在本地环境使用
+
+---
+
+## 十一、API 密钥管理
+
+### 11.1 管理界面
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  API 密钥管理                                                │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  API 端点: https://your-cms.com/api/v1                      │
+│                                                             │
+│  我的 API Keys:                                              │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🔑 AI助手专用 - 2026-03-20                           │   │
+│  │    sk-a1b2c3d4e5f6... [复制]                         │   │
+│  │    权限: 文章、页面、分类、标签                        │   │
+│  │    状态: ✅ 启用  使用: 42 次                         │   │
+│  │    [禁用] [删除] [重置]                               │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  [ + 创建新的 API Key ]                                       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 11.2 权限控制
+
+```yaml
+permissions:
+  - name: "文章管理"
+    key: "posts"
+    actions: ["read", "create", "update", "delete"]
+  - name: "页面管理"
+    key: "pages"
+    actions: ["read", "create", "update", "delete"]
+  - name: "分类管理"
+    key: "categories"
+    actions: ["read", "create", "update", "delete"]
+  - name: "标签管理"
+    key: "tags"
+    actions: ["read", "create", "update", "delete"]
+  - name: "菜单管理"
+    key: "menus"
+    actions: ["read", "update"]
+  - name: "主题配置"
+    key: "themes"
+    actions: ["read", "update"]
+  - name: "系统设置"
+    key: "settings"
+    actions: ["read"]  # 只读
+```
+
+---
+
+## 十二、AI 文档接口
+
+### 12.1 能力发现
+
+```
+GET /api/v1/ai/capabilities
+
+返回：
+{
+  "name": "Catter CMS",
+  "version": "1.0.0",
+  "capabilities": [
+    {
+      "id": "posts",
+      "name": "文章管理",
+      "description": "创建、编辑、删除、查询文章",
+      "actions": ["list", "get", "create", "update", "delete"]
+    },
+    {
+      "id": "pages",
+      "name": "页面管理",
+      "description": "创建、编辑、删除、查询页面",
+      "actions": ["list", "get", "create", "update", "delete"]
+    }
+  ]
+}
+```
+
+### 12.2 操作指南
+
+```
+GET /api/v1/ai/guide
+
+返回：
+{
+  "quick_start": {
+    "step_1": "获取 API Key（管理后台 → API 密钥管理）",
+    "step_2": "设置环境变量 CATTER_API_KEY",
+    "step_3": "使用 Bearer token 认证调用 API"
+  },
+  "common_tasks": [
+    {
+      "task": "创建一篇新文章",
+      "method": "POST",
+      "path": "/api/v1/posts",
+      "required_fields": ["title", "content"],
+      "optional_fields": ["status", "category_id", "tag_ids"],
+      "example": {
+        "title": "文章标题",
+        "content": "文章内容（Markdown）",
+        "status": "published"
+      }
+    }
+  ],
+  "restrictions": [
+    "不能删除管理员用户",
+    "批量操作限制：单次最多 100 条"
+  ]
+}
+```
+
+### 12.3 详细文档
+
+```
+GET /api/v1/ai/docs
+
+返回完整 API 文档，包括：
+- 所有端点的详细说明
+- 请求参数和响应格式
+- 错误代码说明
+- 使用示例
+
+GET /api/v1/ai/docs/{operation}
+
+返回特定操作的详细说明：
+- 参数约束
+- 响应示例
+- 常见错误
+- 相关操作
+```
+
+### 12.4 OpenAPI 兼容
+
+```
+GET /api/v1/ai/openapi.json
+
+返回标准 OpenAPI 3.0 格式，兼容：
+- ChatGPT Custom GPT Actions
+- Claude Tool Use
+- Cursor API 集成
+- 其他支持 OpenAPI 的 AI 工具
+```
+
+---
+
+## 十三、AI 使用流程
+
+### 13.1 用户配置
+
+```
+1. 登录管理后台 → API 密钥管理
+2. 创建 API Key，选择权限
+3. 复制 API Key
+4. 配置本地环境变量：
+   # Windows
+   $env:CATTER_API_KEY="sk-xxxxx"
+   $env:CATTER_API_URL="https://your-cms.com/api/v1"
+   
+   # macOS/Linux
+   export CATTER_API_KEY="sk-xxxxx"
+   export CATTER_API_URL="https://your-cms.com/api/v1"
+5. 告诉 AI："使用 CMS API 完成以下任务..."
+```
+
+### 13.2 AI 工作流程
+
+```
+AI 收到任务："帮我创建一篇文章"
+    ↓
+1. 调用 GET /api/v1/ai/capabilities（发现可用能力）
+    ↓
+2. 调用 GET /api/v1/ai/docs/posts/create（了解如何创建文章）
+    ↓
+3. 调用 GET /api/v1/categories（获取现有分类）
+    ↓
+4. 调用 POST /api/v1/posts（创建文章）
+    ↓
+5. 返回结果给用户
+```
+
+### 13.3 常见使用场景
+
+**场景 1：AI 写文章**
+```
+用户：帮我写一篇关于"2026年物流趋势"的文章
+AI：创建文章，自动填充标题、内容、分类、标签
+```
+
+**场景 2：AI 调整配置**
+```
+用户：把网站主色调改成蓝色
+AI：调用 update_theme_config 更新颜色配置
+```
+
+**场景 3：AI 管理内容**
+```
+用户：把所有文章都加上"AI"标签
+AI：批量更新文章标签
+```
+
+**场景 4：AI 开发主题**
+```
+用户：创建一个新的企业官网主题
+AI：生成主题文件，调用 API 注册主题
+```
+
+---
+
+## 十四、安全措施
+
+| 措施 | 说明 |
+|------|------|
+| 环境变量存储 | 密钥不传给 AI，只在本地 |
+| 细粒度权限 | 只授予必要权限 |
+| 使用统计 | 记录每次 API 调用 |
+| 禁用/删除 | 随时可以禁用或删除 Key |
+| 重置功能 | 泄露时可立即重置 |
+| IP 白名单（可选） | 限制访问来源 |
+| 速率限制 | 防止滥用 |
+| 操作日志 | 记录所有 AI 操作 |
+
+---
+
+## 十五、实施路线图（更新）
+
+| 阶段 | 任务 | 时间 |
+|------|------|------|
+| 1 | 基础架构：repeater、模块系统、条件显示 | 1周 |
+| 2 | 主题改造：拆分模块、创建模板、settings.yaml | 2周 |
+| 3 | 管理后台：repeater组件、拖拽排序、图片选择 | 1周 |
+| 4 | API 密钥管理、权限控制 | 3天 |
+| 5 | AI 文档接口（capabilities/guide/docs） | 2天 |
+| 6 | 完善测试：改造blog主题、文档、端到端测试 | 1周 |
+
+---
+
+## 十六、预期效果
+
+### 主题系统
+
+**物流公司使用企业官网主题：**
+1. 选择"默认页面"模板
+2. 修改公司名称、Logo、联系方式
+3. 编辑服务项目：仓储物流、冷链物流、快递配送
+4. 修改统计数据：1000+客户、50万+配送量
+5. **完成！无需修改任何代码**
+
+### AI 支持
+
+**AI 自动创建文章：**
+1. 用户配置 API Key
+2. 告诉 AI："创建一篇关于物流的文章"
+3. AI 自动调用 API 创建文章
+4. 文章自动发布到前台
+5. **完成！无需手动操作**
+
+---
+
+*文档完*
