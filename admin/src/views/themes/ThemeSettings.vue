@@ -1,1245 +1,345 @@
 <template>
-  <div class="themes-page">
-    <div class="page-header">
-      <div class="header-left">
-        <h1>主题管理</h1>
-      </div>
-      <div class="header-right">
-        <!-- 主题上传 -->
-        <el-upload
-          class="theme-uploader"
-          action="/api/themes/upload"
-          :show-file-list="false"
-          accept=".zip"
-          :headers="uploadHeaders"
-          :before-upload="beforeUpload"
-          :on-success="handleUploadSuccess"
-          :on-error="handleUploadError"
-        >
-          <el-button type="primary" :icon="Upload" :loading="uploading">
-            {{ uploading ? '上传中...' : '上传主题' }}
-          </el-button>
-        </el-upload>
-      </div>
-    </div>
+  <div class="theme-settings">
+    <el-page-header title="返回" content="主题设置" @back="goBack" />
 
-    <!-- 主题列表 -->
-    <el-row :gutter="20" class="theme-grid">
-      <el-col :xs="24" :sm="12" :md="8" v-for="theme in themes" :key="theme.id">
-        <div class="theme-card-compact" :class="{ active: theme.is_active }">
-          <!-- 主题头部 -->
-          <div class="theme-header">
-            <div class="theme-icon">
-              <el-icon :size="28"><Picture /></el-icon>
+    <div class="theme-content">
+      <!-- 主题信息卡片 -->
+      <el-card class="theme-info-card" v-if="currentTheme">
+        <div class="theme-header">
+          <el-avatar v-if="currentTheme.thumbnail" :size="80" :src="currentTheme.thumbnail" shape="square" />
+          <div class="theme-meta">
+            <h2>{{ currentTheme.name }}</h2>
+            <p class="theme-description">{{ currentTheme.description || '暂无描述' }}</p>
+            <div class="theme-tags">
+              <el-tag v-if="currentTheme.version" size="small">版本 {{ currentTheme.version }}</el-tag>
+              <el-tag v-if="currentTheme.author" size="small" type="info">{{ currentTheme.author }}</el-tag>
             </div>
-            <div class="theme-title">
-              <h3>{{ theme.name }}</h3>
-              <el-tag v-if="theme.is_active" type="success" size="small">当前使用</el-tag>
-            </div>
-          </div>
-
-          <!-- 主题信息 -->
-          <div class="theme-body">
-            <p class="description">{{ theme.description || '暂无描述' }}</p>
-            <div class="theme-meta">
-              <span class="version">v{{ theme.version || '1.0.0' }}</span>
-              <span class="divider">|</span>
-              <span class="author">{{ theme.author || '未知作者' }}</span>
-            </div>
-          </div>
-
-          <!-- 操作按钮 -->
-          <div class="theme-actions-compact">
-            <el-button
-              v-if="!theme.is_active"
-              type="primary"
-              size="small"
-              @click="handleActivate(theme)"
-              :loading="activating === theme.id"
-            >
-              激活
-            </el-button>
-            <template v-else>
-              <el-button
-                type="success"
-                size="small"
-                @click="handleConfigure(theme)"
-              >
-                <el-icon class="mr-2"><Setting /></el-icon>
-                配置
-              </el-button>
-            </template>
-            <el-button
-              size="small"
-              @click="handlePreview(theme)"
-            >
-              <el-icon class="mr-2"><View /></el-icon>
-              预览
-            </el-button>
-            <el-button
-              v-if="!theme.is_active"
-              type="danger"
-              size="small"
-              plain
-              @click="handleDelete(theme)"
-            >
-              删除
-            </el-button>
           </div>
         </div>
-      </el-col>
-    </el-row>
+      </el-card>
 
-    <!-- 主题配置对话框 - 标签切换布局 -->
-    <el-dialog
-      v-model="configVisible"
-      :title="`${currentTheme?.name} - 主题配置`"
-      width="900px"
-      class="theme-config-dialog"
-      destroy-on-close
-      :fullscreen="false"
-      top="5vh"
-    >
-      <div v-if="currentTheme" class="config-container">
-        <!-- 标签页切换 - 横向布局 -->
-        <el-tabs 
-          v-if="configGroups.length > 0" 
-          v-model="activeTab" 
-          type="border-card" 
-          class="config-tabs"
-          stretch
-          style="display: flex; flex-direction: column;"
-        >
-          <el-tab-pane
-            v-for="group in configGroups"
-            :key="group.id"
-            :label="group.label"
-            :name="group.id"
-          >
-            <template #label>
-              <div class="tab-label">
-                <el-icon v-if="group.icon" class="tab-icon">
-                  <component :is="group.icon" />
-                </el-icon>
-                <span>{{ group.label }}</span>
-                <el-badge
-                  v-if="group.fields && group.fields.length > 0"
-                  :value="group.fields.length"
-                  class="tab-badge"
-                  type="info"
-                />
-              </div>
-            </template>
+      <!-- 加载中 -->
+      <el-skeleton v-if="loading" :rows="6" animated />
 
-            <!-- 配置表单 -->
-            <el-scrollbar max-height="50vh" class="tab-content">
-              <el-form
-                :model="configForm"
-                label-position="top"
-                class="config-form"
-              >
-                <el-row :gutter="24">
-                  <el-col
-                    v-for="field in group.fields"
-                    :key="field.name"
-                    :span="getFieldSpan(field)"
-                  >
-                    <div class="form-field">
-                      <div class="field-header">
-                        <label class="field-label">
-                          {{ field.label }}
-                          <el-tag v-if="field.required" type="danger" size="small">必填</el-tag>
-                        </label>
-                        <div v-if="field.description" class="field-description">
-                          {{ field.description }}
-                        </div>
-                      </div>
+      <!-- 配置表单 -->
+      <template v-else>
+        <el-tabs v-model="activeTab" type="border-card" class="config-tabs">
+          <!-- 通用设置 -->
+          <el-tab-pane label="通用设置" name="general">
+            <div class="tab-content">
+              <h3>网站基本信息</h3>
+              <el-form :model="config.general" label-position="top">
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="网站标题">
+                      <el-input v-model="config.general.siteTitle" placeholder="请输入网站标题" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="网站副标题">
+                      <el-input v-model="config.general.siteSubtitle" placeholder="请输入网站副标题" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
 
-                      <!-- 文本输入 -->
-                      <el-input
-                        v-if="field.type === 'text'"
-                        v-model="configForm[field.name]"
-                        :placeholder="field.placeholder || '请输入' + field.label"
-                        clearable
-                      />
+                <el-form-item label="网站描述">
+                  <el-input v-model="config.general.siteDescription" type="textarea" :rows="3" placeholder="请输入网站描述" />
+                </el-form-item>
 
-                      <!-- 文本域 -->
-                      <el-input
-                        v-else-if="field.type === 'textarea'"
-                        v-model="configForm[field.name]"
-                        type="textarea"
-                        :rows="field.rows || 4"
-                        :placeholder="field.placeholder || '请输入' + field.label"
-                      />
-
-                      <!-- 数字输入 -->
-                      <el-input-number
-                        v-else-if="field.type === 'number'"
-                        v-model="configForm[field.name]"
-                        :min="field.min"
-                        :max="field.max"
-                        :step="field.step || 1"
-                        style="width: 100%"
-                      />
-
-                      <!-- 颜色选择器 -->
-                      <div v-else-if="field.type === 'color'" class="color-picker-wrapper">
-                        <el-color-picker
-                          v-model="configForm[field.name]"
-                          :show-alpha="field.showAlpha !== false"
-                          size="large"
-                        />
-                        <el-input
-                          v-model="configForm[field.name]"
-                          placeholder="选择颜色"
-                          style="margin-left: 12px; flex: 1"
-                        />
-                      </div>
-
-                      <!-- 开关 -->
-                      <div v-else-if="field.type === 'switch'" class="switch-wrapper">
-                        <el-switch
-                          v-model="configForm[field.name]"
-                          :active-text="field.activeText || '开启'"
-                          :inactive-text="field.inactiveText || '关闭'"
-                        />
-                      </div>
-
-                      <!-- 下拉选择 -->
-                      <el-select
-                        v-else-if="field.type === 'select'"
-                        v-model="configForm[field.name]"
-                        placeholder="请选择"
-                        style="width: 100%"
-                        clearable
-                      >
-                        <el-option
-                          v-for="opt in field.options"
-                          :key="opt.value"
-                          :label="opt.label"
-                          :value="opt.value"
-                        >
-                          <div v-if="opt.description" class="option-item">
-                            <span class="option-label">{{ opt.label }}</span>
-                            <span class="option-desc">{{ opt.description }}</span>
-                          </div>
-                          <span v-else>{{ opt.label }}</span>
-                        </el-option>
-                      </el-select>
-
-                      <!-- 多选 -->
-                      <el-select
-                        v-else-if="field.type === 'multi-select'"
-                        v-model="configForm[field.name]"
-                        multiple
-                        placeholder="请选择（可多选）"
-                        style="width: 100%"
-                        collapse-tags
-                      >
-                        <el-option
-                          v-for="opt in field.options"
-                          :key="opt.value"
-                          :label="opt.label"
-                          :value="opt.value"
-                        />
-                      </el-select>
-
-                      <!-- 单选 -->
-                      <el-radio-group
-                        v-else-if="field.type === 'radio'"
-                        v-model="configForm[field.name]"
-                      >
-                        <el-radio
-                          v-for="opt in field.options"
-                          :key="opt.value"
-                          :value="opt.value"
-                        >
-                          {{ opt.label }}
-                        </el-radio>
-                      </el-radio-group>
-
-                      <!-- 复选框 -->
-                      <el-checkbox-group
-                        v-else-if="field.type === 'checkbox'"
-                        v-model="configForm[field.name]"
-                      >
-                        <el-checkbox
-                          v-for="opt in field.options"
-                          :key="opt.value"
-                          :label="opt.value"
-                        >
-                          {{ opt.label }}
-                        </el-checkbox>
-                      </el-checkbox-group>
-
-                      <!-- 图片上传 -->
-                      <div v-else-if="field.type === 'image'" class="image-upload-wrapper">
-                        <div v-if="configForm[field.name]" class="image-preview">
-                          <img :src="configForm[field.name]" :alt="field.label" />
-                          <div class="image-actions">
-                            <el-button size="small" @click="previewImage(configForm[field.name])">
-                              查看大图
-                            </el-button>
-                            <el-button size="small" type="danger" @click="configForm[field.name] = ''">
-                              删除
-                            </el-button>
-                          </div>
-                        </div>
-                        <el-upload
-                          v-else
-                          :show-file-list="false"
-                          :before-upload="(file) => handleConfigImageUpload(file, field.name)"
-                          accept="image/*"
-                          drag
-                        >
-                          <el-icon :size="40"><Upload /></el-icon>
-                          <div class="upload-text">点击或拖拽上传图片</div>
-                        </el-upload>
-                      </div>
-
-                      <!-- 日期时间 -->
-                      <el-date-picker
-                        v-else-if="field.type === 'datetime'"
-                        v-model="configForm[field.name]"
-                        type="datetime"
-                        placeholder="选择日期时间"
-                        style="width: 100%"
-                        format="YYYY-MM-DD HH:mm:ss"
-                        value-format="YYYY-MM-DD HH:mm:ss"
-                      />
-
-                      <!-- 日期范围 -->
-                      <el-date-picker
-                        v-else-if="field.type === 'daterange'"
-                        v-model="configForm[field.name]"
-                        type="daterange"
-                        range-separator="至"
-                        start-placeholder="开始日期"
-                        end-placeholder="结束日期"
-                        style="width: 100%"
-                        format="YYYY-MM-DD"
-                        value-format="YYYY-MM-DD"
-                      />
-
-                      <!-- 滑块 -->
-                      <div v-else-if="field.type === 'slider'" class="slider-wrapper">
-                        <el-slider
-                          v-model="configForm[field.name]"
-                          :min="field.min || 0"
-                          :max="field.max || 100"
-                          :step="field.step || 1"
-                          :show-stops="field.showStops"
-                          :marks="field.marks"
-                        />
-                        <div class="slider-value">
-                          当前值: <strong>{{ configForm[field.name] }}</strong>
-                        </div>
-                      </div>
-
-                      <!-- 代码编辑器 -->
-                      <div v-else-if="field.type === 'code'" class="code-editor-wrapper">
-                        <el-input
-                          v-model="configForm[field.name]"
-                          type="textarea"
-                          :rows="field.rows || 10"
-                          :placeholder="field.placeholder || '请输入代码'"
-                        />
-                      </div>
-
-                      <!-- 默认文本输入 -->
-                      <el-input
-                        v-else
-                        v-model="configForm[field.name]"
-                        :placeholder="field.placeholder || '请输入'"
-                      />
-                    </div>
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="Logo">
+                      <MediaPicker v-model="config.general.logo" type="image" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="Favicon">
+                      <MediaPicker v-model="config.general.favicon" type="image" />
+                    </el-form-item>
                   </el-col>
                 </el-row>
               </el-form>
-            </el-scrollbar>
+            </div>
+          </el-tab-pane>
+
+          <!-- 模块管理 -->
+          <el-tab-pane label="模块管理" name="modules">
+            <div class="tab-content">
+              <h3>首页模块配置</h3>
+              <p class="tab-description">启用/禁用模块，拖拽排序，点击配置模块详情</p>
+
+              <ModuleManager v-model="config.modules" :available-modules="availableModules" />
+            </div>
+          </el-tab-pane>
+
+          <!-- 页面配置 -->
+          <el-tab-pane label="页面配置" name="pages">
+            <div class="tab-content">
+              <h3>页面模板配置</h3>
+              <p class="tab-description">为不同页面选择合适的模板</p>
+
+              <el-form :model="config.pages" label-position="top">
+                <el-form-item label="首页模板">
+                  <TemplateSelector v-model="config.pages.homeTemplate" :templates="templates.home" />
+                </el-form-item>
+
+                <el-form-item label="列表页模板">
+                  <TemplateSelector v-model="config.pages.listTemplate" :templates="templates.list" />
+                </el-form-item>
+
+                <el-form-item label="详情页模板">
+                  <TemplateSelector v-model="config.pages.detailTemplate" :templates="templates.detail" />
+                </el-form-item>
+              </el-form>
+            </div>
+          </el-tab-pane>
+
+          <!-- 高级设置 -->
+          <el-tab-pane label="高级设置" name="advanced">
+            <div class="tab-content">
+              <h3>高级配置</h3>
+
+              <el-form :model="config.advanced" label-position="top">
+                <el-form-item label="自定义CSS">
+                  <el-input v-model="config.advanced.customCSS" type="textarea" :rows="6" placeholder="输入自定义CSS代码" />
+                </el-form-item>
+
+                <el-form-item label="自定义JavaScript">
+                  <el-input v-model="config.advanced.customJS" type="textarea" :rows="6" placeholder="输入自定义JavaScript代码" />
+                </el-form-item>
+
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="加载动画">
+                      <el-switch v-model="config.advanced.loadingAnimation" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="返回顶部按钮">
+                      <el-switch v-model="config.advanced.backToTop" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </el-form>
+            </div>
           </el-tab-pane>
         </el-tabs>
 
-        <!-- 无配置项 -->
-        <el-empty
-          v-else
-          description="该主题没有可配置的选项"
-          :image-size="200"
-        >
-          <template #description>
-            <div class="empty-config">
-              <el-icon :size="60" color="#909399"><Box /></el-icon>
-              <p>当前主题暂无配置项</p>
-              <p class="sub-hint">您可以联系主题作者添加更多配置选项</p>
-            </div>
-          </template>
-        </el-empty>
-      </div>
-
-      <template #footer>
-        <div class="dialog-footer-simple">
-          <el-button @click="configVisible = false">取消</el-button>
-          <el-button @click="handleResetConfig">重置默认</el-button>
-          <el-button type="primary" @click="handleSaveConfig" :loading="savingConfig">
-            <el-icon class="mr-2"><Check /></el-icon>
-            保存配置
+        <!-- 保存按钮 -->
+        <div class="actions-bar">
+          <el-button @click="resetConfig">重置</el-button>
+          <el-button type="primary" :loading="saving" @click="saveConfig">
+            <el-icon><Check /></el-icon> 保存配置
           </el-button>
         </div>
       </template>
-    </el-dialog>
-
-    <!-- 图片预览对话框 -->
-    <el-dialog v-model="imagePreviewVisible" title="图片预览" width="60%">
-      <img :src="previewImageUrl" style="width: 100%" />
-    </el-dialog>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Picture,
-  Upload,
-  Setting,
-  View,
-  Box,
-  Check,
-  User,
-  Document,
-  Setting as SettingIcon,
-  Brush,
-  Link
-} from '@element-plus/icons-vue'
-import { get, post, put, del } from '@/utils/request'
+import { Plus, Check } from '@element-plus/icons-vue'
+import { getThemeConfig, saveThemeConfig, getCurrentTheme } from '@/api/theme'
+import MediaPicker from '@/components/MediaPicker.vue'
+import ModuleManager from '@/components/ModuleManager.vue'
+import TemplateSelector from '@/components/TemplateSelector.vue'
 
-const themes = ref([])
-const activating = ref(null)
-const configVisible = ref(false)
+const router = useRouter()
+
+const loading = ref(false)
+const saving = ref(false)
+const activeTab = ref('general')
 const currentTheme = ref(null)
-const configForm = ref({})
-const configFields = ref([])
-const configGroups = ref([])
-const activeTab = ref('')
-const savingConfig = ref(false)
-const uploading = ref(false)
-const imagePreviewVisible = ref(false)
-const previewImageUrl = ref('')
 
-// 上传请求头
-const uploadHeaders = computed(() => {
-  const token = localStorage.getItem('token')
-  return {
-    Authorization: token ? `Bearer ${token}` : ''
+// 配置数据
+const config = ref({
+  general: {
+    siteTitle: '',
+    siteSubtitle: '',
+    siteDescription: '',
+    logo: '',
+    favicon: ''
+  },
+  modules: [],
+  pages: {
+    homeTemplate: '',
+    listTemplate: '',
+    detailTemplate: ''
+  },
+  advanced: {
+    customCSS: '',
+    customJS: '',
+    loadingAnimation: true,
+    backToTop: true
   }
 })
 
-// 加载主题列表
-const loadThemes = async () => {
+// 可用模块定义
+const availableModules = ref([
+  { id: 'hero', name: '首屏大图', icon: 'Monitor', description: '首页顶部的大图展示区域' },
+  { id: 'services', name: '服务展示', icon: 'Service', description: '展示服务项目的模块' },
+  { id: 'stats', name: '数据统计', icon: 'TrendCharts', description: '展示关键数据的统计模块' },
+  { id: 'team', name: '团队介绍', icon: 'UserFilled', description: '展示团队成员的模块' },
+  { id: 'news', name: '新闻动态', icon: 'News', description: '展示最新新闻的模块' },
+  { id: 'contact', name: '联系我们', icon: 'Phone', description: '联系信息和表单模块' }
+])
+
+// 页面模板选项
+const templates = ref({
+  home: [
+    { value: 'default', label: '默认首页', preview: '/templates/previews/home-default.jpg' },
+    { value: 'fullwidth', label: '全宽首页', preview: '/templates/previews/home-fullwidth.jpg' },
+    { value: 'sidebar', label: '侧边栏首页', preview: '/templates/previews/home-sidebar.jpg' }
+  ],
+  list: [
+    { value: 'grid', label: '网格布局', preview: '/templates/previews/list-grid.jpg' },
+    { value: 'list', label: '列表布局', preview: '/templates/previews/list-list.jpg' },
+    { value: 'masonry', label: '瀑布流布局', preview: '/templates/previews/list-masonry.jpg' }
+  ],
+  detail: [
+    { value: 'default', label: '默认详情', preview: '/templates/previews/detail-default.jpg' },
+    { value: 'fullwidth', label: '全宽详情', preview: '/templates/previews/detail-fullwidth.jpg' },
+    { value: 'sidebar', label: '侧边栏详情', preview: '/templates/previews/detail-sidebar.jpg' }
+  ]
+})
+
+// 初始化
+onMounted(async () => {
+  await loadThemeData()
+})
+
+const loadThemeData = async () => {
+  loading.value = true
   try {
-    const res = await get('/api/themes')
-    // 后端返回 { list: [...], total: n } 格式
-    if (res.data && Array.isArray(res.data.list)) {
-      themes.value = res.data.list
-    } else if (Array.isArray(res.data)) {
-      themes.value = res.data
-    } else if (Array.isArray(res)) {
-      themes.value = res
-    } else {
-      themes.value = []
+    // 获取当前主题信息
+    const themeRes = await getCurrentTheme()
+    currentTheme.value = themeRes.data
+
+    // 获取主题配置
+    const configRes = await getThemeConfig()
+    if (configRes.data) {
+      mergeConfig(configRes.data)
     }
   } catch (error) {
-    console.error('加载主题列表失败:', error)
-    themes.value = []
-  }
-}
-
-// 激活主题
-const handleActivate = async (theme) => {
-  activating.value = theme.id
-  try {
-    await post(`/api/themes/${theme.slug}/activate`)
-    ElMessage.success('主题激活成功')
-    loadThemes()
-  } catch (error) {
-    console.error('激活失败:', error)
-    ElMessage.error(error.response?.data?.message || '激活失败')
+    ElMessage.error('加载主题数据失败')
+    console.error(error)
   } finally {
-    activating.value = null
+    loading.value = false
   }
 }
 
-// 配置主题
-const handleConfigure = async (theme) => {
-  currentTheme.value = theme
+const mergeConfig = (data) => {
+  if (data.general) Object.assign(config.value.general, data.general)
+  if (data.modules) config.value.modules = data.modules
+  if (data.pages) Object.assign(config.value.pages, data.pages)
+  if (data.advanced) Object.assign(config.value.advanced, data.advanced)
+}
+
+const saveConfig = async () => {
+  saving.value = true
   try {
-    // 获取完整配置，包括配置表单定义
-    const res = await get(`/api/themes/${theme.slug}/config/full`)
-    
-    // axios 拦截器返回的是响应体: { code: 0, message: "success", data: {...} }
-    // res 就是 API 返回的数据，res.data 包含 configForm, appearance 等
-    console.log('API响应:', res)
-    const config = res.data || res || {}
-
-    // 使用主题开发者定义的配置表单（configForm）
-    // configForm 对应 theme.yml 中的 configDefinition
-    if (config.configForm && Array.isArray(config.configForm) && config.configForm.length > 0) {
-      // 直接使用配置表单定义，已经是分组好的
-      configGroups.value = config.configForm.map((group, index) => ({
-        id: group.section || `group-${index}`,
-        label: group.section || '未命名分组',
-        icon: getGroupIcon(group.section),
-        description: group.description || '',
-        fields: group.fields || []
-      }))
-
-      // 默认激活第一个标签
-      if (configGroups.value.length > 0) {
-        activeTab.value = configGroups.value[0].id
-      }
-      
-      ElMessage.success(`成功加载 ${config.configForm.length} 个配置分组`)
-    } else {
-      // 如果主题没有定义配置表单，显示空状态
-      configGroups.value = []
-      ElMessage.warning('该主题没有定义配置表单（configForm为空）')
-    }
-
-    // 初始化表单值 - 首先获取已保存的配置值，然后用默认值填充未设置的字段
-    const formValues = {}
-    
-    // 1. 首先加载已保存的配置值（从后端返回的config对象中，排除configForm等元数据）
-    // 后端已经将 theme.yml 默认值和数据库值合并，所以直接使用
-    const savedConfig = { ...config }
-    delete savedConfig.configForm  // 删除配置表单定义
-    delete savedConfig.name
-    delete savedConfig.slug
-    delete savedConfig.version
-    delete savedConfig.description
-    delete savedConfig.author
-    
-    console.log('保存的配置（删除元数据后）:', savedConfig)
-    
-    // 将嵌套结构转换为扁平结构
-    const flattenConfig = nestedToFlatten(savedConfig)
-    console.log('扁平化配置:', flattenConfig)
-    
-    // 将已保存的配置值放入表单
-    // 后端已经返回了完整的合并配置（theme.yml 默认值 + 数据库值）
-    Object.keys(flattenConfig).forEach(key => {
-      // 保留所有值，包括 false 和空字符串（用户可能明确设置为这些值）
-      if (flattenConfig[key] !== undefined && flattenConfig[key] !== null) {
-        formValues[key] = flattenConfig[key]
-      }
-    })
-    
-    // 2. 从 configDefinition 的 fields 中提取默认值，只填充后端没有返回的字段
-    // 这是兜底逻辑，确保所有字段都有值
-    if (config.configForm && Array.isArray(config.configForm)) {
-      config.configForm.forEach(group => {
-        if (group.fields && Array.isArray(group.fields)) {
-          group.fields.forEach(field => {
-            // 只在字段完全没有值（undefined）时使用默认值
-            // 注意：false 和空字符串是有效值，不应该被默认值覆盖
-            if (formValues[field.name] === undefined && field.default !== undefined) {
-              formValues[field.name] = field.default
-            }
-          })
-        }
-      })
-    }
-    console.log('最终表单值:', formValues)
-    configForm.value = formValues
-
-    configVisible.value = true
+    await saveThemeConfig(config.value)
+    ElMessage.success('配置保存成功')
   } catch (error) {
-    console.error('加载配置失败:', error)
-    configGroups.value = []
-    configForm.value = {}
-    configVisible.value = true
+    ElMessage.error('保存失败，请重试')
+    console.error(error)
+  } finally {
+    saving.value = false
   }
 }
 
-// 获取字段布局宽度
-const getFieldSpan = (field) => {
-  // 根据字段类型返回不同的布局宽度
-  const fullWidthTypes = ['textarea', 'code', 'image', 'daterange']
-  const halfWidthTypes = ['text', 'number', 'color', 'switch', 'select', 'datetime', 'slider']
-  
-  if (fullWidthTypes.includes(field.type)) {
-    return 24 // 整行
-  } else if (halfWidthTypes.includes(field.type)) {
-    return 12 // 半行
-  } else {
-    return 12 // 默认半行
-  }
-}
-
-// 获取分组图标
-const getGroupIcon = (groupName) => {
-  const iconMap = {
-    '基本设置': SettingIcon,
-    '外观设置': Brush,
-    '导航设置': Link,
-    'SEO设置': Document,
-    '作者信息': User
-  }
-  return iconMap[groupName] || SettingIcon
-}
-
-// 预览主题
-const handlePreview = (theme) => {
-  const previewUrl = `${window.location.origin}/?theme_preview=${theme.slug}`
-  window.open(previewUrl, '_blank')
-}
-
-// 删除主题
-const handleDelete = async (theme) => {
+const resetConfig = async () => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除主题 "${theme.name}" 吗？删除后无法恢复。`,
-      '删除确认',
+      '确定要重置所有配置吗？这将恢复到上次保存的状态。',
+      '确认重置',
       {
-        confirmButtonText: '确定删除',
+        confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }
     )
-    await del(`/api/themes/${theme.slug}`)
-    ElMessage.success('主题删除成功')
-    loadThemes()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除失败:', error)
-      ElMessage.error(error.response?.data?.message || '删除失败')
-    }
-  }
-}
-
-// 保存配置
-const handleSaveConfig = async () => {
-  savingConfig.value = true
-  try {
-    await put(`/api/themes/${currentTheme.value.slug}/config/full`, configForm.value)
-    ElMessage.success('配置保存成功')
-    configVisible.value = false
-  } catch (error) {
-    console.error('保存配置失败:', error)
-    ElMessage.error(error.response?.data?.message || '保存配置失败')
-  } finally {
-    savingConfig.value = false
-  }
-}
-
-// 重置配置
-const handleResetConfig = async () => {
-  try {
-    await ElMessageBox.confirm('确定要重置为默认配置吗？所有自定义配置将丢失。', '重置确认', {
-      confirmButtonText: '确定重置',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await post(`/api/themes/${currentTheme.value.slug}/config/reset`)
+    await loadThemeData()
     ElMessage.success('配置已重置')
-    handleConfigure(currentTheme.value)
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('重置失败:', error)
-      ElMessage.error('重置失败')
-    }
+  } catch {
+    // 用户取消
   }
 }
 
-// 上传配置图片
-const handleConfigImageUpload = async (file, fieldName) => {
-  const formData = new FormData()
-  formData.append('file', file)
-
-  try {
-    const res = await post('/api/media/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    configForm.value[fieldName] = res.data?.path || res.path
-    ElMessage.success('图片上传成功')
-  } catch (error) {
-    console.error('上传失败:', error)
-    ElMessage.error('图片上传失败')
-  }
-  return false
+const goBack = () => {
+  router.back()
 }
-
-// 预览图片
-const previewImage = (url) => {
-  previewImageUrl.value = url
-  imagePreviewVisible.value = true
-}
-
-// 上传前验证
-const beforeUpload = (file) => {
-  const isZip = file.type === 'application/zip' || file.name.endsWith('.zip')
-  if (!isZip) {
-    ElMessage.error('只能上传ZIP格式的主题文件')
-    return false
-  }
-  const isLt10M = file.size / 1024 / 1024 < 10
-  if (!isLt10M) {
-    ElMessage.error('文件大小不能超过 10MB')
-    return false
-  }
-  uploading.value = true
-  return true
-}
-
-// 上传成功处理
-const handleUploadSuccess = (response) => {
-  uploading.value = false
-  if (response.code === 0 || response.code === 200) {
-    ElMessage.success('主题上传成功')
-    loadThemes()
-  } else {
-    ElMessage.error(response.message || '上传失败')
-  }
-}
-
-// 上传失败处理
-const handleUploadError = (error) => {
-  uploading.value = false
-  console.error('上传失败:', error)
-  ElMessage.error('主题上传失败')
-}
-
-// 将嵌套结构转换为扁平结构（用于前端加载配置）
-const nestedToFlatten = (obj, prefix = '', result = {}) => {
-  if (typeof obj !== 'object' || obj === null) {
-    if (prefix) {
-      result[prefix] = obj
-    }
-    return result
-  }
-  
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const newKey = prefix ? `${prefix}.${key}` : key
-      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-        nestedToFlatten(obj[key], newKey, result)
-      } else {
-        result[newKey] = obj[key]
-      }
-    }
-  }
-  
-  return result
-}
-
-onMounted(() => {
-  loadThemes()
-})
 </script>
 
 <style scoped>
-.themes-page {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-}
-
-.page-header h1 {
-  font-size: 28px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.theme-grid {
-  margin-top: 16px;
-}
-
-.theme-card {
-  background: #ffffff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.theme-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-4px);
-}
-
-.theme-card.active {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-}
-
-.theme-preview {
-  position: relative;
-  height: 200px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.theme-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.preview-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.8);
-  gap: 12px;
-}
-
-.theme-overlay {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-}
-
-.theme-info {
+.theme-settings {
   padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.theme-info h3 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
+.theme-content {
+  margin-top: 20px;
 }
 
-.theme-info .description {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.theme-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.theme-actions {
-  padding: 16px 20px;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mr-2 {
-  margin-right: 6px;
-}
-
-/* 紧凑型主题卡片 */
-.theme-card-compact {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
+.theme-info-card {
   margin-bottom: 20px;
-}
-
-.theme-card-compact:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.theme-card-compact.active {
-  border-color: #409eff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
 }
 
 .theme-header {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 20px;
+  align-items: flex-start;
 }
 
-.theme-icon {
-  width: 48px;
-  height: 48px;
-  background: #f5f7fa;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #409eff;
+.theme-meta h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #303133;
 }
 
-.theme-title {
-  flex: 1;
-}
-
-.theme-title h3 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.theme-body {
-  margin-bottom: 16px;
-}
-
-.theme-body .description {
-  margin: 0 0 8px 0;
-  font-size: 13px;
-  color: #6b7280;
+.theme-description {
+  margin: 0 0 12px;
+  color: #606266;
   line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-.theme-body .theme-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.theme-body .theme-meta .divider {
-  color: #dcdfe6;
-}
-
-.theme-actions-compact {
+.theme-tags {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.theme-actions-compact .el-button {
-  flex: 1;
-  min-width: 60px;
-}
-
-/* 主题配置对话框 - 强制横向布局 */
-.theme-config-dialog :deep(.el-dialog__body) {
-  padding: 0;
-}
-
-.theme-config-dialog :deep(.el-dialog) {
-  max-width: 95vw !important;
-}
-
-.config-container {
-  min-height: 400px;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 标签页样式 - 简洁横向布局 */
 .config-tabs {
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex !important;
-  flex-direction: column !important;
-  border: 1px solid #e4e7ed;
-}
-
-/* 强制覆盖任何可能的折叠面板样式 */
-.config-tabs :deep(.el-collapse),
-.config-tabs :deep(.el-collapse-item__header),
-.config-tabs :deep(.el-collapse-item__wrap) {
-  display: none !important;
-}
-
-/* 标签导航 - 简洁背景 */
-.config-tabs :deep(.el-tabs__header) {
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
-  margin: 0;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.config-tabs :deep(.el-tabs__nav-wrap) {
-  padding: 0 16px;
-  overflow: hidden;
-}
-
-.config-tabs :deep(.el-tabs__nav-scroll) {
-  overflow: hidden;
-}
-
-/* 横向排列 */
-.config-tabs :deep(.el-tabs__nav) {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  border: none !important;
-}
-
-/* 标签项 - 宽度自适应 */
-.config-tabs :deep(.el-tabs__item) {
-  flex: 0 0 auto !important;
-  background: transparent;
-  color: #606266;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: 0 24px;
-  height: 48px;
-  line-height: 48px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  text-align: center;
-  white-space: nowrap;
-  margin: 0 4px;
-}
-
-.config-tabs :deep(.el-tabs__item:first-child) {
-  margin-left: 0;
-}
-
-.config-tabs :deep(.el-tabs__item:last-child) {
-  margin-right: 0;
-}
-
-.config-tabs :deep(.el-tabs__item:hover) {
-  color: #409eff;
-  background: rgba(64, 158, 255, 0.05);
-}
-
-.config-tabs :deep(.el-tabs__item.is-active) {
-  background: #fff;
-  color: #409eff;
-  border-bottom-color: #409eff;
-  font-weight: 600;
-}
-
-.config-tabs :deep(.el-tabs__active-bar) {
-  display: none !important;
-}
-
-/* 内容区域 */
-.config-tabs :deep(.el-tabs__content) {
-  flex: 1;
-  overflow: auto;
-  background: #fff;
-}
-
-.tab-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tab-icon {
-  font-size: 18px;
-}
-
-.tab-badge :deep(.el-badge__content) {
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #667eea;
-  font-weight: 600;
-}
-
-.config-tabs :deep(.el-tabs__item.is-active) .tab-badge :deep(.el-badge__content) {
-  background-color: #667eea;
-  color: #ffffff;
+  margin-bottom: 20px;
 }
 
 .tab-content {
-  padding: 24px;
-  background: #f9fafb;
-  min-height: 300px;
-}
-
-.config-groups {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.group-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.group-icon {
-  font-size: 20px;
-  color: #3b82f6;
-}
-
-.group-title {
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.group-badge {
-  margin-left: auto;
-}
-
-.group-content {
-  padding: 16px 0;
-}
-
-.config-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.form-field {
-  background: #ffffff;
   padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
 }
 
-.field-header {
-  margin-bottom: 12px;
+.tab-content h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #303133;
 }
 
-.field-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 14px;
-  color: #374151;
-}
-
-.field-description {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.5;
-}
-
-.color-picker-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.switch-wrapper {
-  padding: 8px 0;
-}
-
-.image-upload-wrapper {
-  margin-top: 8px;
-}
-
-.image-upload-wrapper .image-preview {
-  position: relative;
-  display: inline-block;
-}
-
-.image-upload-wrapper .image-preview img {
-  max-width: 300px;
-  max-height: 200px;
-  border-radius: 4px;
-  border: 1px solid #e5e7eb;
-}
-
-.image-actions {
-  margin-top: 8px;
-  display: flex;
-  gap: 8px;
-}
-
-.upload-text {
-  margin-top: 8px;
-  color: #6b7280;
+.tab-description {
+  margin: 0 0 20px;
+  color: #909399;
   font-size: 14px;
 }
 
-.slider-wrapper {
-  padding: 16px 0;
-}
-
-.slider-value {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.code-editor-wrapper :deep(.el-textarea__inner) {
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.option-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.option-label {
-  font-weight: 500;
-}
-
-.option-desc {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 2px;
-}
-
-.empty-config {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.empty-config p {
-  margin: 12px 0 0 0;
-  color: #6b7280;
-}
-
-.empty-config .sub-hint {
-  font-size: 13px;
-  color: #9ca3af;
-  margin-top: 8px;
-}
-
-.dialog-footer-simple {
+.actions-bar {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-@media (max-width: 768px) {
-  .theme-card.active {
-    border-width: 1px;
-  }
-
-  .theme-preview {
-    height: 150px;
-  }
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 </style>
