@@ -1,0 +1,60 @@
+{{/* 新闻动态模块 */}}
+{{$news := get . "config.modules.news"}}
+{{if and $news (get $news "enabled")}}
+<section class="section section-gray" id="news">
+    <div class="section-inner">
+        <h2 class="section-title">{{default (get $news "title") "新闻动态"}}</h2>
+        <p class="section-subtitle">{{default (get $news "subtitle") "了解我们的最新动态和行业资讯"}}</p>
+
+        {{$items := get $news "items"}}
+        {{if and $items (gt (len $items) 0)}}
+        <div class="news-grid">
+            {{range $index, $item := $items}}
+            {{if eq $index 0}}
+            <!-- 第一个新闻，大图显示 -->
+            <div class="news-card news-card-large">
+                <div class="news-thumb">
+                    {{$image := get $item "image"}}
+                    {{if $image}}
+                    <img src="{{$image}}" alt="{{get $item 'title'}}">
+                    {{else}}
+                    <span class="news-icon">📰</span>
+                    {{end}}
+                </div>
+                <div class="news-content">
+                    <div class="news-date">{{get $item "date"}}</div>
+                    <h3><a href="{{default (get $item "link") '#'}}">{{get $item "title"}}</a></h3>
+                    <p>{{get $item "summary"}}</p>
+                </div>
+            </div>
+            {{else}}
+            <!-- 其他新闻，小图显示 -->
+            <div class="news-card">
+                <div class="news-thumb small">
+                    {{$image := get $item "image"}}
+                    {{if $image}}
+                    <img src="{{$image}}" alt="{{get $item 'title'}}">
+                    {{else}}
+                    <span class="news-icon">📄</span>
+                    {{end}}
+                </div>
+                <div class="news-content">
+                    <div class="news-date">{{get $item "date"}}</div>
+                    <h3><a href="{{default (get $item "link") '#'}}">{{get $item "title"}}</a></h3>
+                </div>
+            </div>
+            {{end}}
+            {{end}}
+        </div>
+        {{end}}
+
+        {{if get $news "showMore"}}
+        <div class="news-more">
+            <a href="{{default (get $news 'moreLink') '/articles'}}" class="btn-secondary">
+                查看更多 →
+            </a>
+        </div>
+        {{end}}
+    </div>
+</section>
+{{end}}

@@ -1,0 +1,19 @@
+{{/* 统计数据模块 */}}
+{{$stats := get . "config.modules.stats"}}
+{{if and $stats (get $stats "enabled")}}
+<section class="section section-dark" id="stats">
+    <div class="section-inner">
+        {{$items := get $stats "items"}}
+        {{if and $items (gt (len $items) 0)}}
+        <div class="stats-grid">
+            {{range $items}}
+            <div class="stat-item">
+                <div class="stat-number">{{default (get . "number") "100+"}}</div>
+                <div class="stat-label">{{default (get . "label") "统计数据"}}</div>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+</section>
+{{end}}

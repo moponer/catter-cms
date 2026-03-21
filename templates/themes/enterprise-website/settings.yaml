@@ -1,0 +1,228 @@
+# Enterprise Website 主题配置
+# 版本: 2.0.0
+# 支持模块化首页和页面模板
+
+# ========================================
+# 页面模板定义
+# ========================================
+customTemplates:
+  page:
+    - name: "默认页面"
+      file: "page_default.html"
+      description: "标准内容页布局，适合一般内容展示"
+      thumbnail: "assets/images/templates/default.jpg"
+
+    - name: "服务列表"
+      file: "page_services.html"
+      description: "带图片卡片的服务展示页，适合展示服务项目"
+      thumbnail: "assets/images/templates/services.jpg"
+
+    - name: "团队介绍"
+      file: "page_team.html"
+      description: "团队成员卡片网格布局，适合展示公司团队"
+      thumbnail: "assets/images/templates/team.jpg"
+
+    - name: "联系我们"
+      file: "page_contact.html"
+      description: "带表单和地图的联系页，适合联系方式展示"
+      thumbnail: "assets/images/templates/contact.jpg"
+
+    - name: "图片画廊"
+      file: "page_gallery.html"
+      description: "图片网格展示，适合作品集或产品展示"
+      thumbnail: "assets/images/templates/gallery.jpg"
+
+    - name: "FAQ问答"
+      file: "page_faq.html"
+      description: "常见问题折叠面板，适合帮助中心"
+      thumbnail: "assets/images/templates/faq.jpg"
+
+# ========================================
+# 首页模块配置
+# ========================================
+modules:
+  hero:
+    id: "hero"
+    name: "首屏大图"
+    description: "页面顶部的大图区域，展示核心信息"
+    enabled: true
+    order: 1
+    icon: "🏠"
+
+  services:
+    id: "services"
+    name: "服务展示"
+    description: "公司服务项目卡片展示"
+    enabled: true
+    order: 2
+    icon: "🎯"
+
+  stats:
+    id: "stats"
+    name: "统计数据"
+    description: "关键业务数据展示"
+    enabled: true
+    order: 3
+    icon: "📊"
+
+  team:
+    id: "team"
+    name: "团队介绍"
+    description: "核心团队成员展示"
+    enabled: false
+    order: 4
+    icon: "👥"
+
+  news:
+    id: "news"
+    name: "新闻动态"
+    description: "最新文章或手动配置"
+    enabled: true
+    order: 5
+    icon: "📰"
+
+  contact:
+    id: "contact"
+    name: "联系我们"
+    description: "联系方式和表单"
+    enabled: true
+    order: 6
+    icon: "📧"
+
+# ========================================
+# 配置定义（用于生成管理后台表单）
+# ========================================
+configDefinition:
+  # 首页模块配置
+  - section: "首页模块"
+    icon: "layout"
+    description: "配置首页各模块的显示和内容"
+    fields:
+      - name: "modules.hero.enabled"
+        label: "启用首屏大图模块"
+        type: "switch"
+        default: true
+
+      - name: "modules.hero.title"
+        label: "主标题"
+        type: "text"
+        default: "专业企业解决方案"
+        show_if: "modules.hero.enabled"
+
+      - name: "modules.hero.subtitle"
+        label: "副标题"
+        type: "textarea"
+        default: "助力企业数字化转型"
+        show_if: "modules.hero.enabled"
+
+      - name: "modules.services.enabled"
+        label: "启用服务展示模块"
+        type: "switch"
+        default: true
+
+      - name: "modules.services.title"
+        label: "服务模块标题"
+        type: "text"
+        default: "我们的服务"
+        show_if: "modules.services.enabled"
+
+      - name: "modules.services.items"
+        label: "服务项目列表"
+        type: "repeater"
+        show_if: "modules.services.enabled"
+        repeater:
+          minItems: 1
+          maxItems: 10
+          addLabel: "添加服务"
+          itemLabel: "服务项目 #{index}"
+          collapsible: true
+          fields:
+            - name: "icon"
+              label: "图标"
+              type: "icon"
+              required: true
+              default: "🎯"
+
+            - name: "title"
+              label: "服务名称"
+              type: "text"
+              required: true
+              default: "服务名称"
+
+            - name: "description"
+              label: "服务描述"
+              type: "textarea"
+              rows: 3
+              default: "服务描述内容..."
+
+            - name: "link"
+              label: "链接地址"
+              type: "text"
+              placeholder: "/page/service-detail"
+
+      - name: "modules.stats.enabled"
+        label: "启用统计数据模块"
+        type: "switch"
+        default: true
+
+      - name: "modules.stats.items"
+        label: "统计数据"
+        type: "repeater"
+        show_if: "modules.stats.enabled"
+        repeater:
+          minItems: 1
+          maxItems: 6
+          addLabel: "添加统计"
+          itemLabel: "统计项 #{index}"
+          fields:
+            - name: "number"
+              label: "数字"
+              type: "text"
+              required: true
+              default: "100+"
+
+            - name: "label"
+              label: "标签"
+              type: "text"
+              required: true
+              default: "服务客户"
+
+  # 页面模板设置
+  - section: "页面模板"
+    icon: "file"
+    description: "选择默认的页面模板样式"
+    fields:
+      - name: "page.defaultTemplate"
+        label: "默认页面模板"
+        type: "select"
+        default: "page_default.html"
+        options:
+          - label: "默认页面"
+            value: "page_default.html"
+          - label: "服务列表"
+            value: "page_services.html"
+          - label: "团队介绍"
+            value: "page_team.html"
+          - label: "联系我们"
+            value: "page_contact.html"
+          - label: "图片画廊"
+            value: "page_gallery.html"
+          - label: "FAQ问答"
+            value: "page_faq.html"
+
+  # 外观设置
+  - section: "外观设置"
+    icon: "palette"
+    description: "配置主题颜色、字体等外观设置"
+    fields:
+      - name: "appearance.colors.primary"
+        label: "主色调"
+        type: "color"
+        showAlpha: false
+        default: "#1a202c"
+
+      - name: "appearance.colors.accent"
+        label: "强调色"
+        type: "color"
+        showAlpha: false
+        default: "#4299e1"

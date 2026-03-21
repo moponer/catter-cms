@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.page.Title}} - {{.site.Title}}</title>
+    <meta name="description" content="{{.page.Summary}}">
+    {{template "partials/head.html" .}}
+</head>
+<body>
+    {{template "partials/header.html" .}}
+
+    <main class="page-services">
+        {{/* 页面头部 */}}
+        <header class="page-hero">
+            <div class="hero-content">
+                <h1 class="hero-title">{{.page.Title}}</h1>
+                {{if .page.Summary}}
+                <p class="hero-subtitle">{{.page.Summary}}</p>
+                {{end}}
+            </div>
+        </header>
+
+        {{/* 服务列表 */}}
+        {{$services := get .page.ContentData "services"}}
+        {{if $services}}
+        <section class="services-list-section">
+            <div class="container">
+                <div class="services-list">
+                    {{range $services}}
+                    <div class="service-item">
+                        <div class="service-image">
+                            {{if .Image}}
+                            <img src="{{.Image}}" alt="{{.Title}}">
+                            {{else}}
+                            <div class="service-icon-large">{{.Icon}}</div>
+                            {{end}}
+                        </div>
+                        <div class="service-content">
+                            <h2 class="service-title">{{.Title}}</h2>
+                            <p class="service-description">{{.Description}}</p>
+                            {{if .Features}}
+                            <ul class="service-features">
+                                {{range .Features}}
+                                <li>{{.}}</li>
+                                {{end}}
+                            </ul>
+                            {{end}}
+                            {{if .Link}}
+                            <a href="{{.Link}}" class="service-link">了解详情 →</a>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </section>
+        {{else}}
+        {{/* 使用页面内容 */}}
+        <section class="services-content-section">
+            <div class="container">
+                <article class="page-body">
+                    {{.page.Content | markdown}}
+                </article>
+            </div>
+        </section>
+        {{end}}
+
+        {{/* CTA区域 */}}
+        <section class="services-cta">
+            <div class="container">
+                <h2>需要定制化服务？</h2>
+                <p>我们的专业团队将根据您的需求提供定制化解决方案</p>
+                <a href="/page/contact" class="btn-primary">联系我们</a>
+            </div>
+        </section>
+    </main>
+
+    {{template "partials/footer.html" .}}
+</body>
+</html>

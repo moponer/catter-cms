@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .site.title }} - {{ .pageTitle }}</title>
+    <meta name="description" content="{{ .site.description }}">
+
+    {{/* 动态加载CSS */}}
+    <link rel="stylesheet" href="{{asset_path "assets/css/main.css"}}">
+
+    {{/* 主题配置中的自定义CSS */}}
+    {{$customCSS := getConfig "custom.css" ""}}
+    {{if $customCSS}}
+    <style>{{$customCSS | safe}}</style>
+    {{end}}
+</head>
+<body>
+    {{/* 导航栏 */}}
+    {{include "partials/header.html" .}}
+
+    <main>
+        {{/* 动态加载启用的模块 */}}
+
+        {{/* Hero模块 */}}
+        {{if hasModule "hero"}}
+            {{include "modules/hero.html" .}}
+        {{end}}
+
+        {{/* 服务展示模块 */}}
+        {{if hasModule "services"}}
+            {{include "modules/services.html" .}}
+        {{end}}
+
+        {{/* 统计数据模块 */}}
+        {{if hasModule "stats"}}
+            {{include "modules/stats.html" .}}
+        {{end}}
+
+        {{/* 团队介绍模块 */}}
+        {{if hasModule "team"}}
+            {{include "modules/team.html" .}}
+        {{end}}
+
+        {{/* 新闻动态模块 */}}
+        {{if hasModule "news"}}
+            {{include "modules/news.html" .}}
+        {{end}}
+
+        {{/* 联系我们模块 */}}
+        {{if hasModule "contact"}}
+            {{include "modules/contact.html" .}}
+        {{end}}
+    </main>
+
+    {{/* 页脚 */}}
+    {{include "partials/footer.html" .}}
+
+    {{/* 动态加载JS */}}
+    <script src="{{asset_path "assets/js/main.js"}}"></script>
+
+    {{/* 主题配置中的自定义JS */}}
+    {{$customJS := getConfig "custom.js" ""}}
+    {{if $customJS}}
+    <script>{{$customJS | safe}}</script>
+    {{end}}
+</body>
+</html>

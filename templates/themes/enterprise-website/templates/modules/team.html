@@ -1,0 +1,31 @@
+{{/* 团队介绍模块 */}}
+{{$team := get . "config.modules.team"}}
+{{if and $team (get $team "enabled")}}
+<section class="section" id="team">
+    <div class="section-inner">
+        <h2 class="section-title">{{default (get $team "title") "核心团队"}}</h2>
+        <p class="section-subtitle">{{default (get $team "subtitle") "专业、热情、创新的团队"}}</p>
+
+        {{$members := get $team "members"}}
+        {{if and $members (gt (len $members) 0)}}
+        <div class="team-grid">
+            {{range $members}}
+            <div class="team-card">
+                <div class="team-avatar">
+                    {{$avatar := get . "avatar"}}
+                    {{if $avatar}}
+                    <img src="{{$avatar}}" alt="{{get . 'name'}}">
+                    {{else}}
+                    <div class="avatar-placeholder">{{slice (get . "name") 0 1}}</div>
+                    {{end}}
+                </div>
+                <h3>{{default (get . "name") "姓名"}}</h3>
+                <p class="team-position">{{default (get . "position") "职位"}}</p>
+                <p class="team-bio">{{default (get . "bio") ""}}</p>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+</section>
+{{end}}
