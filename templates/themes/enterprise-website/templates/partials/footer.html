@@ -1,0 +1,129 @@
+{{/* 网站底部 */}}
+<footer class="site-footer">
+    <div class="footer-main">
+        <div class="container">
+            <div class="footer-grid">
+                {{/* 公司信息 */}}
+                <div class="footer-brand">
+                    <a href="/" class="footer-logo">
+                        {{$logo := getConfig "site.logo" ""}}
+                        {{if $logo}}
+                        <img src="{{$logo}}" alt="{{.site.Title}}">
+                        {{else}}
+                        <span class="logo-text">{{.site.Title}}</span>
+                        {{end}}
+                    </a>
+
+                    {{$description := getConfig "site.description" ""}}
+                    {{if $description}}
+                    <p class="footer-description">{{$description}}</p>
+                    {{end}}
+
+                    {{/* 社交媒体 */}}
+                    {{$social := getConfig "social" nil}}
+                    {{if $social}}
+                    <div class="footer-social">
+                        {{if $social.wechat}}
+                        <a href="{{$social.wechat}}" class="social-link" title="微信" target="_blank" rel="noopener">💬</a>
+                        {{end}}
+                        {{if $social.weibo}}
+                        <a href="{{$social.weibo}}" class="social-link" title="微博" target="_blank" rel="noopener">📢</a>
+                        {{end}}
+                        {{if $social.linkedin}}
+                        <a href="{{$social.linkedin}}" class="social-link" title="LinkedIn" target="_blank" rel="noopener">💼</a>
+                        {{end}}
+                        {{if $social.twitter}}
+                        <a href="{{$social.twitter}}" class="social-link" title="Twitter" target="_blank" rel="noopener">🐦</a>
+                        {{end}}
+                        {{if $social.github}}
+                        <a href="{{$social.github}}" class="social-link" title="GitHub" target="_blank" rel="noopener">🐙</a>
+                        {{end}}
+                    </div>
+                    {{end}}
+                </div>
+
+                {{/* 快速链接 */}}
+                {{if .footerMenu.Items}}
+                <div class="footer-links">
+                    <h3 class="footer-title">快速链接</h3>
+                    <ul class="links-list">
+                        {{range .footerMenu.Items}}
+                        <li><a href="{{.URL}}">{{.Name}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+                {{end}}
+
+                {{/* 服务/产品 */}}
+                {{$footerServices := getConfig "footer.services" nil}}
+                {{if $footerServices}}
+                <div class="footer-links">
+                    <h3 class="footer-title">{{$footerServices.title}}</h3>
+                    <ul class="links-list">
+                        {{range $footerServices.items}}
+                        <li><a href="{{.url}}">{{.name}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+                {{end}}
+
+                {{/* 联系信息 */}}
+                <div class="footer-contact">
+                    <h3 class="footer-title">联系我们</h3>
+
+                    {{$address := getConfig "contact.address" ""}}
+                    {{if $address}}
+                    <p class="contact-item">
+                        <span class="contact-icon">📍</span>
+                        <span>{{$address}}</span>
+                    </p>
+                    {{end}}
+
+                    {{$phone := getConfig "contact.phone" ""}}
+                    {{if $phone}}
+                    <p class="contact-item">
+                        <span class="contact-icon">📞</span>
+                        <a href="tel:{{$phone}}">{{$phone}}</a>
+                    </p>
+                    {{end}}
+
+                    {{$email := getConfig "contact.email" ""}}
+                    {{if $email}}
+                    <p class="contact-item">
+                        <span class="contact-icon">✉️</span>
+                        <a href="mailto:{{$email}}">{{$email}}</a>
+                    </p>
+                    {{end}}
+
+                    {{$hours := getConfig "contact.hours" ""}}
+                    {{if $hours}}
+                    <p class="contact-item">
+                        <span class="contact-icon">🕐</span>
+                        <span>{{$hours}}</span>
+                    </p>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{/* 底部版权 */}}
+    <div class="footer-bottom">
+        <div class="container">
+            <div class="footer-bottom-inner">
+                <p class="copyright">
+                    &copy; {{.site.Year}} {{.site.Title}}. All rights reserved.
+                </p>
+
+                {{$bottomLinks := getConfig "footer.bottomLinks" nil}}
+                {{if $bottomLinks}}
+                <nav class="footer-bottom-nav">
+                    {{range $bottomLinks}}
+                    <a href="{{.url}}">{{.name}}</a>
+                    {{end}}
+                </nav>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</footer>

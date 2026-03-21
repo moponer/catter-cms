@@ -1,0 +1,77 @@
+{{/* 网站头部导航 */}}
+<header class="site-header">
+    <div class="header-inner">
+        {{/* Logo */}}
+        <a href="/" class="site-logo">
+            {{$logo := getConfig "site.logo" ""}}
+            {{if $logo}}
+            <img src="{{$logo}}" alt="{{.site.Title}}">
+            {{else}}
+            <span class="logo-text">{{.site.Title}}</span>
+            {{end}}
+        </a>
+
+        {{/* 主导航 */}}
+        <nav class="main-nav">
+            <ul class="nav-menu">
+                {{range .headerMenu.Items}}
+                <li class="nav-item {{if .Children}}has-children{{end}}">
+                    <a href="{{.URL}}" class="nav-link {{if .Active}}active{{end}}">
+                        {{.Name}}
+                    </a>
+                    {{if .Children}}
+                    <ul class="sub-menu">
+                        {{range .Children}}
+                        <li>
+                            <a href="{{.URL}}" class="{{if .Active}}active{{end}}">{{.Name}}</a>
+                        </li>
+                        {{end}}
+                    </ul>
+                    {{end}}
+                </li>
+                {{end}}
+            </ul>
+        </nav>
+
+        {{/* 右侧功能区 */}}
+        <div class="header-actions">
+            {{/* 搜索按钮 */}}
+            <button class="action-btn search-toggle" aria-label="搜索">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                    <circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" fill="none"/>
+                </svg>
+            </button>
+
+            {{/* CTA按钮 */}}
+            {{$ctaText := getConfig "header.cta.text" "联系我们"}}
+            {{$ctaUrl := getConfig "header.cta.url" "/page/contact"}}
+            {{if $ctaText}}
+            <a href="{{$ctaUrl}}" class="btn-primary header-cta">
+                {{$ctaText}}
+            </a>
+            {{end}}
+
+            {{/* 移动端菜单按钮 */}}
+            <button class="mobile-menu-toggle" aria-label="菜单">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </div>
+
+    {{/* 搜索弹窗 */}}
+    <div class="search-modal" id="searchModal">
+        <div class="search-container">
+            <form action="/search" method="GET" class="search-form">
+                <input type="text" name="q" placeholder="搜索内容..." autocomplete="off" autofocus>
+                <button type="submit" class="search-submit">搜索</button>
+            </form>
+            <button class="search-close" aria-label="关闭">&times;</button>
+        </div>
+    </div>
+
+    {{/* 遮罩层 */}}
+    <div class="mobile-overlay"></div>
+</header>
