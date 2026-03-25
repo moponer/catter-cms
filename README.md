@@ -1,137 +1,258 @@
 # Catter CMS
 
-Catter CMS 是一个基于 Go + Buffalo + Vue 3 + Element Plus 开发的内容管理系统，提供了完整的内容管理功能，包括文章管理、分类管理、用户管理、主题管理等。
+一款基于 Go + Gin + Vue 3 + Element Plus 的现代化内容管理系统，支持主题定制、定时任务、Sitemap 生成等功能，开箱即用。
 
 ## 技术栈
 
-- **后端**：Go 1.25.0 + Buffalo 1.1.3 + SQLite
-- **前端**：Vue 3 + Element Plus + Vite
-- **认证**：JWT
+| 层级 | 技术 |
+|------|------|
+| 后端 | Go 1.25 + Gin Framework + GORM + SQLite |
+| 前端 | Vue 3 + Element Plus + Vite |
+| 认证 | JWT |
+| 部署 | 单二进制文件，无额外依赖 |
 
 ## 功能特性
 
-- ✅ 用户认证系统（登录/登出）
-- ✅ 文章管理（创建/编辑/删除/发布）
-- ✅ 分类管理
-- ✅ 标签管理
-- ✅ 媒体管理
-- ✅ 主题管理
-- ✅ 系统设置
-- ✅ API 接口
+### 核心功能
+- ✅ **用户认证** - JWT 登录/登出，角色权限控制
+- ✅ **内容管理** - 文章、页面、分类、标签、评论
+- ✅ **媒体库** - 图片/文件上传与管理
+- ✅ **菜单管理** - 可视化菜单配置
+- ✅ **主题系统** - 多主题支持，配置可视化编辑
+- ✅ **定时任务** - 备份、清理、定时发布
+- ✅ **Sitemap** - 自动生成 XML Sitemap
 
-## 安装指南
+### 安全特性
+- ✅ XSS 防护（用户输入自动转义）
+- ✅ CSRF 防护
+- ✅ 安全响应头（CSP、X-Frame-Options 等）
+- ✅ JWT 密钥强度验证（生产环境 >=32 字符）
+- ✅ 随机密码生成
 
-### 1. 环境要求
+### 系统特性
+- ✅ 配置热加载（环境变量覆盖）
+- ✅ 开发/生产环境切换
+- ✅ Gzip 压缩
+- ✅ SPA 路由支持（管理后台刷新不空白）
 
-- Go 1.25.0 或更高版本
-- Node.js 18.0 或更高版本
-- npm 或 yarn
+## 快速开始
 
-### 2. 后端安装
+### 环境要求
+- Go 1.25+
+- Node.js 18+
+- npm / yarn
 
+### 1. 克隆项目
 ```bash
-# 克隆仓库
 git clone <repository-url>
-cd catter-cms
-
-# 安装依赖
-go mod tidy
-
-# 初始化数据库
-buffalo pop create -a
-
-# 运行开发服务器
-go run cmd/app/main.go
+cd Catter-CMS
 ```
 
-### 3. 前端安装
+### 2. 配置
+编辑 `config.yaml` 或使用环境变量：
 
+```yaml
+app:
+  port: "3000"
+  env: "development"  # development / production
+  jwt_secret: "your-secret-key-min-32-chars"
+  admin_dist: "./admin/dist"
+```
+
+**环境变量覆盖**：
 ```bash
-# 进入前端目录
-cd admin
+export APP_ENV=production
+export JWT_SECRET=your-production-secret-key-min-32-chars
+export PORT=3000
+```
 
-# 安装依赖
+### 3. 构建
+```bash
+# 构建后端
+cd gin-app
+go build -o catter-cms.exe ./cmd
+
+# 构建前端
+cd ../admin
 npm install
-
-# 构建前端资源
 npm run build
 ```
 
-## 运行方式
-
-### 开发模式
-
+### 4. 运行
 ```bash
-# 后端
-go run cmd/app/main.go
+# Windows
+.\run.bat
 
-# 前端（开发模式）
+# 或直接运行
+./gin-app/catter-cms.exe
+```
+
+访问 `http://localhost:3000/admin` 进入管理后台。
+
+### 5. 开发模式
+```bash
+# 后端热重载
+cd gin-app
+go run ./cmd
+
+# 前端开发服务器（可选）
 cd admin
 npm run dev
 ```
 
-### 生产模式
+## 项目结构
 
-```bash
-# 构建前端资源
-cd admin
-npm run build
-
-# 运行后端服务器
-go run cmd/app/main.go
+```
+Catter-CMS/
+├── admin/                      # Vue 3 前端管理后台
+│   ├── src/
+│   │   ├── views/             # 页面组件
+│   │   ├── components/        # 公共组件
+│   │   ├── router/            # 路由配置
+│   │   ├── utils/             # 工具函数
+│   │   └── App.vue            # 根组件
+│   ├── dist/                  # 构建输出（部署用）
+│   └── vite.config.*          # Vite 配置
+│
+├── gin-app/                    # Go 后端
+│   ├── cmd/
+│   │   └── main.go            # 入口文件
+│   ├── config/
+│   │   └── config.go          # 配置管理
+│   ├── internal/
+│   │   ├── handlers/          # HTTP 处理器
+│   │   ├── middleware/        # 中间件（认证、安全、SPA）
+│   │   ├── models/           # 数据模型
+│   │   └── services/          # 业务逻辑
+│   └── templates/             # SSR 模板
+│
+├── templates/                  # 主题模板
+│   └── themes/
+│       ├── catter-blog/       # 博客主题
+│       └── catter-cms-official/ # 企业主题
+│
+├── config.yaml                 # 应用配置
+├── run.bat                     # Windows 启动脚本
+└── catter.db                   # SQLite 数据库
 ```
 
 ## API 接口
 
-### 认证接口
-- `POST /api/auth/login` - 用户登录
-- `GET /api/auth/me` - 获取当前用户信息
+### 认证
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| POST | `/api/auth/login` | 用户登录 |
+| GET | `/api/auth/me` | 获取当前用户 |
 
-### 文章接口
-- `GET /api/posts` - 获取文章列表
-- `GET /api/posts/{id}` - 获取文章详情
-- `POST /api/posts` - 创建文章
-- `PUT /api/posts/{id}` - 更新文章
-- `DELETE /api/posts/{id}` - 删除文章
+### 内容
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | `/api/posts` | 文章列表 |
+| GET | `/api/posts/:id` | 文章详情 |
+| POST | `/api/posts` | 创建文章 |
+| PUT | `/api/posts/:id` | 更新文章 |
+| DELETE | `/api/posts/:id` | 删除文章 |
 
-### 分类接口
-- `GET /api/categories` - 获取分类列表
-- `GET /api/categories/{id}` - 获取分类详情
-- `POST /api/categories` - 创建分类
-- `PUT /api/categories/{id}` - 更新分类
-- `DELETE /api/categories/{id}` - 删除分类
+### 分类/标签/媒体/用户
+类似 RESTful 设计，完整 API 列表见 [API_STATUS.md](API_STATUS.md)
 
-## 项目结构
+### 系统
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | `/api/settings` | 获取设置 |
+| PUT | `/api/settings` | 保存设置 |
+| GET | `/api/themes` | 主题列表 |
+| POST | `/api/themes/upload` | 上传主题 |
+| POST | `/api/themes/:id/activate` | 激活主题 |
+| GET | `/sitemap.xml` | Sitemap |
+
+## 主题开发
+
+主题放在 `templates/themes/` 目录下，每个主题包含：
 
 ```
-catter-cms/
-├── actions/           # 控制器
-├── admin/             # 前端代码
-├── cmd/               # 命令行入口
-├── config/            # 配置文件
-├── middleware/        # 中间件
-├── models/            # 数据模型
-├── repositories/      # 数据访问层
-├── services/          # 业务逻辑层
-├── templates/         # 服务器端模板
-├── public/            # 静态文件
-└── docs/              # 文档
+theme-name/
+├── theme.yml           # 主题元数据
+├── settings.yaml       # 配置表单定义（可选）
+├── assets/             # 静态资源
+│   ├── css/base.css    # 基础样式
+│   └── js/main.js
+└── pages/             # 页面模板
+    ├── home.html       # 首页
+    ├── article_list.html  # 文章列表
+    ├── article_show.html  # 文章详情
+    └── ...
 ```
+
+详细开发指南见 `docs/THEME_DEVELOPER_GUIDE_V3.md`
 
 ## 配置说明
 
-- 数据库配置：`database.yml`
-- 应用配置：`config/config.go`
+### config.yaml
+```yaml
+app:
+  port: "3000"           # 服务端口
+  env: "development"    # 环境模式
+  jwt_secret: "dev-secret-key-change-in-production"
+  admin_dist: "./admin/dist"  # 前端构建目录
+  log_level: "debug"    # 日志级别
 
-## 注意事项
+database:
+  type: "sqlite"
+  path: "./catter.db"
 
-- JWT 密钥目前硬编码在代码中，生产环境应使用环境变量或配置文件
-- 前端构建时暂时跳过了类型检查，生产环境应修复类型问题
-- 数据库默认使用 SQLite，生产环境可配置为 MySQL 或 PostgreSQL
+scheduler:
+  enabled: true
+  max_retries: 3
+```
 
-## 贡献
+### 环境变量
 
-欢迎提交 Issue 和 Pull Request 来改进这个项目。
+| 变量 | 描述 | 默认值 |
+|------|------|--------|
+| `APP_ENV` | 环境模式 | `development` |
+| `PORT` | 服务端口 | `3000` |
+| `JWT_SECRET` | JWT 密钥（生产环境必填） | - |
+| `DB_PATH` | 数据库路径 | `./catter.db` |
+
+## 部署
+
+### 生产环境
+```bash
+# 1. 设置环境变量
+export APP_ENV=production
+export JWT_SECRET=your-production-secret-key-min-32-chars
+
+# 2. 构建
+cd gin-app && go build -o catter-cms ./cmd
+cd admin && npm install && npm run build
+
+# 3. 运行
+./catter-cms
+```
+
+### Docker（可选）
+```dockerfile
+FROM golang:1.25-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN go build -o catter-cms ./gin-app/cmd
+
+FROM alpine:latest
+COPY --from=builder /app/catter-cms .
+COPY --from=builder /app/admin/dist ./admin/dist
+COPY --from=builder /app/templates ./templates
+EXPOSE 3000
+CMD ["./catter-cms"]
+```
+
+## 安全建议
+
+1. **修改默认密码** - 首次部署后立即修改管理员密码
+2. **设置强 JWT 密钥** - 生产环境使用 >=32 字符的随机字符串
+3. **启用生产模式** - 设置 `APP_ENV=production`
+4. **配置 HTTPS** - 使用反向代理（Nginx/Caddy）终止 TLS
+5. **定期备份** - 使用定时任务自动备份数据库
 
 ## 许可证
 
