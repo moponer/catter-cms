@@ -280,6 +280,11 @@
           </el-radio-group>
         </el-form-item>
 
+        <el-form-item label="启用状态">
+          <el-switch v-model="itemForm.enabled" />
+          <span class="form-hint" style="margin-left: 12px;">禁用后此菜单项将不在前台显示</span>
+        </el-form-item>
+
         <el-form-item label="父级菜单" v-if="canSelectParent">
           <el-select v-model="itemForm.parentId" placeholder="作为顶级菜单" clearable style="width: 100%">
             <el-option
@@ -330,6 +335,7 @@ interface MenuItem {
   children?: MenuItem[]
   expanded?: boolean
   sort: number
+  enabled?: boolean
 }
 
 interface Menu {
@@ -383,7 +389,8 @@ const itemForm = reactive({
   icon: '',
   target: '_self',
   linkType: 'custom',
-  parentId: ''
+  parentId: '',
+  enabled: true
 })
 
 const urlPrefix = ref('')
@@ -565,6 +572,7 @@ const handleAddItem = () => {
   itemForm.target = '_self'
   itemForm.linkType = 'custom'
   itemForm.parentId = ''
+  itemForm.enabled = true
   urlPrefix.value = ''
   itemDialogVisible.value = true
 }
@@ -579,7 +587,8 @@ const handleEditItem = (item: MenuItem, parent?: MenuItem) => {
   itemForm.target = item.target || '_self'
   itemForm.linkType = 'custom'
   itemForm.parentId = item.parentId || ''
-  
+  itemForm.enabled = item.enabled !== undefined ? item.enabled : true
+
   // Detect link type
   if (item.url.startsWith('/page/')) {
     itemForm.linkType = 'page'
@@ -597,7 +606,7 @@ const handleEditItem = (item: MenuItem, parent?: MenuItem) => {
       itemForm.url = item.url.replace('http://', '')
     }
   }
-  
+
   itemDialogVisible.value = true
 }
 
@@ -619,7 +628,8 @@ const handleSaveItem = async () => {
     target: itemForm.target,
     parentId: itemForm.parentId || undefined,
     sort: 0,
-    expanded: false
+    expanded: false,
+    enabled: itemForm.enabled
   }
 
   if (isEditingItem.value) {

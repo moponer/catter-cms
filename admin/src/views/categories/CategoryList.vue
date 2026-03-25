@@ -120,7 +120,7 @@ const categoryOptions = computed(() => {
 // 加载分类列表
 const loadCategories = async () => {
   try {
-    const res = await get('/api/admin/categories/tree')
+    const res = await get('/api/categories/tree')
     categories.value = res.data || res || []
   } catch (error) {
     // 如果树形API不存在，使用普通列表
@@ -178,7 +178,7 @@ const handleDelete = async (row) => {
     await ElMessageBox.confirm('确定要删除该分类吗？如果该分类下有子分类或文章，将无法删除。', '提示', {
       type: 'warning'
     })
-    await del(`/api/admin/categories/${row.id}`)
+    await del(`/api/categories/${row.id}`)
     ElMessage.success('删除成功')
     loadCategories()
   } catch (error) {
@@ -215,10 +215,10 @@ const handleSubmit = async () => {
     }
 
     if (editingId.value) {
-      await put(`/api/admin/categories/${editingId.value}`, data)
+      await put(`/api/categories/${editingId.value}`, data)
       ElMessage.success('更新成功')
     } else {
-      await post('/api/admin/categories', data)
+      await post('/api/categories', data)
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false

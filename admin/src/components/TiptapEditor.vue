@@ -3,10 +3,10 @@
     <!-- 工具栏 -->
     <div class="editor-toolbar" v-if="editor">
       <div class="toolbar-group">
-        <button @click="editor.chain().focus().undo().run()" :disabled="!editor.can().undo()" title="撤销">
+        <button type="button" @click="editor.chain().focus().undo().run()" :disabled="!editor.can().undo()" title="撤销">
           ↩
         </button>
-        <button @click="editor.chain().focus().redo().run()" :disabled="!editor.can().redo()" title="重做">
+        <button type="button" @click="editor.chain().focus().redo().run()" :disabled="!editor.can().redo()" title="重做">
           ↪
         </button>
       </div>
@@ -14,13 +14,13 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ active: editor.isActive('heading', { level: 1 }) }" title="标题1">
+        <button type="button" @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ active: editor.isActive('heading', { level: 1 }) }" title="标题1">
           H1
         </button>
-        <button @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ active: editor.isActive('heading', { level: 2 }) }" title="标题2">
+        <button type="button" @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ active: editor.isActive('heading', { level: 2 }) }" title="标题2">
           H2
         </button>
-        <button @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ active: editor.isActive('heading', { level: 3 }) }" title="标题3">
+        <button type="button" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ active: editor.isActive('heading', { level: 3 }) }" title="标题3">
           H3
         </button>
       </div>
@@ -28,16 +28,16 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button @click="editor.chain().focus().toggleBold().run()" :class="{ active: editor.isActive('bold') }" title="粗体">
+        <button type="button" @click="editor.chain().focus().toggleBold().run()" :class="{ active: editor.isActive('bold') }" title="粗体">
           B
         </button>
-        <button @click="editor.chain().focus().toggleItalic().run()" :class="{ active: editor.isActive('italic') }" title="斜体">
+        <button type="button" @click="editor.chain().focus().toggleItalic().run()" :class="{ active: editor.isActive('italic') }" title="斜体">
           I
         </button>
-        <button @click="editor.chain().focus().toggleUnderline().run()" :class="{ active: editor.isActive('underline') }" title="下划线">
+        <button type="button" @click="editor.chain().focus().toggleUnderline().run()" :class="{ active: editor.isActive('underline') }" title="下划线">
           U
         </button>
-        <button @click="editor.chain().focus().toggleStrike().run()" :class="{ active: editor.isActive('strike') }" title="删除线">
+        <button type="button" @click="editor.chain().focus().toggleStrike().run()" :class="{ active: editor.isActive('strike') }" title="删除线">
           S
         </button>
       </div>
@@ -45,13 +45,13 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button @click="editor.chain().focus().toggleBulletList().run()" :class="{ active: editor.isActive('bulletList') }" title="无序列表">
+        <button type="button" @click="editor.chain().focus().toggleBulletList().run()" :class="{ active: editor.isActive('bulletList') }" title="无序列表">
           •
         </button>
-        <button @click="editor.chain().focus().toggleOrderedList().run()" :class="{ active: editor.isActive('orderedList') }" title="有序列表">
+        <button type="button" @click="editor.chain().focus().toggleOrderedList().run()" :class="{ active: editor.isActive('orderedList') }" title="有序列表">
           1.
         </button>
-        <button @click="editor.chain().focus().toggleTaskList().run()" :class="{ active: editor.isActive('taskList') }" title="任务列表">
+        <button type="button" @click="editor.chain().focus().toggleTaskList().run()" :class="{ active: editor.isActive('taskList') }" title="任务列表">
           ☑
         </button>
       </div>
@@ -59,13 +59,13 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button @click="editor.chain().focus().toggleBlockquote().run()" :class="{ active: editor.isActive('blockquote') }" title="引用">
+        <button type="button" @click="editor.chain().focus().toggleBlockquote().run()" :class="{ active: editor.isActive('blockquote') }" title="引用">
           "
         </button>
-        <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ active: editor.isActive('codeBlock') }" title="代码块">
+        <button type="button" @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ active: editor.isActive('codeBlock') }" title="代码块">
           &lt;/&gt;
         </button>
-        <button @click="editor.chain().focus().toggleCode().run()" :class="{ active: editor.isActive('code') }" title="行内代码">
+        <button type="button" @click="editor.chain().focus().toggleCode().run()" :class="{ active: editor.isActive('code') }" title="行内代码">
           &lt;&gt;
         </button>
       </div>
@@ -73,10 +73,10 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button @click="editor.chain().focus().setHorizontalRule().run()" title="分割线">
+        <button type="button" @click="editor.chain().focus().setHorizontalRule().run()" title="分割线">
           ―
         </button>
-        <button @click="editor.chain().focus().setHardBreak().run()" title="换行">
+        <button type="button" @click="editor.chain().focus().setHardBreak().run()" title="换行">
           ↵
         </button>
       </div>
@@ -84,10 +84,10 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button @click="addLink" :class="{ active: editor.isActive('link') }" title="添加链接">
+        <button type="button" @click="addLink" :class="{ active: editor.isActive('link') }" title="添加链接">
           🔗
         </button>
-        <button @click="triggerImageUpload" title="添加图片">
+        <button type="button" @click="triggerImageUpload" title="添加图片">
           🖼️
         </button>
       </div>
@@ -95,13 +95,13 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button @click="editor.chain().focus().setTextAlign('left').run()" :class="{ active: editor.isActive({ textAlign: 'left' }) }" title="左对齐">
+        <button type="button" @click="editor.chain().focus().setTextAlign('left').run()" :class="{ active: editor.isActive({ textAlign: 'left' }) }" title="左对齐">
           ⫷
         </button>
-        <button @click="editor.chain().focus().setTextAlign('center').run()" :class="{ active: editor.isActive({ textAlign: 'center' }) }" title="居中">
+        <button type="button" @click="editor.chain().focus().setTextAlign('center').run()" :class="{ active: editor.isActive({ textAlign: 'center' }) }" title="居中">
           ⫿
         </button>
-        <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ active: editor.isActive({ textAlign: 'right' }) }" title="右对齐">
+        <button type="button" @click="editor.chain().focus().setTextAlign('right').run()" :class="{ active: editor.isActive({ textAlign: 'right' }) }" title="右对齐">
           ⫸
         </button>
       </div>

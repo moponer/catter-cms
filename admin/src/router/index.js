@@ -19,6 +19,7 @@ const Comments = () => import('@/views/comments/Index.vue')
 const ScheduledTasks = () => import('@/views/scheduled-tasks/Index.vue')
 const Sitemap = () => import('@/views/sitemap/Index.vue')
 const MenuList = () => import('@/views/menus/MenuList.vue')
+const Cache = () => import('@/views/cache/Index.vue')
 
 const routes = [
   {
@@ -142,6 +143,12 @@ const routes = [
     meta: { title: 'Sitemap管理', requiresAuth: true }
   },
   {
+    path: '/cache',
+    name: 'Cache',
+    component: Cache,
+    meta: { title: '清理缓存', requiresAuth: true }
+  },
+  {
     path: '/menus',
     name: 'Menus',
     component: MenuList,
@@ -159,22 +166,38 @@ router.beforeEach(async (to, from, next) => {
   // 设置页面标题
   const title = to.meta.title
   document.title = title ? `${title} - Catter CMS` : 'Catter CMS'
-  
+
   // 检查登录状态
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const token = localStorage.getItem('token')
-  
+
   if (requiresAuth && !token) {
     // 需要认证但没有token，跳转到登录页
     next('/login')
-  } else if (to.path === '/login' && token) {
-    // 已登录访问登录页，跳转到首页
-    next('/')
+  } else if (to.path === '/login' || to.path === '/admin/login') {
+    // 访问登录页
+    if (token) {
+      // 有token，验证是否有效
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (response.ok) {
+          // token有效，跳转到首页
+          next('/')
+          return
+        }
+      } catch (e) {
+        // 网络错误，继续显示登录页
+      }
+    }
+    // 无token或token无效，允许访问登录页
+    next()
   } else if (requiresAuth && token) {
     // 需要认证且有token，可以继续访问
-    // 注意: 这里我们不在路由守卫中验证token有效性，
-    // 因为会在后续的API请求中自动验证(通过request拦截器)
-    // 如果token无效，API会返回401，拦截器会自动跳转到登录页
+    // token有效性会在后续的API请求中自动验证
     next()
   } else {
     // 其他情况，允许访问

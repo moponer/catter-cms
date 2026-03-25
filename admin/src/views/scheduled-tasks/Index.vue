@@ -15,14 +15,16 @@
 
       <!-- 调度器状态 -->
       <div class="scheduler-status" v-if="schedulerStatus">
-        <el-tag :type="schedulerStatus.is_running ? 'success' : 'danger'" size="large">
-          <el-icon><CircleCheck v-if="schedulerStatus.is_running" /><CircleClose v-else /></el-icon>
-          调度器状态: {{ schedulerStatus.is_running ? '运行中' : '已停止' }}
+        <el-tag :type="schedulerStatus.is_running ? 'success' : 'danger'" size="large" class="status-tag">
+          <span class="status-tag-content">
+            <el-icon><CircleCheck v-if="schedulerStatus.is_running" /><CircleClose v-else /></el-icon>
+            <span>调度器状态: {{ schedulerStatus.is_running ? '运行中' : '已停止' }}</span>
+          </span>
         </el-tag>
-        <el-button 
-          v-if="!schedulerStatus.is_running" 
-          type="primary" 
-          size="small" 
+        <el-button
+          v-if="!schedulerStatus.is_running"
+          type="primary"
+          size="small"
           @click="restartScheduler"
           :icon="VideoPlay"
         >
@@ -221,7 +223,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Refresh, CircleCheck, CircleClose, VideoPlay } from '@element-plus/icons-vue'
-import axios from 'axios'
+import request from '@/utils/request'
 
 // 数据
 const tasks = ref([])
@@ -278,9 +280,9 @@ const cronExamples = [
 const loadTasks = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/api/admin/scheduled-tasks')
-    if (response.data.success) {
-      tasks.value = response.data.data || []
+    const response = await request.get('/api/admin/scheduled-tasks')
+    if (response.code === 0) {
+      tasks.value = response.data || []
     }
   } catch (error) {
     ElMessage.error('加载任务列表失败')
@@ -292,9 +294,9 @@ const loadTasks = async () => {
 // 加载调度器状态
 const loadSchedulerStatus = async () => {
   try {
-    const response = await axios.get('/api/admin/scheduler/status')
-    if (response.data.success) {
-      schedulerStatus.value = response.data.data
+    const response = await request.get('/api/admin/scheduler/status')
+    if (response.code === 0) {
+      schedulerStatus.value = response.data
     }
   } catch (error) {
     // 错误已在 request 拦截器中处理
@@ -332,10 +334,10 @@ const handleSaveTask = async () => {
     saving.value = true
     try {
       if (isEditMode.value) {
-        await axios.put(`/api/admin/scheduled-tasks/${taskForm.id}`, taskForm)
+        await request.put(`/api/admin/scheduled-tasks/${taskForm.id}`, taskForm)
         ElMessage.success('任务更新成功')
       } else {
-        await axios.post('/api/admin/scheduled-tasks', taskForm)
+        await request.post('/api/admin/scheduled-tasks', taskForm)
         ElMessage.success('任务创建成功')
       }
       dialogVisible.value = false
@@ -354,8 +356,8 @@ const handleDelete = async (task) => {
     await ElMessageBox.confirm('确定要删除这个任务吗?', '确认删除', {
       type: 'warning'
     })
-    
-    await axios.delete(`/api/admin/scheduled-tasks/${task.id}`)
+
+    await request.delete(`/api/admin/scheduled-tasks/${task.id}`)
     ElMessage.success('任务删除成功')
     await loadTasks()
   } catch (error) {
@@ -371,9 +373,9 @@ const handleRunNow = async (task) => {
     await ElMessageBox.confirm('确定要立即执行这个任务吗?', '确认执行', {
       type: 'warning'
     })
-    
+
     task.running = true
-    await axios.post(`/api/admin/scheduled-tasks/${task.id}/run-now`)
+    await request.post(`/api/admin/scheduled-tasks/${task.id}/run`)
     ElMessage.success('任务已开始执行')
     await loadTasks()
     await loadSchedulerStatus()
@@ -390,10 +392,10 @@ const handleEnableChange = async (task) => {
   task.switching = true
   try {
     if (task.enabled) {
-      await axios.post(`/api/admin/scheduled-tasks/${task.id}/enable`)
+      await request.post(`/api/admin/scheduled-tasks/${task.id}/enable`)
       ElMessage.success('任务已启用')
     } else {
-      await axios.post(`/api/admin/scheduled-tasks/${task.id}/disable`)
+      await request.post(`/api/admin/scheduled-tasks/${task.id}/disable`)
       ElMessage.success('任务已禁用')
     }
     await loadSchedulerStatus()
@@ -411,8 +413,8 @@ const restartScheduler = async () => {
     await ElMessageBox.confirm('确定要重启调度器吗?', '确认重启', {
       type: 'warning'
     })
-    
-    await axios.post('/api/admin/scheduler/restart')
+
+    await request.post('/api/admin/scheduler/restart')
     ElMessage.success('调度器重启成功')
     await loadSchedulerStatus()
   } catch (error) {
@@ -510,6 +512,23 @@ onMounted(() => {
   padding: 15px;
   background: #f5f7fa;
   border-radius: 4px;
+  flex-wrap: wrap;
+}
+
+.scheduler-status .el-tag {
+  display: inline-flex;
+}
+
+.status-tag .el-tag__content {
+  display: flex;
+  align-items: center;
+}
+
+.status-tag-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .status-stats {

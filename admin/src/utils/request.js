@@ -103,18 +103,18 @@ request.interceptors.response.use(
         switch (status) {
           case 401:
             handleAuthError()
-            return Promise.reject(new Error(data.message || '登录已过期'))
+            return Promise.reject(new Error(data.message || data.error || '登录已过期'))
           case 403:
-            ElMessage.error(data.message || '没有权限访问')
+            ElMessage.error(data.message || data.error || '没有权限访问')
             break
           case 404:
-            ElMessage.error(data.message || '请求的资源不存在')
+            ElMessage.error(data.message || data.error || '请求的资源不存在')
             break
           case 500:
-            ElMessage.error(data.message || '服务器错误')
+            ElMessage.error(data.message || data.error || '服务器错误')
             break
           default:
-            ElMessage.error(data.message || '请求失败')
+            ElMessage.error(data.message || data.error || '请求失败')
         }
       } else {
         // 非 JSON 响应
@@ -136,6 +136,8 @@ request.interceptors.response.use(
     } else if (error.request) {
       // 请求已发送但没有收到响应（后端未启动或网络问题）
       ElMessage.error('无法连接到服务器，请检查后端服务是否运行')
+      // 清除认证状态，让用户重新登录
+      handleAuthError()
     } else {
       // 请求配置错误
       ElMessage.error(message || '请求配置错误')

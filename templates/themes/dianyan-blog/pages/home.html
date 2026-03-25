@@ -28,10 +28,18 @@
             <a href="/" class="logo">{{ .site.title }}</a>
             <nav>
                 <ul class="nav-menu">
-                    <li><a href="/" class="active">首页</a></li>
-                    <li><a href="/article">文章</a></li>
-                    <li><a href="/categories">分类</a></li>
-                    <li><a href="/archives">归档</a></li>
+                    {{ range .headerMenu.Items }}
+                    <li>
+                        <a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a>
+                        {{ if .Children }}
+                        <ul class="sub-menu">
+                            {{ range .Children }}
+                            <li><a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a></li>
+                            {{ end }}
+                        </ul>
+                        {{ end }}
+                    </li>
+                    {{ end }}
                 </ul>
             </nav>
         </div>
@@ -157,9 +165,9 @@
                 <div class="footer-section">
                     <h4>链接</h4>
                     <ul class="footer-links">
-                        <li><a href="/article">文章</a></li>
-                        <li><a href="/categories">分类</a></li>
-                        <li><a href="/archives">归档</a></li>
+                        {{ range .footerMenu.Items }}
+                        <li><a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a></li>
+                        {{ end }}
                     </ul>
                 </div>
                 <div class="footer-section">

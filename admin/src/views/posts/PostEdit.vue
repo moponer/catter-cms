@@ -189,7 +189,8 @@ const loadCategories = async () => {
 const loadTags = async () => {
   try {
     const res = await get('/api/tags')
-    tags.value = res.data || res || []
+    // API 返回 {code: 0, data: {list: [...], total: N}}
+    tags.value = res.data?.list || res.list || []
   } catch (error) {
     // 错误已在 request 拦截器中处理
   }

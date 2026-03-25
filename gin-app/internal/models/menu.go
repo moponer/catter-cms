@@ -58,10 +58,10 @@ func GetMenuByLocation(location string) (*Menu, error) {
 	return &menu, nil
 }
 
-// GetMenuItemsWithChildren 获取带层级结构的菜单项
+// GetMenuItemsWithChildren 获取带层级结构的菜单项（只获取启用的项）
 func GetMenuItemsWithChildren(menuID string) ([]MenuItem, error) {
 	var allItems []MenuItem
-	if err := DB.Where("menu_id = ?", menuID).Order("sort ASC").Find(&allItems).Error; err != nil {
+	if err := DB.Where("menu_id = ? AND enabled = ?", menuID, true).Order("sort ASC").Find(&allItems).Error; err != nil {
 		return nil, err
 	}
 

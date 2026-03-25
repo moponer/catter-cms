@@ -1,5 +1,12 @@
 # 长期记忆
 
+## 定时任务调度器（2026-03-25 完成）
+- **数据库模型**：`ScheduledTask` 和 `ScheduledTaskExecution` 表
+- **调度器服务**：`services/scheduler.go`，基于 robfig/cron/v3
+- **任务类型**：backup（备份）、cleanup（清理）、cache_clear（缓存清理）、publish（定时发布）、custom（自定义）
+- **调度器启动**：在 `main.go` 中 `services.GetScheduler().Start()` 启动时自动加载所有已启用任务
+- **API 响应格式**：`{code: 0, message: "...", data: ...}`，前端需检查 `code === 0`
+
 ## 项目架构
 - 后端入口：`gin-app/cmd/main.go`，不是 `bootstrap/app.go`
 - 服务端口：config.yaml 中 `port: "3002"`

@@ -79,6 +79,11 @@
         <el-icon><Connection /></el-icon>
         <template #title>Sitemap</template>
       </el-menu-item>
+
+      <el-menu-item index="/cache">
+        <el-icon><Delete /></el-icon>
+        <template #title>清理缓存</template>
+      </el-menu-item>
     </el-menu>
 
     <!-- 折叠按钮 -->
@@ -108,7 +113,8 @@ import {
   Search,
   Timer,
   Connection,
-  Menu
+  Menu,
+  Delete
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 

@@ -103,6 +103,14 @@ func main() {
 		log.Println("Theme service initialized")
 	}
 
+	// 启动任务调度器
+	scheduler := services.GetScheduler()
+	if err := scheduler.Start(); err != nil {
+		log.Printf("Warning: Failed to start scheduler: %v", err)
+	} else {
+		log.Println("Task scheduler started")
+	}
+
 	// 创建 Gin 引擎 - 强制使用 ReleaseMode 避免调试日志干扰 HTTP 响应
 	gin.SetMode(gin.ReleaseMode)
 
@@ -225,6 +233,10 @@ func main() {
 			// Sitemap管理 API
 			protected.GET("/admin/sitemap/info", api.GetSitemapInfo)
 			protected.POST("/admin/sitemap/rebuild", api.RebuildSitemap)
+
+			// 缓存管理 API
+			protected.GET("/admin/cache/status", api.GetCacheStatus)
+			protected.POST("/admin/cache/clear", api.ClearCache)
 
 			// 系统信息 API
 			protected.GET("/admin/system/info", api.GetSystemInfo)
@@ -368,18 +380,19 @@ func main() {
 
 func homeHandler(c *gin.Context) {
 	// 获取已发布的文章
+	// 使用 COALESCE 让 published_at 为 NULL 时回退到 created_at
 	var posts []models.Post
 	models.DB.Where("status = ?", "published").
 		Preload("Category").
 		Preload("Tags").
-		Order("published_at DESC").
+		Order("COALESCE(published_at, created_at) DESC").
 		Limit(10).
 		Find(&posts)
 
 	// 获取最近文章（用于侧边栏）
 	var recentPosts []models.Post
 	models.DB.Where("status = ?", "published").
-		Order("published_at DESC").
+		Order("COALESCE(published_at, created_at) DESC").
 		Limit(5).
 		Find(&recentPosts)
 

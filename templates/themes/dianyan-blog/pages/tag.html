@@ -33,10 +33,18 @@
             <a href="/" class="logo">{{ .site.title }}</a>
             <nav>
                 <ul class="nav-menu">
-                    <li><a href="/">首页</a></li>
-                    <li><a href="/article">文章</a></li>
-                    <li><a href="/categories">分类</a></li>
-                    <li><a href="/archives">归档</a></li>
+                    {{ range .headerMenu.Items }}
+                    <li>
+                        <a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a>
+                        {{ if .Children }}
+                        <ul class="sub-menu">
+                            {{ range .Children }}
+                            <li><a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a></li>
+                            {{ end }}
+                        </ul>
+                        {{ end }}
+                    </li>
+                    {{ end }}
                 </ul>
             </nav>
         </div>
@@ -111,9 +119,9 @@
     <footer class="footer">
         <div class="footer-inner">
             <div class="footer-links">
-                <a href="/">首页</a>
-                <a href="/article">文章</a>
-                <a href="/archives">归档</a>
+                {{ range .footerMenu.Items }}
+                <a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a>
+                {{ end }}
             </div>
             <p class="footer-copyright">
                 © {{ .site.year }} {{ .site.title }} · 墨香书韵

@@ -230,6 +230,51 @@ img {
     color: var(--primary);
 }
 
+/* 下拉菜单 */
+.nav-menu li {
+    position: relative;
+}
+
+.nav-menu .sub-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 160px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: var(--space-sm) 0;
+    list-style: none;
+    z-index: 100;
+}
+
+.nav-menu .sub-menu li {
+    margin: 0;
+}
+
+.nav-menu .sub-menu a {
+    display: block;
+    padding: var(--space-sm) var(--space-md);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+}
+
+.nav-menu .sub-menu a::after {
+    display: none;
+}
+
+.nav-menu .sub-menu a:hover {
+    background: var(--bg-tertiary, #f5f2ed);
+    color: var(--primary);
+}
+
+.nav-menu li:hover > .sub-menu {
+    display: block;
+}
+
 /* ---------- 页面标题区 ---------- */
 .page-header {
     background-color: var(--bg-secondary);
@@ -585,9 +630,9 @@ img {
 }
 
 .article-header .article-title {
-    font-size: var(--text-4xl);
+    font-size: var(--text-3xl);
     margin-bottom: var(--space-lg);
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 .article-header .article-meta {
@@ -601,15 +646,18 @@ img {
     max-width: var(--content-max);
     margin: 0 auto;
     padding: var(--space-2xl) var(--space-lg);
-    font-size: var(--text-lg);
+    font-size: 16px;
     line-height: var(--leading-relaxed);
 }
 
-.article-content p {
+.article-content h1 {
+    font-size: var(--text-3xl);
     margin-bottom: var(--space-lg);
+    line-height: 1.3;
 }
 
 .article-content h2 {
+    font-size: var(--text-2xl);
     margin-top: var(--space-2xl);
     margin-bottom: var(--space-md);
     padding-bottom: var(--space-sm);
@@ -617,8 +665,15 @@ img {
 }
 
 .article-content h3 {
+    font-size: var(--text-xl);
     margin-top: var(--space-xl);
     margin-bottom: var(--space-md);
+}
+
+.article-content p {
+    margin-bottom: var(--space-lg);
+    font-size: 16px;
+    line-height: 1.8;
 }
 
 .article-content img {

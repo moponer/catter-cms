@@ -41,5 +41,7 @@ func AutoMigrate() error {
 		&ThemeConfig{},
 		&Menu{},
 		&MenuItem{},
+		&ScheduledTask{},
+		&ScheduledTaskExecution{},
 	)
 }
