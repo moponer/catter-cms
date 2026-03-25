@@ -144,7 +144,7 @@ const loadMedia = async () => {
     mediaList.value = res.data?.list || []
     total.value = res.data?.total || 0
   } catch (error) {
-    console.error('加载媒体列表失败:', error)
+    // 错误已在 request 拦截器中处理
   } finally {
     loading.value = false
   }
@@ -187,7 +187,6 @@ const handleUpload = async (file) => {
       selectedItem.value = res.data
     }
   } catch (error) {
-    console.error('上传失败:', error)
     ElMessage.error('上传失败')
   }
   return false

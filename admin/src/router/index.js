@@ -12,6 +12,7 @@ const UserEdit = () => import('@/views/users/UserEdit.vue')
 const MediaLibrary = () => import('@/views/media/MediaLibrary.vue')
 const PageList = () => import('@/views/pages/PageList.vue')
 const PageEdit = () => import('@/views/pages/PageEdit.vue')
+const ThemeList = () => import('@/views/themes/ThemeList.vue')
 const ThemeSettings = () => import('@/views/themes/ThemeSettings.vue')
 const SiteSettings = () => import('@/views/settings/SiteSettings.vue')
 const Comments = () => import('@/views/comments/Index.vue')
@@ -107,6 +108,12 @@ const routes = [
   {
     path: '/themes',
     name: 'Themes',
+    component: ThemeList,
+    meta: { title: '主题管理', requiresAuth: true }
+  },
+  {
+    path: '/themes/:slug',
+    name: 'ThemeSettings',
     component: ThemeSettings,
     meta: { title: '主题配置', requiresAuth: true }
   },

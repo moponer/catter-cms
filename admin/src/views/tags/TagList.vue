@@ -75,7 +75,6 @@ const loadTags = async () => {
     const res = await get('/api/tags')
     tags.value = res.data?.list || res.list || []
   } catch (error) {
-    console.error('加载标签失败:', error)
     ElMessage.error('加载标签失败')
   } finally {
     loading.value = false
@@ -117,7 +116,7 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     loadTags()
   } catch (error) {
-    console.error('操作失败:', error)
+    // 错误已在 request 拦截器中处理
   } finally {
     submitting.value = false
   }
@@ -134,7 +133,7 @@ const handleDelete = async (tag) => {
     loadTags()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
     }
   }
 }

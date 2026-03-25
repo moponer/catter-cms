@@ -44,13 +44,14 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { post } from '@/utils/request'
 import { setToken, setCurrentUser } from '@/utils/auth'
 
 const router = useRouter()
+const route = useRoute()
 const formRef = ref()
 const loading = ref(false)
 
@@ -73,22 +74,24 @@ const handleLogin = async () => {
   try {
     await formRef.value.validate()
     loading.value = true
-    
+
     const res = await post('/api/auth/login', form)
-    
+
     // 处理响应 - 标准格式是 { code: 0, message: "...", data: {...} }
     if (res.code === 0 || res.code === 200) {
       const data = res.data
       setToken(data.token)
       setCurrentUser(data.user)
-      
+
       ElMessage.success(res.message || '登录成功')
-      router.push('/')
+
+      // 优先使用 redirect 参数，否则回到首页
+      const redirect = route.query.redirect || '/'
+      router.push(redirect)
     } else {
       ElMessage.error(res.message || '登录失败')
     }
   } catch (error) {
-    console.error('登录失败:', error)
     if (error.response?.data?.message) {
       ElMessage.error(error.response.data.message)
     } else {
@@ -98,6 +101,16 @@ const handleLogin = async () => {
     loading.value = false
   }
 }
+
+// 检查是否已登录，已登录则直接跳转
+onMounted(() => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    // 有 token，尝试跳转回之前的页面
+    const redirect = route.query.redirect || '/'
+    router.push(redirect)
+  }
+})
 </script>
 
 <style scoped>

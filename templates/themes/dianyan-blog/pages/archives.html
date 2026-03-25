@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .site.title }}</title>
+    <meta name="description" content="{{ getConfig "metaDescription" "墨香书韵，诗意栖居" }}">
+    <style>
+        :root {
+            --primary: {{ getConfig "primaryColor" "#2d5a4a" }};
+            --primary-light: {{ getConfig "primaryLight" "#4a7c6f" }};
+            --primary-hover: #1e3d32;
+            --accent: {{ getConfig "accentColor" "#b8860b" }};
+            --accent-light: #d4a017;
+            --text-color: {{ getConfig "textColor" "#1a1a1a" }};
+            --text-secondary: {{ getConfig "textSecondary" "#6b6b6b" }};
+            --text-tertiary: #999999;
+            --bg-primary: {{ getConfig "bgColor" "#f8f5f0" }};
+            --bg-secondary: {{ getConfig "bgSecondary" "#fefcf9" }};
+            --bg-tertiary: #f5f2ed;
+            --border-color: {{ getConfig "borderColor" "#e8e4df" }};
+            --border-light: #f0ece7;
+        }
+    </style>
+    <link rel="stylesheet" href="/themes/dianyan-blog/assets/css/base.css">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+</head>
+<body>
+
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/article">文章</a></li>
+                    <li><a href="/categories">分类</a></li>
+                    <li><a href="/archives" class="active">归档</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题 -->
+    <div class="page-header">
+        <h1>文章归档</h1>
+        <p class="subtitle">共计 {{ len .posts }} 篇文章</p>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-container">
+        <main class="content-container main-padded">
+
+            {{ range $year, $items := .archives }}
+            <div class="archive-year">
+                <h2>
+                    <i class="far fa-calendar-alt"></i>
+                    {{ $year }}
+                </h2>
+                <ul class="archive-list">
+                    {{ range $items }}
+                    <li class="archive-item">
+                        <span class="archive-date">{{ dateFormat "01-02" .PublishedAt }}</span>
+                        <span class="archive-title">
+                            <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+                        </span>
+                    </li>
+                    {{ end }}
+                </ul>
+            </div>
+            {{ else }}
+            <div class="empty-state">
+                <i class="far fa-archive"></i>
+                <p>暂无归档</p>
+            </div>
+            {{ end }}
+
+        </main>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/">首页</a>
+                <a href="/article">文章</a>
+                <a href="/archives">归档</a>
+            </div>
+            <p class="footer-copyright">
+                © {{ .site.year }} {{ .site.title }} · 墨香书韵
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

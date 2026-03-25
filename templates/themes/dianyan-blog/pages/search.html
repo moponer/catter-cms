@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .site.title }}</title>
+    <meta name="description" content="{{ getConfig "metaDescription" "墨香书韵，诗意栖居" }}">
+    <style>
+        :root {
+            --primary: {{ getConfig "primaryColor" "#2d5a4a" }};
+            --primary-light: {{ getConfig "primaryLight" "#4a7c6f" }};
+            --primary-hover: #1e3d32;
+            --accent: {{ getConfig "accentColor" "#b8860b" }};
+            --accent-light: #d4a017;
+            --text-color: {{ getConfig "textColor" "#1a1a1a" }};
+            --text-secondary: {{ getConfig "textSecondary" "#6b6b6b" }};
+            --text-tertiary: #999999;
+            --bg-primary: {{ getConfig "bgColor" "#f8f5f0" }};
+            --bg-secondary: {{ getConfig "bgSecondary" "#fefcf9" }};
+            --bg-tertiary: #f5f2ed;
+            --border-color: {{ getConfig "borderColor" "#e8e4df" }};
+            --border-light: #f0ece7;
+        }
+    </style>
+    <link rel="stylesheet" href="/themes/dianyan-blog/assets/css/base.css">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+</head>
+<body>
+
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/article">文章</a></li>
+                    <li><a href="/categories">分类</a></li>
+                    <li><a href="/archives">归档</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题 -->
+    <div class="page-header">
+        <h1>搜索结果</h1>
+        <p class="subtitle">关键词：{{ .query }}</p>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-container">
+        <!-- 文章列表 -->
+        <main class="posts-section">
+            <div class="posts-list card-style">
+                {{ range .posts }}
+                <article class="post-card">
+                    <h3 class="post-title">
+                        <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+                    </h3>
+
+                    <div class="post-meta">
+                        <span class="post-meta-item">
+                            <i class="far fa-calendar"></i>
+                            {{ dateFormat "2006-01-02" .PublishedAt }}
+                        </span>
+
+                        {{ if .Category }}
+                        <span class="post-meta-item">
+                            <i class="far fa-folder"></i>
+                            {{ .Category.Name }}
+                        </span>
+                        {{ end }}
+                    </div>
+
+                    {{ if .Excerpt }}
+                    <p class="post-excerpt">{{ .Excerpt }}</p>
+                    {{ else }}
+                    <p class="post-excerpt">{{ substr .Content 0 160 }}...</p>
+                    {{ end }}
+
+                    <div class="post-footer">
+                        <a href="/article/{{ .Slug }}" class="read-more">阅读全文 →</a>
+                    </div>
+                </article>
+                {{ else }}
+                <div class="empty-state">
+                    <i class="far fa-search"></i>
+                    <p>未找到相关文章</p>
+                    <p class="search-hint">试试其他关键词？</p>
+                </div>
+                {{ end }}
+            </div>
+        </main>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/">首页</a>
+                <a href="/article">文章</a>
+                <a href="/archives">归档</a>
+            </div>
+            <p class="footer-copyright">
+                © {{ .site.year }} {{ .site.title }} · 墨香书韵
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

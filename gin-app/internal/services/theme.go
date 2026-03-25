@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -9,8 +10,10 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"catter-cms-gin/config"
 	"catter-cms-gin/internal/models"
@@ -53,6 +56,70 @@ type Option struct {
 	Description string `yaml:"description,omitempty" json:"description,omitempty"`
 }
 
+// FlattenMap 将嵌套 map 转换为扁平 map（key 用点号连接）
+// 例如: {appearance: {colors: {primary: "#000"}}} -> {"appearance.colors.primary": "#000"}
+func FlattenMap(nested map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	flattenRecursive(nested, "", result)
+	return result
+}
+
+// flattenToNestedForTemplate 将扁平 map（点号分隔的 key）转换为嵌套结构
+// 例如: {"modules.hero.enabled": true} -> {"modules": {"hero": {"enabled": true}}}
+// 与 FlattenMap 相反，用于将存储的扁平格式转换为模板可访问的嵌套格式
+func flattenToNestedForTemplate(flat map[string]interface{}) map[string]interface{} {
+	if flat == nil {
+		return make(map[string]interface{})
+	}
+
+	nested := make(map[string]interface{})
+	for key, value := range flat {
+		// 检查键名是否包含点号
+		if strings.Contains(key, ".") {
+			// 按照点号分割键名
+			parts := strings.Split(key, ".")
+			current := nested
+
+			// 遍历所有部分，除了最后一个
+			for i := 0; i < len(parts)-1; i++ {
+				part := parts[i]
+				if _, exists := current[part]; !exists {
+					current[part] = make(map[string]interface{})
+				}
+				if nextMap, ok := current[part].(map[string]interface{}); ok {
+					current = nextMap
+				} else {
+					// 如果已存在但不是map，覆盖它
+					newMap := make(map[string]interface{})
+					current[part] = newMap
+					current = newMap
+				}
+			}
+
+			// 设置最后一个部分的值
+			current[parts[len(parts)-1]] = value
+		} else {
+			// 没有点号，直接设置
+			nested[key] = value
+		}
+	}
+	return nested
+}
+
+func flattenRecursive(m map[string]interface{}, prefix string, result map[string]interface{}) {
+	for key, value := range m {
+		newKey := key
+		if prefix != "" {
+			newKey = prefix + "." + key
+		}
+		if childMap, ok := value.(map[string]interface{}); ok {
+			flattenRecursive(childMap, newKey, result)
+		} else {
+			result[newKey] = value
+		}
+	}
+}
+
 // Theme 主题结构
 type Theme struct {
 	Name             string                 `yaml:"name"`
@@ -66,13 +133,20 @@ type Theme struct {
 	ConfigDefinition []ConfigSection        `yaml:"configDefinition"`
 }
 
+// TemplateSet 模板集 - 存储组合后的所有模板
+// 使用组合模板集可以让 {{template "name"}} 调用正常工作
+type TemplateSet struct {
+	Root     *template.Template                    // 根模板（包含所有已解析的模板）
+	Template map[string]*template.Template        // 按名称索引的模板
+}
+
 // ThemeService 主题服务
 type ThemeService struct {
 	activeTheme   *Theme
 	themes        map[string]*Theme
 	themesPath    string
 	templateMu    sync.RWMutex
-	templateCache map[string]*template.Template // 模板缓存: "themeName/templateName" -> *template.Template
+	templateCache map[string]*TemplateSet // 模板缓存: "themeName" -> *TemplateSet
 }
 
 // 全局主题服务
@@ -117,7 +191,7 @@ func InitThemeService() error {
 	themeService = &ThemeService{
 		themes:        make(map[string]*Theme),
 		themesPath:    themesPath,
-		templateCache: make(map[string]*template.Template),
+		templateCache: make(map[string]*TemplateSet),
 	}
 
 	// 加载主题
@@ -204,12 +278,32 @@ func (s *ThemeService) LoadTheme(name, path string) (*Theme, error) {
 	theme.Name = name
 	theme.Path = path
 
-	// 从数据库加载主题配置
+	// 自动检测主题缩略图
+	if theme.Thumbnail == "" {
+		// 常见的截图文件名
+		screenshotFiles := []string{"screenshot.png", "screenshot.jpg", "thumbnail.png", "thumbnail.jpg", "preview.png", "preview.jpg"}
+		for _, screenshot := range screenshotFiles {
+			screenshotPath := filepath.Join(path, screenshot)
+			if _, err := os.Stat(screenshotPath); err == nil {
+				// 缩略图路径使用 /themes 前缀（与 main.go 中的 r.Static("/themes", ...) 对应）
+				theme.Thumbnail = "/themes/" + name + "/" + screenshot
+				break
+			}
+		}
+	}
+
+	// 关键修复：先将 YAML 的嵌套 config 扁平化，再与数据库的扁平格式合并
+	// 这样 DeepMerge(flat, flat) 就能正确处理所有 key
+	if theme.Config != nil {
+		theme.Config = FlattenMap(theme.Config)
+	}
+
+	// 从数据库加载主题配置（数据库中已经是扁平格式）
 	savedConfig, err := models.GetThemeConfig(name)
 	if err != nil {
 		log.Printf("[WARN] Failed to load theme config for %s: %v", name, err)
 	} else if len(savedConfig) > 0 {
-		// 使用深合并，避免嵌套字段被整体替换
+		// 扁平合并：数据库值覆盖 YAML 默认值
 		if theme.Config == nil {
 			theme.Config = make(map[string]interface{})
 		}
@@ -221,10 +315,29 @@ func (s *ThemeService) LoadTheme(name, path string) (*Theme, error) {
 
 // SetActiveTheme 设置活动主题
 func (s *ThemeService) SetActiveTheme(name string) error {
+	log.Printf("[DEBUG] SetActiveTheme called with: %s", name)
+	log.Printf("[DEBUG] Currently loaded themes: %v", getLoadedThemeNames())
+
 	theme, ok := s.themes[name]
 	if !ok {
-		return fmt.Errorf("theme not found: %s", name)
+		// 主题不在内存中，尝试重新加载所有主题
+		log.Printf("[WARN] Theme %s not found in memory, reloading themes...", name)
+		if err := s.LoadThemes(s.themesPath); err != nil {
+			return fmt.Errorf("failed to reload themes: %v", err)
+		}
+		theme, ok = s.themes[name]
+		if !ok {
+			log.Printf("[ERROR] Theme %s still not found after reload. Available themes: %v", name, getLoadedThemeNames())
+			return fmt.Errorf("theme not found: %s (even after reload)", name)
+		}
 	}
+
+	log.Printf("[DEBUG] Theme %s found, path: %s", theme.Name, theme.Path)
+
+	// 清理旧主题的模板缓存，确保使用新主题
+	s.templateMu.Lock()
+	delete(s.templateCache, name)
+	s.templateMu.Unlock()
 
 	s.activeTheme = theme
 
@@ -233,7 +346,109 @@ func (s *ThemeService) SetActiveTheme(name string) error {
 		log.Printf("[WARN] Failed to save active theme to database: %v", err)
 	}
 
+	// 同步预加载所有模板（页面 + 模块），确保立即可用
+	s.preloadAllTemplates(theme)
+
 	return nil
+}
+
+// getLoadedThemeNames 辅助函数，用于日志
+func getLoadedThemeNames() []string {
+	if themeService == nil {
+		return []string{}
+	}
+	names := make([]string, 0, len(themeService.themes))
+	for name := range themeService.themes {
+		names = append(names, name)
+	}
+	return names
+}
+
+// getMapKeys 获取 map 的所有键
+func getMapKeys(m map[string]interface{}) []string {
+	if m == nil {
+		return []string{}
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// preloadAllTemplates 预加载主题的所有模板（页面 + 模块）
+// 使用组合解析方式，使 {{template "模块名"}} 调用正常工作
+func (s *ThemeService) preloadAllTemplates(theme *Theme) {
+	if theme == nil {
+		return
+	}
+
+	// 收集所有模板文件
+	var templateFiles []string
+	themePath := theme.Path
+
+	// 获取当前工作目录
+	cwd, _ := os.Getwd()
+	log.Printf("[DEBUG] CWD: %s", cwd)
+	log.Printf("[DEBUG] Preloading templates for theme: %s, path: %s", theme.Name, themePath)
+
+	// 添加 modules 目录下的模板（如果存在）
+	modulesPath := filepath.Join(themePath, "modules")
+	if info, err := os.Stat(modulesPath); err == nil && info.IsDir() {
+		moduleFiles, _ := filepath.Glob(filepath.Join(modulesPath, "*.html"))
+		templateFiles = append(templateFiles, moduleFiles...)
+		log.Printf("[DEBUG] Found %d module templates in: %s", len(moduleFiles), modulesPath)
+	}
+
+	// 添加 pages 目录下的模板
+	pagesPath := filepath.Join(themePath, "pages")
+	if info, err := os.Stat(pagesPath); err == nil && info.IsDir() {
+		pageFiles, _ := filepath.Glob(filepath.Join(pagesPath, "*.html"))
+		templateFiles = append(templateFiles, pageFiles...)
+		log.Printf("[DEBUG] Found %d page templates in: %s", len(pageFiles), pagesPath)
+	}
+
+	if len(templateFiles) == 0 {
+		log.Printf("[ERROR] No templates found for theme: %s at path: %s", theme.Name, themePath)
+		return
+	}
+
+	log.Printf("[DEBUG] Total template files to parse: %d", len(templateFiles))
+
+	// 使用 ParseFiles 解析所有模板（它们之间可以互相引用）
+	funcs := getTemplateFuncsForTheme(theme)
+	tmpl := template.New("").Funcs(funcs)
+
+	parsedTmpl, err := tmpl.ParseFiles(templateFiles...)
+	if err != nil {
+		log.Printf("[ERROR] Failed to parse templates for %s: %v", theme.Name, err)
+		return
+	}
+
+	// 构建模板索引
+	templateMap := make(map[string]*template.Template)
+	for _, tmpl := range parsedTmpl.Templates() {
+		// 从完整路径中提取模板名称（去掉目录和扩展名）
+		// 例如: "pages/home.html" -> "home", "modules/header.html" -> "header"
+		fullName := tmpl.Name()
+		baseName := filepath.Base(fullName)
+		templateName := strings.TrimSuffix(baseName, ".html")
+		templateMap[templateName] = tmpl
+		// 同时存储完整路径作为键（兼容旧代码）
+		templateMap[fullName] = tmpl
+	}
+
+	// 存储到缓存
+	set := &TemplateSet{
+		Root:     parsedTmpl,
+		Template: templateMap,
+	}
+
+	s.templateMu.Lock()
+	s.templateCache[theme.Name] = set
+	s.templateMu.Unlock()
+
+	log.Printf("[INFO] Preloaded %d templates for theme: %s", len(templateFiles), theme.Name)
 }
 
 // SetActiveTheme 设置活动主题（包级别函数）
@@ -308,23 +523,23 @@ func clearTemplateCache(themeName string) {
 	themeService.templateMu.Lock()
 	defer themeService.templateMu.Unlock()
 
-	prefix := themeName + "/"
-	for key := range themeService.templateCache {
-		if strings.HasPrefix(key, prefix) {
-			delete(themeService.templateCache, key)
-		}
-	}
+	// 直接删除该主题的 TemplateSet
+	delete(themeService.templateCache, themeName)
 	log.Printf("[INFO] Cleared template cache for theme: %s", themeName)
 }
 
-// RenderTemplate 渲染模板 - 使用 Go 标准模板引擎（带缓存）
+// RenderTemplate 渲染模板 - 使用 Go 标准模板引擎（带组合缓存）
 func RenderTemplate(templateName string, data map[string]interface{}) (template.HTML, error) {
 	theme := GetActiveTheme()
 	if theme == nil {
 		return "", fmt.Errorf("no active theme")
 	}
 
-	// 构建模板路径 - 只使用 .html 后缀
+	log.Printf("[DEBUG] RenderTemplate called: theme=%s, template=%s", theme.Name, templateName)
+	log.Printf("[DEBUG] Theme path: %s", theme.Path)
+	log.Printf("[DEBUG] Theme config keys: %v", getMapKeys(theme.Config))
+
+	// 验证模板文件存在
 	templatePath := filepath.Join(theme.Path, "pages", templateName+".html")
 	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
 		return "", fmt.Errorf("template not found: %s", templateName)
@@ -332,63 +547,62 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 
 	// 准备模板数据
 	templateData := make(map[string]interface{})
-
-	// 复制所有传入的数据
 	for key, value := range data {
 		templateData[key] = value
 	}
 
-	// 添加主题配置
-	templateData["config"] = theme.Config
-	if theme.Config == nil {
+	// 添加主题配置（同时提供 config 和 themeConfig 两种访问方式）
+	nestedConfig := flattenToNestedForTemplate(theme.Config)
+	templateData["config"] = nestedConfig
+	if nestedConfig == nil {
 		templateData["config"] = make(map[string]interface{})
 	}
+	templateData["themeConfig"] = templateData["config"]
 
-	// 添加站点信息到config中（用于模板访问）
+	// 添加站点信息
 	if site, ok := data["site"].(map[string]interface{}); ok {
 		if configMap, ok := templateData["config"].(map[string]interface{}); ok {
 			configMap["siteTitle"] = site["title"]
 			configMap["siteDescription"] = site["description"]
 			configMap["siteYear"] = site["year"]
 		}
+		if title, ok := site["title"].(string); ok {
+			templateData["siteName"] = title
+		}
 	}
 
 	// 添加菜单数据
 	headerMenu, _ := models.GetMenuByLocation("header")
 	templateData["headerMenu"] = headerMenu
-
 	footerMenu, _ := models.GetMenuByLocation("footer")
 	templateData["footerMenu"] = footerMenu
-
 	sidebarMenu, _ := models.GetMenuByLocation("sidebar")
 	templateData["sidebarMenu"] = sidebarMenu
 
-	// 尝试从缓存获取模板
-	cacheKey := getTemplateCacheKey(theme.Name, templateName)
+	// 尝试从缓存获取模板集
 	themeService.templateMu.RLock()
-	cachedTmpl, found := themeService.templateCache[cacheKey]
+	set, found := themeService.templateCache[theme.Name]
 	themeService.templateMu.RUnlock()
 
 	if !found {
-		// 缓存未命中，读取并解析模板
-		content, err := os.ReadFile(templatePath)
-		if err != nil {
-			return "", err
-		}
-
-		tmpl, err := template.New(templateName).Funcs(getTemplateFuncs()).Parse(string(content))
-		if err != nil {
-			return "", fmt.Errorf("template parse error: %v", err)
-		}
-
-		// 写入缓存
-		themeService.templateMu.Lock()
-		themeService.templateCache[cacheKey] = tmpl
-		themeService.templateMu.Unlock()
-		cachedTmpl = tmpl
+		// 缓存未命中，重新加载所有模板
+		themeService.preloadAllTemplates(theme)
+		themeService.templateMu.RLock()
+		set, found = themeService.templateCache[theme.Name]
+		themeService.templateMu.RUnlock()
 	}
 
-	// 执行模板（每次执行需要 clone，因为 Execute 会修改 state）
+	if set == nil || set.Template == nil {
+		return "", fmt.Errorf("failed to load template set for theme: %s", theme.Name)
+	}
+
+	// 从模板集中获取指定模板
+	cachedTmpl, ok := set.Template[templateName]
+	if !ok {
+		return "", fmt.Errorf("template %s not found in theme %s", templateName, theme.Name)
+	}
+
+	// 执行模板
 	var buf bytes.Buffer
 	if err := cachedTmpl.Execute(&buf, templateData); err != nil {
 		return "", fmt.Errorf("template execute error: %v", err)
@@ -397,9 +611,11 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 	return template.HTML(buf.String()), nil
 }
 
-// getTemplateFuncs 获取模板自定义函数
-func getTemplateFuncs() template.FuncMap {
-	theme := GetActiveTheme()
+// getTemplateFuncsForTheme 获取模板自定义函数（接受主题参数）
+func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
+	if theme == nil {
+		theme = GetActiveTheme()
+	}
 
 	return template.FuncMap{
 		// getConfig函数 - 用于获取嵌套配置值（支持点分隔路径）
@@ -462,6 +678,7 @@ func getTemplateFuncs() template.FuncMap {
 		},
 
 		// safe函数 - 标记HTML为安全（不转义）
+		// 注意：仅在确认内容安全时使用，否则可能导致XSS
 		"safe": func(s string) template.HTML {
 			return template.HTML(s)
 		},
@@ -599,7 +816,226 @@ func getTemplateFuncs() template.FuncMap {
 			}
 			return template.HTML(buf.String())
 		},
+
+		// json_decode函数 - 将 JSON 字符串解析为切片或 map
+		// 用于从配置中读取列表类型的数据，如 features、services 等
+		"json_decode": func(jsonStr string) interface{} {
+			if jsonStr == "" {
+				return []interface{}{}
+			}
+			var result interface{}
+			if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
+				log.Printf("[WARN] json_decode error: %v, input: %s", err, jsonStr)
+				return []interface{}{}
+			}
+			return result
+		},
+
+		// ensureSlice函数 - 确保返回切片类型
+		// 如果传入的已经是切片，直接返回；如果是字符串，解析后返回
+		"ensureSlice": func(v interface{}) []interface{} {
+			if v == nil {
+				return []interface{}{}
+			}
+			rv := reflect.ValueOf(v)
+			switch rv.Kind() {
+			case reflect.Slice, reflect.Array:
+				result := make([]interface{}, rv.Len())
+				for i := 0; i < rv.Len(); i++ {
+					result[i] = rv.Index(i).Interface()
+				}
+				return result
+			case reflect.String:
+				// 如果是字符串，尝试解析为JSON
+				var decoded interface{}
+				if err := json.Unmarshal([]byte(rv.String()), &decoded); err == nil {
+					if s, ok := decoded.([]interface{}); ok {
+						return s
+					}
+				}
+				return []interface{}{}
+			}
+			return []interface{}{}
+		},
+
+		// substr函数 - 字符串截取
+		// Go模板没有内置的substr，需要自己实现
+		"substr": func(s string, start, length int) string {
+			if start < 0 {
+				start = 0
+			}
+			if start >= len(s) {
+				return ""
+			}
+			end := start + length
+			if end > len(s) {
+				end = len(s)
+			}
+			return s[start:end]
+		},
+
+		// mod函数 - 取模运算
+		"mod": func(a, b int) int {
+			if b == 0 {
+				return 0
+			}
+			return a % b
+		},
+
+		// first函数 - 返回切片的前 n 个元素
+		// Go模板没有内置的first，需要自己实现
+		// 注意：返回原切片的类型，而不是 []interface{}
+		"first": func(n int, slice interface{}) interface{} {
+			if slice == nil {
+				return nil
+			}
+			rv := reflect.ValueOf(slice)
+			switch rv.Kind() {
+			case reflect.Slice, reflect.Array:
+				if n < 0 {
+					n = 0
+				}
+				if n > rv.Len() {
+					n = rv.Len()
+				}
+				// 创建相同类型的切片
+				newSlice := reflect.MakeSlice(rv.Type(), n, n)
+				for i := 0; i < n; i++ {
+					newSlice.Index(i).Set(rv.Index(i))
+				}
+				return newSlice.Interface()
+			default:
+				return nil
+			}
+		},
+
+		// int函数 - 将值转换为 int 类型
+		// 用于模板中将数字字符串或 float64 转换为 int
+		"int": func(v interface{}) int {
+			switch val := v.(type) {
+			case int:
+				return val
+			case int64:
+				return int(val)
+			case float64:
+				return int(val)
+			case float32:
+				return int(val)
+			case string:
+				// 尝试解析字符串为数字
+				if i, err := strconv.Atoi(val); err == nil {
+					return i
+				}
+				return 0
+			default:
+				return 0
+			}
+		},
+
+		// div函数 - 整数除法
+		"div": func(a, b int) int {
+			if b == 0 {
+				return 0
+			}
+			return a / b
+		},
+
+		// dateFormat函数 - 日期格式化
+		// 格式字符串使用 Go 的时间格式化语法（参考：2006-01-02 15:04:05）
+		"dateFormat": func(format string, date interface{}) string {
+			if date == nil {
+				return ""
+			}
+			var t time.Time
+			switch v := date.(type) {
+			case time.Time:
+				t = v
+			case *time.Time:
+				if v != nil {
+					t = *v
+				}
+			case string:
+				// 尝试解析字符串日期
+				if parsed, err := time.Parse("2006-01-02", v); err == nil {
+					t = parsed
+				} else if parsed, err := time.Parse("2006-01-02 15:04:05", v); err == nil {
+					t = parsed
+				}
+			}
+			if t.IsZero() {
+				return ""
+			}
+			return t.Format(format)
+		},
+
+		// in函数 - 判断元素是否在切片/数组中
+		"in": func(item interface{}, slice interface{}) bool {
+			if slice == nil {
+				return false
+			}
+			rv := reflect.ValueOf(slice)
+			switch rv.Kind() {
+			case reflect.Slice, reflect.Array:
+				for i := 0; i < rv.Len(); i++ {
+					if reflect.DeepEqual(item, rv.Index(i).Interface()) {
+						return true
+					}
+				}
+			case reflect.Map:
+				for _, key := range rv.MapKeys() {
+					if reflect.DeepEqual(item, key.Interface()) {
+						return true
+					}
+				}
+			case reflect.String:
+				// 如果slice是字符串，item也必须是字符串
+				if s, ok := item.(string); ok {
+					return strings.Contains(rv.String(), s)
+				}
+			}
+			return false
+		},
+
+		// where函数 - 过滤切片中的元素（模拟数据库查询）
+		"where": func(slice interface{}, field string, value interface{}) []interface{} {
+			if slice == nil {
+				return []interface{}{}
+			}
+			rv := reflect.ValueOf(slice)
+			if rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {
+				return []interface{}{}
+			}
+
+			result := make([]interface{}, 0)
+			for i := 0; i < rv.Len(); i++ {
+				item := rv.Index(i).Interface()
+				itemVal := reflect.ValueOf(item)
+
+				// 尝试获取字段值
+				var fieldVal interface{}
+
+				// 直接字段访问
+				if f := itemVal.FieldByName(field); f.IsValid() {
+					fieldVal = f.Interface()
+				} else {
+					// 尝试通过map访问
+					if itemMap, ok := item.(map[string]interface{}); ok {
+						fieldVal = itemMap[field]
+					}
+				}
+
+				if fieldVal != nil && reflect.DeepEqual(fieldVal, value) {
+					result = append(result, item)
+				}
+			}
+			return result
+		},
 	}
+}
+
+// getTemplateFuncs 获取模板自定义函数
+func getTemplateFuncs() template.FuncMap {
+	return getTemplateFuncsForTheme(nil)
 }
 
 // convertPlushToGoTemplate 将Plush语法转换为Go模板语法
@@ -771,5 +1207,55 @@ func UpdateThemeConfig(themeName string, config map[string]interface{}) error {
 		log.Printf("[WARN] Theme %s not found in memory", themeName)
 	}
 
+	return nil
+}
+
+// ClearThemeCache 清理主题所有缓存（模板缓存 + 重新加载主题配置）
+func ClearThemeCache(themeName string) error {
+	if themeService == nil {
+		return fmt.Errorf("theme service not initialized")
+	}
+
+	// 1. 清理模板缓存
+	themeService.templateMu.Lock()
+	delete(themeService.templateCache, themeName)
+	themeService.templateMu.Unlock()
+	log.Printf("[INFO] Cleared template cache for theme: %s", themeName)
+
+	// 2. 重新加载主题配置
+	themePath := filepath.Join(themeService.themesPath, themeName)
+	theme, err := themeService.LoadTheme(themeName, themePath)
+	if err != nil {
+		return fmt.Errorf("failed to reload theme: %v", err)
+	}
+
+	themeService.themes[themeName] = theme
+
+	// 3. 如果是当前激活的主题，更新 activeTheme 指针并预加载模板
+	if themeService.activeTheme != nil && themeService.activeTheme.Name == themeName {
+		themeService.activeTheme = theme
+		themeService.preloadAllTemplates(theme)
+		log.Printf("[INFO] Reloaded active theme: %s", themeName)
+	}
+
+	log.Printf("[INFO] Theme cache cleared and reloaded: %s", themeName)
+	return nil
+}
+
+// DeleteThemeConfig 删除主题配置
+func DeleteThemeConfig(themeName string) error {
+	// 删除数据库中的配置
+	if err := models.DeleteThemeConfig(themeName); err != nil {
+		return err
+	}
+
+	// 清除内存中的配置
+	theme := GetTheme(themeName)
+	if theme != nil {
+		theme.Config = make(map[string]interface{})
+		clearTemplateCache(themeName)
+	}
+
+	log.Printf("[INFO] Deleted theme config for %s", themeName)
 	return nil
 }

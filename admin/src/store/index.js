@@ -16,7 +16,7 @@ export const useUserStore = defineStore('user', () => {
       currentUser.value = res.data || res
       return currentUser.value
     } catch (error) {
-      console.error('获取用户信息失败:', error)
+      // 错误已在 request 拦截器中处理
       return null
     }
   }
@@ -51,7 +51,7 @@ export const usePostStore = defineStore('post', () => {
       posts.value = data.list || data.posts || []
       total.value = data.total || 0
     } catch (error) {
-      console.error('获取文章列表失败:', error)
+      // 错误已在 request 拦截器中处理
     } finally {
       loading.value = false
     }
@@ -63,7 +63,7 @@ export const usePostStore = defineStore('post', () => {
       const res = await get(`/api/posts/${id}`)
       currentPost.value = res.data || res
     } catch (error) {
-      console.error('获取文章详情失败:', error)
+      // 错误已在 request 拦截器中处理
     } finally {
       loading.value = false
     }
@@ -74,7 +74,7 @@ export const usePostStore = defineStore('post', () => {
       const res = await post('/api/posts', postData)
       return res.data || res
     } catch (error) {
-      console.error('创建文章失败:', error)
+      // 错误已在 request 拦截器中处理
       return null
     }
   }
@@ -84,7 +84,7 @@ export const usePostStore = defineStore('post', () => {
       const res = await put(`/api/posts/${id}`, postData)
       return res.data || res
     } catch (error) {
-      console.error('更新文章失败:', error)
+      // 错误已在 request 拦截器中处理
       return null
     }
   }
@@ -94,7 +94,7 @@ export const usePostStore = defineStore('post', () => {
       await del(`/api/posts/${id}`)
       return true
     } catch (error) {
-      console.error('删除文章失败:', error)
+      // 错误已在 request 拦截器中处理
       return false
     }
   }
@@ -123,7 +123,7 @@ export const useCategoryStore = defineStore('category', () => {
       const res = await get('/api/categories')
       categories.value = res.data || res || []
     } catch (error) {
-      console.error('获取分类列表失败:', error)
+      // 错误已在 request 拦截器中处理
     } finally {
       loading.value = false
     }

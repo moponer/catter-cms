@@ -5,48 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .site.title }} - {{ .pageTitle }}</title>
     <meta name="description" content="{{ .site.description }}">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8f9fa; }
-        a { text-decoration: none; color: inherit; }
-
-        header { background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); color: white; position: sticky; top: 0; z-index: 100; }
-        .header-container { max-width: 1400px; margin: 0 auto; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.8em; font-weight: 800; }
-        .logo span { color: #e94560; }
-        nav { display: flex; gap: 30px; }
-        nav a { color: white; opacity: 0.9; font-weight: 500; }
-        nav a:hover, nav a.active { opacity: 1; }
-
-        .page-header { background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); color: white; padding: 100px 30px; text-align: center; }
-        .page-header h1 { font-size: 2.5em; }
-
-        .posts-container { max-width: 900px; margin: 60px auto; padding: 0 30px; }
-        .post-card { background: white; border-radius: 12px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; transition: all 0.3s; }
-        .post-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); border-color: #e94560; }
-        .post-meta { display: flex; gap: 20px; color: #6b7280; font-size: 0.9em; margin-bottom: 12px; }
-        .post-card h2 { font-size: 1.5em; margin-bottom: 12px; color: #0f3460; }
-        .post-card h2 a:hover { color: #e94560; }
-        .post-card p { color: #6b7280; line-height: 1.8; margin-bottom: 15px; }
-        .read-more { color: #e94560; font-weight: 600; }
-        .read-more:hover { color: #d63850; }
-
-        .pagination { display: flex; justify-content: center; gap: 10px; margin: 40px 0; }
-        .pagination a { padding: 8px 16px; background: white; border-radius: 6px; color: #6b7280; font-weight: 500; border: 1px solid #e5e7eb; }
-        .pagination a:hover, .pagination a.active { background: #e94560; color: white; border-color: #e94560; }
-
-        footer { background: #0f0f1a; color: #9ca3af; padding: 60px 30px; }
-        .footer-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; }
-        footer h4 { color: white; margin-bottom: 20px; }
-        footer a { display: block; padding: 5px 0; color: #9ca3af; }
-        footer a:hover { color: #e94560; }
-        .footer-bottom { max-width: 1200px; margin: 40px auto 0; padding-top: 30px; border-top: 1px solid #374151; text-align: center; }
-
-        @media (max-width: 768px) {
-            .header-container { flex-direction: column; gap: 15px; }
-            nav { flex-wrap: wrap; justify-content: center; gap: 15px; }
-        }
-    </style>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset_path "/themes/catter-cms-official/assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "/themes/catter-cms-official/assets/css/list.css" }}">
 </head>
 <body>
     <header>
@@ -79,7 +40,9 @@
             <a href="/article/{{ .Slug }}" class="read-more">阅读全文 →</a>
         </article>
         {{ else }}
-        <p style="text-align: center; color: #6b7280; padding: 60px 0;">暂无文章</p>
+        <div class="empty-state">
+            <p>暂无文章</p>
+        </div>
         {{ end }}
     </div>
 

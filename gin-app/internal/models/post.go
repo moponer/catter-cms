@@ -13,6 +13,7 @@ type Post struct {
 	Slug            string     `json:"slug" gorm:"uniqueIndex;not null;size:255"`
 	Content         string     `json:"content" gorm:"type:text"`
 	Excerpt         string     `json:"excerpt" gorm:"type:text"`
+	Cover           string     `json:"cover" gorm:"size:1000"` // 封面图
 	Status          string     `json:"status" gorm:"default:'draft';size:50"`
 	Views           int        `json:"views" gorm:"default:0"`
 	MetaTitle       string     `json:"meta_title" gorm:"size:500"`

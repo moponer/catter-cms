@@ -23,6 +23,7 @@ func (ThemeConfig) TableName() string {
 }
 
 // GetThemeConfig 获取主题配置
+// 注意：现在统一返回扁平格式（dot-notation key），与 services/theme.go 保持一致
 func GetThemeConfig(themeName string) (map[string]interface{}, error) {
 	var themeConfig ThemeConfig
 	result := DB.Where("theme_name = ?", themeName).First(&themeConfig)
@@ -37,8 +38,8 @@ func GetThemeConfig(themeName string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to unmarshal theme config: %v", err)
 	}
 
-	// 将扁平结构转换为嵌套结构
-	return flattenToNested(config), nil
+	// 直接返回扁平格式，与 services/theme.go 的 FlattenMap 输出保持一致
+	return config, nil
 }
 
 // flattenToNested 将扁平结构（点号分隔的键）转换为嵌套结构

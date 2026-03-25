@@ -297,7 +297,7 @@ const loadSchedulerStatus = async () => {
       schedulerStatus.value = response.data.data
     }
   } catch (error) {
-    console.error('加载调度器状态失败:', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .site.title }}</title>
+    <meta name="description" content="{{ getConfig "metaDescription" "墨香书韵，诗意栖居" }}">
+    <style>
+        :root {
+            --primary: {{ getConfig "primaryColor" "#2d5a4a" }};
+            --primary-light: {{ getConfig "primaryLight" "#4a7c6f" }};
+            --primary-hover: #1e3d32;
+            --accent: {{ getConfig "accentColor" "#b8860b" }};
+            --accent-light: #d4a017;
+            --text-color: {{ getConfig "textColor" "#1a1a1a" }};
+            --text-secondary: {{ getConfig "textSecondary" "#6b6b6b" }};
+            --text-tertiary: #999999;
+            --bg-primary: {{ getConfig "bgColor" "#f8f5f0" }};
+            --bg-secondary: {{ getConfig "bgSecondary" "#fefcf9" }};
+            --bg-tertiary: #f5f2ed;
+            --border-color: {{ getConfig "borderColor" "#e8e4df" }};
+            --border-light: #f0ece7;
+        }
+    </style>
+    <link rel="stylesheet" href="/themes/dianyan-blog/assets/css/base.css">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+</head>
+<body>
+
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/article">文章</a></li>
+                    <li><a href="/categories" class="active">分类</a></li>
+                    <li><a href="/archives">归档</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题 -->
+    <div class="page-header">
+        <h1>文章分类</h1>
+        <p class="subtitle">共计 {{ len .categories }} 个分类</p>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-container">
+        <main class="main-full">
+            <div class="categories-grid">
+                {{ range .categories }}
+                <div class="category-card">
+                    <i class="far fa-folder-open"></i>
+                    <h3><a href="/category/{{ .Slug }}">{{ .Name }}</a></h3>
+                    {{ if .Description }}
+                    <p class="desc">{{ .Description }}</p>
+                    {{ end }}
+                </div>
+                {{ else }}
+                <div class="empty-state span-full">
+                    <i class="far fa-folder"></i>
+                    <p>暂无分类</p>
+                </div>
+                {{ end }}
+            </div>
+        </main>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/">首页</a>
+                <a href="/article">文章</a>
+                <a href="/archives">归档</a>
+            </div>
+            <p class="footer-copyright">
+                © {{ .site.year }} {{ .site.title }} · 墨香书韵
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -199,7 +199,7 @@ const loadCategories = async () => {
     const res = await get('/api/categories')
     categories.value = res.data || res || []
   } catch (error) {
-    console.error('加载分类失败:', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 
@@ -225,7 +225,6 @@ const loadPosts = async () => {
     posts.value = res.data?.list || res.list || res.data || res || []
     total.value = res.data?.total || res.total || 0
   } catch (error) {
-    console.error('加载文章失败:', error)
     ElMessage.error('加载文章失败')
   } finally {
     loading.value = false
@@ -287,7 +286,6 @@ const deletePost = async (id) => {
     loadPosts()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
       ElMessage.error('删除失败')
     }
   }
@@ -313,7 +311,6 @@ const bulkDelete = async () => {
     loadPosts()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('批量删除失败:', error)
       ElMessage.error('批量删除失败')
     }
   }
@@ -328,7 +325,6 @@ const bulkPublish = async () => {
     selectedPosts.value = []
     loadPosts()
   } catch (error) {
-    console.error('批量发布失败:', error)
     ElMessage.error('批量发布失败')
   }
 }
@@ -342,7 +338,6 @@ const bulkDraft = async () => {
     selectedPosts.value = []
     loadPosts()
   } catch (error) {
-    console.error('操作失败:', error)
     ElMessage.error('操作失败')
   }
 }

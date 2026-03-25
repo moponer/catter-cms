@@ -123,13 +123,12 @@ const loadCategories = async () => {
     const res = await get('/api/admin/categories/tree')
     categories.value = res.data || res || []
   } catch (error) {
-    console.error('加载分类失败:', error)
     // 如果树形API不存在，使用普通列表
     try {
       const res = await get('/api/categories')
       categories.value = res.data || res || []
     } catch (e) {
-      console.error('加载分类列表失败:', e)
+      // 错误已在 request 拦截器中处理
     }
   }
 }
@@ -184,7 +183,7 @@ const handleDelete = async (row) => {
     loadCategories()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
     }
   }
 }
@@ -225,7 +224,6 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     loadCategories()
   } catch (error) {
-    console.error('保存失败:', error)
     ElMessage.error('保存失败')
   } finally {
     submitting.value = false

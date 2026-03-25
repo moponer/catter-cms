@@ -301,7 +301,7 @@ const loadDashboardData = async () => {
     const postsData = postsRes.data || postsRes
     recentPosts.value = postsData || []
   } catch (error) {
-    console.error('加载数据失败:', error)
+    // 错误已在 request 拦截器中处理
   } finally {
     loading.posts = false
   }
@@ -313,7 +313,7 @@ const loadSystemInfo = async () => {
     const res = await get('/api/admin/system/info')
     systemInfo.value = res.data || res || {}
   } catch (error) {
-    console.error('加载系统信息失败:', error)
+    // 错误已在 request 拦截器中处理
   } finally {
     loading.system = false
   }

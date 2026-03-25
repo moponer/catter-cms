@@ -200,7 +200,10 @@ const editor = useEditor({
     StarterKit.configure({
       heading: {
         levels: [1, 2, 3, 4, 5, 6]
-      }
+      },
+      // 禁用 StarterKit 内置的 link 和 underline，使用自定义配置
+      link: false,
+      underline: false
     }),
     Image.configure({
       inline: true,
@@ -313,7 +316,7 @@ const handleImageUpload = async (event) => {
       editor.value.chain().focus().setImage({ src: url, alt: file.name }).run()
     }
   } catch (error) {
-    console.error('图片上传失败:', error)
+    ElMessage.error('图片上传失败')
   }
 
   // 清空 input

@@ -234,7 +234,7 @@ const loadPosts = async () => {
     const res = await get('/api/posts', { page_size: 100 })
     posts.value = res.data || res
   } catch (error) {
-    console.error('加载文章列表失败:', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 

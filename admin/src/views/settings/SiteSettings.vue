@@ -11,7 +11,7 @@
         <el-card>
           <el-form :model="settings.basic" label-width="120px">
             <el-form-item label="站点名称">
-              <el-input v-model="settings.basic.site_name" placeholder="请输入站点名称" />
+              <el-input v-model="settings.basic.site_title" placeholder="请输入站点名称" />
             </el-form-item>
             <el-form-item label="站点描述">
               <el-input v-model="settings.basic.site_description" type="textarea" :rows="3" placeholder="站点描述" />
@@ -140,7 +140,7 @@ const testingEmail = ref(false)
 
 const settings = reactive({
   basic: {
-    site_name: '',
+    site_title: '',
     site_description: '',
     site_url: '',
     contact_email: '',
@@ -169,18 +169,33 @@ const loadSettings = async () => {
   try {
     const res = await get('/api/settings')
     const data = res.data || res || {}
-    
-    if (data.basic) {
-      Object.assign(settings.basic, data.basic)
-    }
-    if (data.seo) {
-      Object.assign(settings.seo, data.seo)
-    }
-    if (data.email) {
-      Object.assign(settings.email, data.email)
-    }
+
+    // 后端返回扁平结构，需要手动映射
+    // basic
+    if (data.site_title !== undefined) settings.basic.site_title = data.site_title
+    if (data.site_description !== undefined) settings.basic.site_description = data.site_description
+    if (data.site_url !== undefined) settings.basic.site_url = data.site_url
+    if (data.contact_email !== undefined) settings.basic.contact_email = data.contact_email
+    if (data.timezone !== undefined) settings.basic.timezone = data.timezone
+    if (data.logo !== undefined) settings.basic.logo = data.logo
+    if (data.favicon !== undefined) settings.basic.favicon = data.favicon
+
+    // seo
+    if (data.meta_title !== undefined) settings.seo.meta_title = data.meta_title
+    if (data.meta_description !== undefined) settings.seo.meta_description = data.meta_description
+    if (data.meta_keywords !== undefined) settings.seo.meta_keywords = data.meta_keywords
+    if (data.enable_sitemap !== undefined) settings.seo.enable_sitemap = data.enable_sitemap
+    if (data.enable_robots !== undefined) settings.seo.enable_robots = data.enable_robots
+
+    // email
+    if (data.smtp_host !== undefined) settings.email.smtp_host = data.smtp_host
+    if (data.smtp_port !== undefined) settings.email.smtp_port = data.smtp_port
+    if (data.smtp_user !== undefined) settings.email.smtp_user = data.smtp_user
+    if (data.smtp_password !== undefined) settings.email.smtp_password = data.smtp_password
+    if (data.sender_name !== undefined) settings.email.sender_name = data.sender_name
+    if (data.encryption !== undefined) settings.email.encryption = data.encryption
   } catch (error) {
-    console.error('加载设置失败:', error)
+    ElMessage.error('加载设置失败')
   }
 }
 
@@ -200,7 +215,6 @@ const handleUpload = async (file, type) => {
     }
     ElMessage.success('上传成功')
   } catch (error) {
-    console.error('上传失败:', error)
     ElMessage.error('上传失败')
   }
   return false // 阻止默认上传
@@ -209,13 +223,15 @@ const handleUpload = async (file, type) => {
 const handleSave = async () => {
   saving.value = true
   try {
-    // 保存各个分类的设置
-    await put('/api/settings', { category: 'basic', settings: settings.basic })
-    await put('/api/settings', { category: 'seo', settings: settings.seo })
-    await put('/api/settings', { category: 'email', settings: settings.email })
+    // 合并所有设置并发送
+    const allSettings = {
+      ...settings.basic,
+      ...settings.seo,
+      ...settings.email
+    }
+    await put('/api/settings', allSettings)
     ElMessage.success('设置保存成功')
   } catch (error) {
-    console.error('保存设置失败:', error)
     ElMessage.error('保存设置失败')
   } finally {
     saving.value = false
@@ -228,7 +244,6 @@ const handleTestEmail = async () => {
     await post('/api/settings/test-email', settings.email)
     ElMessage.success('测试邮件发送成功')
   } catch (error) {
-    console.error('发送测试邮件失败:', error)
     ElMessage.error('发送测试邮件失败')
   } finally {
     testingEmail.value = false

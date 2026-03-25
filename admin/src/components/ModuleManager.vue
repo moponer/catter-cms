@@ -15,14 +15,19 @@
       <el-button @click="disableAll">全部禁用</el-button>
     </div>
 
+    <div v-if="loading" class="module-loading">
+      <el-skeleton :rows="3" animated />
+    </div>
+
     <draggable
+      v-else
       v-model="moduleList"
       item-key="id"
       handle=".drag-handle"
       class="module-list"
       @end="onDragEnd"
     >
-      <template #item="{ element, index }">
+      <template #item="{ element }">
         <div
           class="module-card"
           :class="{ disabled: !element.enabled, expanded: expandedModules.includes(element.id) }"
@@ -63,7 +68,7 @@
           <div v-if="expandedModules.includes(element.id)" class="module-config">
             <el-divider />
             <div class="config-content">
-              <h4>模块配置</h4>
+              <h4>{{ element.name }} 配置</h4>
               <el-form label-position="top" size="small">
                 <el-row :gutter="16">
                   <el-col :span="12">
@@ -98,31 +103,43 @@
                 <el-form-item label="内边距">
                   <el-slider v-model="element.config.padding" :max="100" show-input />
                 </el-form-item>
+
+                <!-- 保存该模块配置 -->
+                <div class="module-save-bar">
+                  <el-button size="small" type="primary" @click="saveModuleConfig(element)">
+                    保存模块配置
+                  </el-button>
+                </div>
               </el-form>
             </div>
           </div>
         </div>
       </template>
     </draggable>
+
+    <div v-if="!loading && moduleList.length === 0" class="module-empty">
+      <el-empty description="没有可用的模块" />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import draggable from 'vuedraggable'
 import { Rank, Search, ArrowDown, ArrowRight } from '@element-plus/icons-vue'
 import {
-  Monitor, Service, TrendCharts, UserFilled, News, Phone,
+  Monitor, Service, TrendCharts, UserFilled, Document, Phone,
   Picture, Star, Grid, Collection, Calendar, Link
 } from '@element-plus/icons-vue'
 import MediaPicker from './MediaPicker.vue'
+import { getThemeModules, updateModuleConfig, updateModuleOrder } from '@/api/theme'
 
 const props = defineProps({
-  modelValue: {
-    type: Array,
-    default: () => []
+  themeSlug: {
+    type: String,
+    default: ''
   },
-  availableModules: {
+  modelValue: {
     type: Array,
     default: () => []
   }
@@ -130,6 +147,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
+const loading = ref(false)
 const searchQuery = ref('')
 const expandedModules = ref([])
 
@@ -138,7 +156,7 @@ const iconMap = {
   services: Service,
   stats: TrendCharts,
   team: UserFilled,
-  news: News,
+  news: Document,
   contact: Phone,
   gallery: Picture,
   features: Star,
@@ -177,40 +195,118 @@ const toggleExpand = (id) => {
   }
 }
 
-const onEnableChange = (module, enabled) => {
-  emit('change', { module: module.id, enabled, type: 'enable' })
-  ElMessage.success(`${module.name}已${enabled ? '启用' : '禁用'}`)
-}
-
-const onDragEnd = () => {
-  emit('change', { type: 'reorder', modules: moduleList.value.map(m => m.id) })
-}
-
-const enableAll = () => {
-  moduleList.value.forEach(m => {
-    m.enabled = true
-  })
-  emit('change', { type: 'enableAll' })
-  ElMessage.success('所有模块已启用')
-}
-
-const disableAll = () => {
-  moduleList.value.forEach(m => {
-    m.enabled = false
-  })
-  emit('change', { type: 'disableAll' })
-  ElMessage.success('所有模块已禁用')
-}
-
-watch(() => props.availableModules, (newVal) => {
-  if (newVal && newVal.length > 0 && moduleList.value.length === 0) {
-    moduleList.value = newVal.map(m => ({
-      ...m,
-      enabled: m.enabled !== false,
-      config: m.config || {}
-    }))
+// 从后端加载模块列表
+const loadModules = async () => {
+  if (!props.themeSlug) return
+  loading.value = true
+  try {
+    const res = await getThemeModules(props.themeSlug)
+    const modules = res.data?.modules || []
+    if (modules.length > 0) {
+      const list = modules.map(m => ({
+        id: m.id,
+        name: m.name,
+        description: m.description,
+        icon: m.icon,
+        enabled: m.enabled !== false,
+        order: m.order || 0,
+        config: m.config || {}
+      }))
+      emit('update:modelValue', list)
+    }
+  } catch (error) {
+    // 错误已在 request 拦截器中处理
+  } finally {
+    loading.value = false
   }
-}, { immediate: true })
+}
+
+// 保存单个模块配置
+const saveModuleConfig = async (module) => {
+  try {
+    await updateModuleConfig(props.themeSlug, module.id, module.config)
+    ElMessage.success(`${module.name} 配置已保存`)
+  } catch (error) {
+    ElMessage.error(`保存 ${module.name} 配置失败`)
+  }
+}
+
+const onEnableChange = async (module, enabled) => {
+  // 保存启用状态
+  if (props.themeSlug) {
+    try {
+      module.config.enabled = enabled
+      await updateModuleConfig(props.themeSlug, module.id, {
+        ...module.config,
+        enabled,
+        order: module.order
+      })
+      ElMessage.success(`${module.name}已${enabled ? '启用' : '禁用'}`)
+    } catch (error) {
+      module.enabled = !enabled // 回滚
+      ElMessage.error(`更新 ${module.name} 状态失败`)
+    }
+  } else {
+    emit('change', { module: module.id, enabled, type: 'enable' })
+  }
+}
+
+const onDragEnd = async () => {
+  // 更新排序
+  if (props.themeSlug) {
+    try {
+      const moduleIds = moduleList.value.map(m => m.id)
+      await updateModuleOrder(props.themeSlug, moduleIds)
+      // 更新本地 order
+      moduleList.value.forEach((m, i) => { m.order = i + 1 })
+    } catch (error) {
+      ElMessage.error('更新排序失败')
+    }
+  } else {
+    emit('change', { type: 'reorder', modules: moduleList.value.map(m => m.id) })
+  }
+}
+
+const enableAll = async () => {
+  moduleList.value.forEach(m => { m.enabled = true })
+  if (props.themeSlug) {
+    try {
+      await updateModuleOrder(props.themeSlug, moduleList.value.map(m => m.id))
+      ElMessage.success('所有模块已启用')
+    } catch (error) {
+      ElMessage.error('操作失败')
+    }
+  } else {
+    emit('change', { type: 'enableAll' })
+  }
+}
+
+const disableAll = async () => {
+  moduleList.value.forEach(m => { m.enabled = false })
+  if (props.themeSlug) {
+    try {
+      await updateModuleOrder(props.themeSlug, moduleList.value.map(m => m.id))
+      ElMessage.success('所有模块已禁用')
+    } catch (error) {
+      ElMessage.error('操作失败')
+    }
+  } else {
+    emit('change', { type: 'disableAll' })
+  }
+}
+
+// 有 themeSlug 时从后端加载，否则使用传入的 availableModules
+onMounted(() => {
+  if (props.themeSlug) {
+    loadModules()
+  }
+})
+
+watch(() => props.themeSlug, (newSlug) => {
+  if (newSlug) {
+    loadModules()
+  }
+})
 </script>
 
 <style scoped>
@@ -229,6 +325,10 @@ watch(() => props.availableModules, (newVal) => {
 
 .search-input {
   width: 240px;
+}
+
+.module-loading {
+  padding: 16px;
 }
 
 .module-list {
@@ -316,5 +416,17 @@ watch(() => props.availableModules, (newVal) => {
   margin: 0 0 16px;
   font-size: 14px;
   color: #606266;
+}
+
+.module-save-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e4e7ed;
+}
+
+.module-empty {
+  padding: 40px 16px;
 }
 </style>

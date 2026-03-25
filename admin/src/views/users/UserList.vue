@@ -124,7 +124,7 @@ const loadUsers = async () => {
     users.value = res.data?.list || res.list || []
     total.value = res.data?.total || res.total || 0
   } catch (error) {
-    console.error('加载用户列表失败:', error)
+    // 错误已在 request 拦截器中处理
   } finally {
     loading.value = false
   }
@@ -155,7 +155,7 @@ const handleDelete = async (row) => {
     loadUsers()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
     }
   }
 }
@@ -167,7 +167,7 @@ const handleResetPassword = async (row) => {
     ElMessage.success(`密码已重置为: ${res.data?.new_password || res.new_password}`)
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('重置密码失败:', error)
+      ElMessage.error('重置密码失败')
     }
   }
 }
@@ -193,7 +193,6 @@ const handleSubmit = async () => {
     dialogVisible.value = false
     loadUsers()
   } catch (error) {
-    console.error('保存失败:', error)
     ElMessage.error('保存失败')
   } finally {
     submitting.value = false

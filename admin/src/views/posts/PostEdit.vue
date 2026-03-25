@@ -164,7 +164,7 @@ const loadCategories = async () => {
     const res = await get('/api/categories')
     categories.value = res.data || res || []
   } catch (error) {
-    console.error('加载分类失败:', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 
@@ -173,7 +173,7 @@ const loadTags = async () => {
     const res = await get('/api/tags')
     tags.value = res.data || res || []
   } catch (error) {
-    console.error('加载标签失败:', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 
@@ -196,7 +196,6 @@ const loadPost = async () => {
       meta_description: data.meta_description || ''
     })
   } catch (error) {
-    console.error('加载文章失败:', error)
     ElMessage.error('加载文章失败')
   }
 }
@@ -232,7 +231,6 @@ const savePost = async () => {
     }
     router.push('/posts')
   } catch (error) {
-    console.error('保存失败:', error)
     ElMessage.error('保存失败')
   } finally {
     saving.value = false
@@ -251,7 +249,6 @@ const handleImageUpload = async (file) => {
     form.featured_image = res.data?.path || res.path
     ElMessage.success('图片上传成功')
   } catch (error) {
-    console.error('上传失败:', error)
     ElMessage.error('图片上传失败')
   }
   return false

@@ -4,10 +4,10 @@
  */
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import router from '@/router'
+import { clearAuth } from '@/utils/auth'
 
 // 创建 axios 实例
-// 注意：baseURL 设置为空，因为请求路径已经包含 /api 前缀
-// 例如：post('/api/auth/login') 会请求 /api/auth/login
 const request = axios.create({
   baseURL: '',
   timeout: 15000,
@@ -15,6 +15,32 @@ const request = axios.create({
     'Content-Type': 'application/json',
   },
 })
+
+// 是否正在处理登出，防止重复跳转
+let isHandlingAuthError = false
+
+// 处理认证错误
+const handleAuthError = () => {
+  if (isHandlingAuthError) return
+  isHandlingAuthError = true
+
+  // 清除认证信息
+  clearAuth()
+
+  // 提示用户
+  ElMessage.error('登录已过期，请重新登录')
+
+  // 延迟跳转，让提示先显示
+  setTimeout(() => {
+    // 使用 router 跳转，不用 window.location
+    router.push('/login').then(() => {
+      // 跳转完成后重置标志
+      isHandlingAuthError = false
+    }).catch(() => {
+      isHandlingAuthError = false
+    })
+  }, 1500)
+}
 
 // 请求拦截器
 request.interceptors.request.use(
@@ -27,7 +53,7 @@ request.interceptors.request.use(
     return config
   },
   (error) => {
-    console.error('Request error:', error)
+    console.warn('Request config error:', error.message || error)
     return Promise.reject(error)
   }
 )
@@ -35,48 +61,86 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   (response) => {
-    const res = response.data
-    
-    // 如果响应直接是数据，返回
-    if (response.config.returnRaw) {
+    // 检查 Content-Type，确保是 JSON
+    const contentType = response.headers['content-type'] || ''
+    if (contentType.includes('application/json')) {
+      const res = response.data
+
+      // 检查业务状态码
+      if (res.code && res.code !== 0 && res.code !== 200) {
+        // 如果是未授权错误，交由错误拦截器处理
+        if (res.code === 401 || res.code === 403) {
+          handleAuthError()
+          return Promise.reject(new Error(res.message || '登录已过期'))
+        }
+        ElMessage.error(res.message || '请求失败')
+        return Promise.reject(new Error(res.message || '请求失败'))
+      }
+
       return res
     }
-    
-    // 检查业务状态码
-    if (res.code && res.code !== 0 && res.code !== 200) {
-      ElMessage.error(res.message || '请求失败')
-      return Promise.reject(new Error(res.message || '请求失败'))
+
+    // 非 JSON 响应，如果是成功状态码直接返回
+    if (response.status >= 200 && response.status < 300) {
+      return response.data
     }
-    
-    return res
+
+    // 其他情况当作错误处理
+    throw new Error('Invalid response type')
   },
   (error) => {
-    const { response } = error
-    
+    const { response, message } = error
+
     if (response) {
-      switch (response.status) {
-        case 401:
-          ElMessage.error('登录已过期，请重新登录')
-          // 清除 token 并跳转登录页
-          localStorage.removeItem('token')
-          window.location.href = '/admin/login'
-          break
-        case 403:
-          ElMessage.error('没有权限访问')
-          break
-        case 404:
-          ElMessage.error('请求的资源不存在')
-          break
-        case 500:
-          ElMessage.error('服务器错误')
-          break
-        default:
-          ElMessage.error(response.data?.message || '请求失败')
+      // 服务器返回了响应
+      const status = response.status
+      const contentType = response.headers['content-type'] || ''
+
+      // 检查是否是 JSON 响应
+      if (contentType.includes('application/json')) {
+        const data = response.data || {}
+
+        switch (status) {
+          case 401:
+            handleAuthError()
+            return Promise.reject(new Error(data.message || '登录已过期'))
+          case 403:
+            ElMessage.error(data.message || '没有权限访问')
+            break
+          case 404:
+            ElMessage.error(data.message || '请求的资源不存在')
+            break
+          case 500:
+            ElMessage.error(data.message || '服务器错误')
+            break
+          default:
+            ElMessage.error(data.message || '请求失败')
+        }
+      } else {
+        // 非 JSON 响应
+        switch (status) {
+          case 401:
+          case 403:
+            handleAuthError()
+            return Promise.reject(new Error('登录已过期'))
+          case 404:
+            ElMessage.error('请求的资源不存在')
+            break
+          case 500:
+            ElMessage.error('服务器错误')
+            break
+          default:
+            ElMessage.error('请求失败')
+        }
       }
+    } else if (error.request) {
+      // 请求已发送但没有收到响应（后端未启动或网络问题）
+      ElMessage.error('无法连接到服务器，请检查后端服务是否运行')
     } else {
-      ElMessage.error('网络连接失败')
+      // 请求配置错误
+      ElMessage.error(message || '请求配置错误')
     }
-    
+
     return Promise.reject(error)
   }
 )
@@ -137,7 +201,7 @@ export function del(url, params, config = {}) {
 export function upload(url, file, onProgress) {
   const formData = new FormData()
   formData.append('file', file)
-  
+
   return request({
     method: 'POST',
     url,

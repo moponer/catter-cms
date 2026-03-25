@@ -188,7 +188,7 @@ const loadPageOptions = async () => {
     const res = await get('/api/pages', { page_size: 100 })
     pageOptions.value = res.data?.list || res.list || []
   } catch (error) {
-    console.error('加载页面列表失败:', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 
@@ -213,7 +213,6 @@ const loadPage = async () => {
       meta_description: data.meta_description || ''
     })
   } catch (error) {
-    console.error('加载页面失败:', error)
     ElMessage.error('加载页面失败')
   }
 }
@@ -249,7 +248,6 @@ const savePage = async () => {
     }
     router.push('/pages')
   } catch (error) {
-    console.error('保存失败:', error)
     ElMessage.error('保存失败')
   } finally {
     saving.value = false
@@ -268,7 +266,6 @@ const handleImageUpload = async (file) => {
     form.featured_image = res.data?.path || res.path
     ElMessage.success('图片上传成功')
   } catch (error) {
-    console.error('上传失败:', error)
     ElMessage.error('图片上传失败')
   }
   return false

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .site.title }}</title>
+    <meta name="description" content="{{ getConfig "metaDescription" "墨香书韵，诗意栖居" }}">
+    <style>
+        :root {
+            --primary: {{ getConfig "primaryColor" "#2d5a4a" }};
+            --primary-light: {{ getConfig "primaryLight" "#4a7c6f" }};
+            --primary-hover: #1e3d32;
+            --accent: {{ getConfig "accentColor" "#b8860b" }};
+            --accent-light: #d4a017;
+            --text-color: {{ getConfig "textColor" "#1a1a1a" }};
+            --text-secondary: {{ getConfig "textSecondary" "#6b6b6b" }};
+            --text-tertiary: #999999;
+            --bg-primary: {{ getConfig "bgColor" "#f8f5f0" }};
+            --bg-secondary: {{ getConfig "bgSecondary" "#fefcf9" }};
+            --bg-tertiary: #f5f2ed;
+            --border-color: {{ getConfig "borderColor" "#e8e4df" }};
+            --border-light: #f0ece7;
+        }
+    </style>
+    <link rel="stylesheet" href="/themes/dianyan-blog/assets/css/base.css">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+</head>
+<body>
+
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/article">文章</a></li>
+                    <li><a href="/categories">分类</a></li>
+                    <li><a href="/archives">归档</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 文章头部 -->
+    <div class="article-header">
+        <h1 class="article-title">{{ .post.Title }}</h1>
+        <div class="article-meta">
+            <span class="post-meta-item">
+                <i class="far fa-calendar"></i>
+                {{ dateFormat "2006年01月02日" .post.PublishedAt }}
+            </span>
+
+            {{ if .post.Category }}
+            <span class="post-meta-item">
+                <i class="far fa-folder"></i>
+                <a href="/category/{{ .post.Category.Slug }}" class="category-link">{{ .post.Category.Name }}</a>
+            </span>
+            {{ end }}
+
+            {{ if .post.Views }}
+            <span class="post-meta-item">
+                <i class="far fa-eye"></i>
+                {{ .post.Views }} 阅读
+            </span>
+            {{ end }}
+        </div>
+
+        {{ if .post.Tags }}
+        <div class="article-tags">
+            {{ range .post.Tags }}
+            <a href="/tag/{{ .Slug }}" class="tag">{{ .Name }}</a>
+            {{ end }}
+        </div>
+        {{ end }}
+    </div>
+
+    <!-- 主内容区：文章内容 + 侧边栏 -->
+    <div class="main-container">
+        <!-- 文章主体 -->
+        <main class="posts-section">
+            <!-- 文章内容 -->
+            <article class="article-content">
+                {{ markdownHTML .post.Content }}
+            </article>
+
+            <!-- 文章导航 -->
+            <div class="article-nav">
+                {{ if .prevPost }}
+                <a href="/article/{{ .prevPost.Slug }}" class="prev">
+                    ← {{ .prevPost.Title }}
+                </a>
+                {{ else }}
+                <span></span>
+                {{ end }}
+
+                {{ if .nextPost }}
+                <a href="/article/{{ .nextPost.Slug }}" class="next">
+                    {{ .nextPost.Title }} →
+                </a>
+                {{ else }}
+                <span></span>
+                {{ end }}
+            </div>
+        </main>
+
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            {{ $widgets := ensureSlice (getConfig "sidebarWidgets" `["profile","categories","tags"]`) }}
+
+            {{ if in "profile" $widgets }}
+            <!-- 博主信息 -->
+            <div class="sidebar-widget widget-profile">
+                <div class="profile-avatar">
+                    <img src="{{ getConfig "authorAvatar" "https://picsum.photos/seed/avatar/200/200" }}" alt="博主头像" class="avatar-img">
+                </div>
+                <h3 class="profile-name">{{ getConfig "authorName" "墨香居士" }}</h3>
+                <p class="profile-bio">{{ getConfig "authorBio" "墨香书韵，诗意栖居" }}</p>
+                <div class="profile-links">
+                    {{ $socialLinks := json_decode (getConfig "socialLinks" "[]") }}
+                    {{ range $socialLinks }}
+                    {{ if and .url .label }}
+                    <a href="{{ .url }}" class="social-link" target="_blank" title="{{ .label }}">
+                        {{ if eq .icon "github" }}
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+                        {{ else if eq .icon "weibo" }}
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M10.098 20c-4.612 0-8.348-2.727-8.348-6.086 0-1.777.982-3.879 2.505-5.725 1.932-2.344 4.109-3.604 5.803-3.353.943.14 1.686.674 2.15 1.39.358-.053.708-.08 1.054-.08 3.036 0 5.5 2.464 5.5 5.5 0 3.035-2.464 5.5-5.5 5.5-.6 0-1.187-.096-1.744-.276-.05.29-.08.587-.106.89-.04.462-.08.932-.192 1.374-.22.87-.836 1.533-1.588 1.74-.38.105-.792.146-1.034.146z"/></svg>
+                        {{ else if eq .icon "wechat" }}
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348z"/></svg>
+                        {{ else if eq .icon "email" }}
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M0 3v18h24V3H0zm21.518 6L12 13.877 2.482 9H21.52zM23.482 16.59L13.999 12l9.483-4.59L21.5 5.41 12 1 2.5 5.41.518 16.59 12 22l11.482-5.41z"/></svg>
+                        {{ else }}
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+                        {{ end }}
+                    </a>
+                    {{ end }}
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+
+            {{ if and (in "categories" $widgets) .categories }}
+            <div class="sidebar-widget">
+                <h3 class="widget-title">分类</h3>
+                <ul class="widget-list">
+                    {{ range .categories }}
+                    <li><a href="/category/{{ .Slug }}">{{ .Name }}</a></li>
+                    {{ end }}
+                </ul>
+            </div>
+            {{ end }}
+
+            {{ if and (in "tags" $widgets) .tags }}
+            <div class="sidebar-widget">
+                <h3 class="widget-title">标签云</h3>
+                <div class="tags-cloud">
+                    {{ range .tags }}
+                    <a href="/tag/{{ .Slug }}" class="tag-item">{{ .Name }}</a>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+
+            <!-- 最新文章 -->
+            {{ if .recentPosts }}
+            <div class="sidebar-widget widget-recent-posts">
+                <h4 class="sidebar-widget-title">最新文章</h4>
+                <ul>
+                    {{ range first 5 .recentPosts }}
+                    <li>
+                        <a href="/article/{{ .Slug }}" title="{{ .Title }}">{{ .Title }}</a>
+                    </li>
+                    {{ end }}
+                </ul>
+            </div>
+            {{ end }}
+        </aside>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/">首页</a>
+                <a href="/article">文章</a>
+                <a href="/archives">归档</a>
+            </div>
+            <p class="footer-copyright">
+                © {{ .site.year }} {{ .site.title }} · 墨香书韵
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

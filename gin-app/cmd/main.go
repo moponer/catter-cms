@@ -54,7 +54,8 @@ func loadConfig() *config.Config {
 }
 
 func main() {
-	// 设置日志输出
+	// 将日志输出重定向到 stderr，避免与 HTTP 响应混在一起
+	log.SetOutput(os.Stderr)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// 加载配置 - 优先从根目录，其次从gin-app目录
@@ -102,17 +103,20 @@ func main() {
 		log.Println("Theme service initialized")
 	}
 
-	// 创建 Gin 引擎
-	if cfg.Server.Mode == "release" {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	// 创建 Gin 引擎 - 强制使用 ReleaseMode 避免调试日志干扰 HTTP 响应
+	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
 	// 禁用默认的Logger中间件，使用自定义的
 	// r.Use(gin.Logger())
-	r.Use(gin.Recovery())                // 错误恢复
-	r.Use(middleware.CORS())             // CORS
-	r.Use(middleware.RequestIDHandler()) // 请求ID
+	r.Use(gin.Recovery())                 // 错误恢复
+	r.Use(middleware.SecurityHeaders())   // 安全头
+	r.Use(middleware.CORS())              // CORS
+	r.Use(middleware.RequestIDHandler())  // 请求ID
+	// Gzip 压缩 - 排除管理后台和静态资源路径
+	// 管理后台：SPA 模式，HTML 通过 NoRoute 返回，不需要 Gzip；静态资源已是预压缩格式
+	// 前台主题：Go 模板渲染的 HTML，不经过静态文件服务，应该启用 Gzip
+	r.Use(middleware.GzipExcludingPaths([]string{"/admin", "/uploads", "/themes", "/fontawesome", "/public"}))
 
 	// 设置信任的代理，避免安全警告
 	r.SetTrustedProxies([]string{"127.0.0.1", "::1"})
@@ -151,7 +155,6 @@ func main() {
 			// 分类 API
 			protected.GET("/categories", api.ListCategories)
 			protected.GET("/categories/tree", api.GetCategoryTree)
-			protected.GET("/admin/categories/tree", api.GetCategoryTree)
 			protected.GET("/categories/:id", api.GetCategory)
 			protected.POST("/categories", api.CreateCategory)
 			protected.PUT("/categories/:id", api.UpdateCategory)
@@ -170,17 +173,32 @@ func main() {
 			protected.POST("/media/upload", api.UploadMedia)
 			protected.DELETE("/media/:id", api.DeleteMedia)
 
-			// 主题 API - 先注册具体路径，再注册通配符路径
+			// 主题 API
 			protected.GET("/themes", api.ListThemes)
 			protected.POST("/themes/upload", api.UploadTheme)
-			protected.GET("/themes/config/:slug", api.GetThemeConfig)
-			protected.PUT("/themes/config/:slug", api.SaveThemeConfig)
+			protected.GET("/themes/:slug/config", api.GetThemeConfig)
+			protected.PUT("/themes/:slug/config", api.SaveThemeConfig)
 			protected.GET("/themes/:slug/config/full", api.GetThemeConfigFull)
 			protected.PUT("/themes/:slug/config/full", api.SaveThemeConfigFull)
 			protected.POST("/themes/:slug/config/reset", api.ResetThemeConfig)
 			protected.POST("/themes/:slug/activate", api.ActivateTheme)
 			protected.DELETE("/themes/:slug", api.DeleteTheme)
 			protected.GET("/themes/:slug", api.GetTheme)
+
+			// 主题模块 API
+			protected.GET("/themes/:slug/modules", api.GetThemeModules)
+			protected.PUT("/themes/:slug/modules/:moduleId", api.UpdateModuleConfig)
+			protected.PUT("/themes/:slug/modules/order", api.UpdateModuleOrder)
+
+			// 主题设置 Schema API
+			protected.GET("/themes/:slug/schema", api.GetThemeSettingsSchema)
+
+			// 主题配置导入/导出 API
+			protected.GET("/themes/:slug/config/export", api.ExportThemeConfig)
+			protected.POST("/themes/:slug/config/import", api.ImportThemeConfig)
+
+			// 主题缓存清理 API
+			protected.POST("/themes/:slug/clear-cache", api.ClearThemeCache)
 
 			// 页面 API
 			protected.GET("/pages", api.ListPages)
@@ -198,7 +216,6 @@ func main() {
 
 			// 评论 API
 			protected.GET("/comments", api.ListComments)
-			protected.GET("/admin/comments", api.ListComments)
 			protected.DELETE("/comments/:id", api.DeleteComment)
 			protected.POST("/comments/:id/approve", api.ApproveComment)
 			protected.POST("/comments/:id/reject", api.RejectComment)
@@ -222,7 +239,6 @@ func main() {
 			protected.DELETE("/admin/scheduled-tasks/:id", api.DeleteScheduledTask)
 			protected.POST("/admin/scheduled-tasks/:id/toggle", api.ToggleScheduledTask)
 			protected.POST("/admin/scheduled-tasks/:id/run", api.RunScheduledTask)
-			protected.POST("/admin/scheduled-tasks/:id/run-now", api.RunScheduledTask) // 前端使用的别名
 			protected.POST("/admin/scheduled-tasks/:id/enable", api.EnableScheduledTask)
 			protected.POST("/admin/scheduled-tasks/:id/disable", api.DisableScheduledTask)
 			protected.GET("/admin/scheduler/status", api.GetSchedulerStatus)
@@ -261,22 +277,26 @@ func main() {
 	}
 
 	if _, err := os.Stat(adminDistPath); err == nil {
-		// 登录页面路由 - 必须在静态文件之前注册
+		// 登录页面路由
 		r.GET("/login", func(c *gin.Context) {
 			c.Header("Content-Type", "text/html; charset=utf-8")
 			c.File(adminDistPath + "/index.html")
 		})
 
-		// 注册 /admin 路径的静态文件（包含 /admin/*filepath 通配符）
-		r.Static("/admin", adminDistPath)
-		// 注册 /assets 路径（admin的静态资源）
-		r.Static("/assets", adminDistPath+"/assets")
+		// 注册 /admin 的静态文件服务（通过 Group + 中间件实现）
+		// 中间件：只允许磁盘上存在的文件通过，否则让 NoRoute 处理（SPA fallback）
+		adminGroup := r.Group("/admin")
+		adminGroup.Use(func(c *gin.Context) {
+			filePath := adminDistPath + c.Request.URL.Path[len("/admin"):]
+			if _, err := os.Stat(filePath); os.IsNotExist(err) {
+				c.Abort() // 阻止后续 handler，让 NoRoute 生效
+			}
+		})
+		adminGroup.Static("/", adminDistPath)
 
-		// SPA fallback - 当找不到路由时返回 index.html
-		// 注意：/login 已经在上面单独处理，这里主要处理 /admin/* 路径
+		// SPA fallback - 处理所有未被静态文件处理的 /admin 路径
 		r.NoRoute(func(c *gin.Context) {
 			path := c.Request.URL.Path
-			// 对于 /admin 开头的路径，返回 index.html 让 Vue Router 处理
 			if strings.HasPrefix(path, "/admin") {
 				c.Header("Content-Type", "text/html; charset=utf-8")
 				c.File(adminDistPath + "/index.html")
@@ -293,13 +313,6 @@ func main() {
 
 	// 静态文件必须放在通配符路由之前
 	// 检测静态文件路径（支持从根目录或 gin-app 目录运行）
-
-	// 检测 templates/themes 路径
-	themesPath := "./templates/themes"
-	if _, err := os.Stat(themesPath); err != nil {
-		themesPath = "../templates/themes"
-	}
-	r.Static("/themes", themesPath)
 
 	// 检测 templates/fontawesome 路径
 	fontawesomePath := "./templates/fontawesome"
@@ -322,10 +335,17 @@ func main() {
 	}
 	r.Static("/public", publicPath)
 
+	// 检测 themes 路径（主题静态资源）
+	themesPath := "./templates/themes"
+	if _, err := os.Stat(themesPath); err != nil {
+		themesPath = "../templates/themes"
+	}
+	r.Static("/themes", themesPath)
+
 	// 前台页面路由（放在静态文件之后）
 	r.GET("/", homeHandler)
-	r.GET("/article", blogListHandler)          // 文章列表页
-	r.GET("/article/:slug", blogShowHandler)    // 文章详情页
+	r.GET("/article", articleListHandler)          // 文章列表页
+	r.GET("/article/:slug", articleShowHandler)    // 文章详情页
 	r.GET("/page/:slug", pageShowHandler)       // 独立页面
 	r.GET("/categories", categoriesListHandler) // 分类列表页
 	r.GET("/category/:slug", categoryHandler)   // 分类文章列表页
@@ -382,93 +402,32 @@ func homeHandler(c *gin.Context) {
 
 	// 尝试渲染主题模板
 	theme := services.GetActiveTheme()
-	if theme != nil {
-		if content, err := services.RenderTemplate("home", data); err == nil {
-			c.Header("Content-Type", "text/html; charset=utf-8")
-			c.String(http.StatusOK, string(content))
-			return
-		} else {
-			// 如果渲染失败，打印日志
-			log.Printf("Theme template render failed: %v", err)
-		}
+	if theme == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "没有激活的主题",
+		})
+		return
 	}
 
-	// 如果主题渲染失败，使用默认页面
-	themeName := "None"
-	if theme != nil && theme.Name != "" {
-		themeName = theme.Name
+	content, err := services.RenderTemplate("home", data)
+	if err != nil {
+		// 渲染失败，返回详细错误信息
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "主题渲染失败",
+			"error":   err.Error(),
+			"theme":    theme.Name,
+			"path":     theme.Path,
+		})
+		return
 	}
-
-	defaultHTML := fmt.Sprintf(`<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catter CMS - Home</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-               min-height: 100vh; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header h1 { color: #333; }
-        .posts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .post-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.2s; }
-        .post-card:hover { transform: translateY(-5px); }
-        .post-card h2 { color: #333; font-size: 1.3em; margin-bottom: 10px; }
-        .post-card .meta { color: #666; font-size: 0.9em; margin-bottom: 10px; }
-        .post-card .excerpt { color: #555; line-height: 1.6; }
-        .post-card a { text-decoration: none; color: inherit; }
-        .theme-info { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin-top: 20px; text-align: center; color: white; }
-        .no-posts { color: white; text-align: center; padding: 40px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Welcome to Catter CMS!</h1>
-            <p>A modern blog system powered by Gin</p>
-        </div>
-        <div class="theme-info">
-            <p>Active Theme: %s</p>
-        </div>
-        <div class="posts-grid">`, themeName)
-
-	for _, post := range posts {
-		excerpt := post.Excerpt
-		if excerpt == "" && len(post.Content) > 100 {
-			excerpt = post.Content[:100] + "..."
-		}
-		publishedAt := ""
-		if post.PublishedAt != nil {
-			publishedAt = post.PublishedAt.Format("2006-01-02")
-		}
-		defaultHTML += fmt.Sprintf(`
-        <div class="post-card">
-            <a href="/blog/%s">
-                <h2>%s</h2>
-                <div class="meta">Published: %s</div>
-                <div class="excerpt">%s</div>
-            </a>
-        </div>`, post.Slug, post.Title, publishedAt, excerpt)
-	}
-
-	if len(posts) == 0 {
-		defaultHTML += `<div class="no-posts"><p>No posts yet. Start publishing!</p></div>`
-	}
-
-	defaultHTML += `
-        </div>
-    </div>
-</body>
-</html>`
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	c.String(http.StatusOK, defaultHTML)
+	c.String(http.StatusOK, string(content))
 }
 
-func blogShowHandler(c *gin.Context) {
+func articleShowHandler(c *gin.Context) {
 	slug := c.Param("slug")
 
 	// 获取文章
@@ -488,6 +447,10 @@ func blogShowHandler(c *gin.Context) {
 	var categories []models.Category
 	models.DB.Find(&categories)
 
+	// 获取标签
+	var tags []models.Tag
+	models.DB.Find(&tags)
+
 	// 获取最近文章（用于侧边栏）
 	var recentPosts []models.Post
 	models.DB.Where("status = ?", "published").
@@ -502,6 +465,7 @@ func blogShowHandler(c *gin.Context) {
 		"pageTitle":   post.Title,
 		"post":        post,
 		"categories":  categories,
+		"tags":        tags,
 		"recentPosts": recentPosts,
 	}
 
@@ -698,8 +662,8 @@ func categoryHandler(c *gin.Context) {
 	c.String(http.StatusOK, defaultHTML)
 }
 
-// blogListHandler 文章列表页
-func blogListHandler(c *gin.Context) {
+// articleListHandler 文章列表页
+func articleListHandler(c *gin.Context) {
 	// 获取分页参数
 	page := 1
 	pageSize := 10

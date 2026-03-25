@@ -1,0 +1,143 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Catter CMS ." [ref=e4] [cursor=pointer]:
+        - /url: /
+        - text: Catter CMS
+        - generic [ref=e5]: .
+      - navigation [ref=e6]:
+        - link "服务" [ref=e7] [cursor=pointer]:
+          - /url: /page/services
+        - link "方案" [ref=e8] [cursor=pointer]:
+          - /url: /page/solutions
+        - link "产品" [ref=e9] [cursor=pointer]:
+          - /url: /page/products
+        - link "新闻" [ref=e10] [cursor=pointer]:
+          - /url: /news
+        - link "关于" [ref=e11] [cursor=pointer]:
+          - /url: /page/about
+        - link "联系" [ref=e12] [cursor=pointer]:
+          - /url: /page/contact
+      - link "咨询合作" [ref=e13] [cursor=pointer]:
+        - /url: /page/contact
+  - generic [ref=e15]:
+    - generic [ref=e16]:
+      - heading "专业企业解决方案" [level=1] [ref=e17]
+      - paragraph [ref=e18]: 我们致力于为企业提供数字化转型解决方案，助力业务创新与发展
+      - link "了解更多" [ref=e20] [cursor=pointer]:
+        - /url: /page/about
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: 500+
+          - generic [ref=e24]: 服务企业
+        - generic [ref=e25]:
+          - generic [ref=e26]: 98%
+          - generic [ref=e27]: 客户满意度
+        - generic [ref=e28]:
+          - generic [ref=e29]: 10+
+          - generic [ref=e30]: 年行业经验
+    - generic [ref=e32]: 🏢
+  - generic [ref=e33]:
+    - heading "我们的服务" [level=2] [ref=e34]
+    - paragraph [ref=e35]: 为企业提供全方位的数字化解决方案
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: 💻
+        - heading "软件开发" [level=3] [ref=e39]
+        - paragraph [ref=e40]: 定制化软件开发服务，满足企业个性化需求，提供高质量的技术解决方案。
+      - generic [ref=e41]:
+        - generic [ref=e42]: ☁️
+        - heading "云服务" [level=3] [ref=e43]
+        - paragraph [ref=e44]: 专业的云架构设计与迁移服务，帮助企业实现高效、安全的云端转型。
+      - generic [ref=e45]:
+        - generic [ref=e46]: 🔒
+        - heading "数据安全" [level=3] [ref=e47]
+        - paragraph [ref=e48]: 全方位的数据安全服务，保障企业核心数据资产的安全与合规。
+      - generic [ref=e49]:
+        - generic [ref=e50]: 📊
+        - heading "数据分析" [level=3] [ref=e51]
+        - paragraph [ref=e52]: 大数据分析与商业智能服务，帮助企业从数据中挖掘价值，指导决策。
+      - generic [ref=e53]:
+        - generic [ref=e54]: 📱
+        - heading "移动应用" [level=3] [ref=e55]
+        - paragraph [ref=e56]: iOS/Android 双平台移动应用开发，打造优质用户体验。
+      - generic [ref=e57]:
+        - generic [ref=e58]: 🔧
+        - heading "运维支持" [level=3] [ref=e59]
+        - paragraph [ref=e60]: 7x24 小时运维支持服务，确保系统稳定运行，快速响应各类问题。
+  - generic [ref=e62]:
+    - generic [ref=e63]:
+      - generic [ref=e64]: 500+
+      - paragraph [ref=e65]: 成功服务企业客户
+    - generic [ref=e66]:
+      - heading "为什么选择我们" [level=2] [ref=e67]
+      - paragraph [ref=e68]: 我们拥有超过10年的行业经验，为数百家企业提供了优质的数字化服务。
+      - paragraph [ref=e69]: 专业的团队、成熟的方案、完善的服务体系是我们最大的优势。
+      - list [ref=e70]:
+        - listitem [ref=e71]: ✓ 资深技术团队，平均10年+经验
+        - listitem [ref=e72]: ✓ 成熟的项目管理体系
+        - listitem [ref=e73]: ✓ 完善的售后服务保障
+        - listitem [ref=e74]: ✓ 严格的质量控制标准
+        - listitem [ref=e75]: ✓ 透明合理的定价策略
+  - generic [ref=e76]:
+    - heading "最新动态" [level=2] [ref=e77]
+    - paragraph [ref=e78]: 了解我们的最新消息和行业洞察
+    - generic [ref=e79]:
+      - generic [ref=e80]:
+        - generic [ref=e81]: 📰
+        - generic [ref=e82]:
+          - generic [ref=e83]: 2026年3月
+          - heading "年度合作伙伴大会圆满落幕" [level=3] [ref=e84]
+          - paragraph [ref=e85]: 来自全国各地的合作伙伴齐聚一堂，共同探讨行业发展新机遇。
+      - generic [ref=e86]:
+        - generic [ref=e87]: 🏆
+        - generic [ref=e88]:
+          - generic [ref=e89]: 2026年2月
+          - heading "荣获年度最佳企业服务奖" [level=3] [ref=e90]
+          - paragraph [ref=e91]: 凭借出色的服务品质和技术实力，再次获得行业认可。
+      - generic [ref=e92]:
+        - generic [ref=e93]: 🤝
+        - generic [ref=e94]:
+          - generic [ref=e95]: 2026年1月
+          - heading "与多家知名企业达成战略合作" [level=3] [ref=e96]
+          - paragraph [ref=e97]: 强强联合，共同推动行业数字化转型进程。
+  - generic [ref=e98]:
+    - heading "准备好开启数字化转型之旅了吗？" [level=2] [ref=e99]
+    - paragraph [ref=e100]: 联系我们，获取专业的咨询服务和定制方案
+    - generic [ref=e101]:
+      - link "立即咨询" [ref=e102] [cursor=pointer]:
+        - /url: /page/contact
+      - link "了解更多" [ref=e103] [cursor=pointer]:
+        - /url: /page/about
+  - contentinfo [ref=e104]:
+    - generic [ref=e105]:
+      - generic [ref=e106]:
+        - heading "Catter CMS" [level=4] [ref=e107]
+        - paragraph [ref=e108]: 专业的企业数字化解决方案提供商
+      - generic [ref=e109]:
+        - heading "解决方案" [level=4] [ref=e110]
+        - link "软件开发" [ref=e111] [cursor=pointer]:
+          - /url: /page/services
+        - link "云服务" [ref=e112] [cursor=pointer]:
+          - /url: /page/services
+        - link "数据安全" [ref=e113] [cursor=pointer]:
+          - /url: /page/services
+        - link "更多方案" [ref=e114] [cursor=pointer]:
+          - /url: /page/solutions
+      - generic [ref=e115]:
+        - heading "产品中心" [level=4] [ref=e116]
+        - link "企业管理系统" [ref=e117] [cursor=pointer]:
+          - /url: /page/products
+        - link "客户关系管理" [ref=e118] [cursor=pointer]:
+          - /url: /page/products
+        - link "数据分析平台" [ref=e119] [cursor=pointer]:
+          - /url: /page/products
+      - generic [ref=e120]:
+        - heading "联系我们" [level=4] [ref=e121]
+        - link "关于我们" [ref=e122] [cursor=pointer]:
+          - /url: /page/about
+        - link "联系方式" [ref=e123] [cursor=pointer]:
+          - /url: /page/contact
+        - link "新闻动态" [ref=e124] [cursor=pointer]:
+          - /url: /news
+    - paragraph [ref=e126]: © 2026 Catter CMS. All rights reserved.

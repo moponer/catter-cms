@@ -71,9 +71,33 @@ export function clearAuth() {
 }
 
 /**
- * 登出
+ * 登出 - 使用 router 跳转
+ * 注意：需要在 Vue 应用中调用
  */
 export function logout() {
   clearAuth()
-  window.location.href = '/admin/login'
+  // 使用 window.location 作为后备，避免在没有 router 的情况下出错
+  if (typeof window !== 'undefined') {
+    // 尝试使用 router，失败则用 window.location
+    try {
+      // 通过动态导入避免循环依赖
+      import('@/router').then(({ default: router }) => {
+        router.push('/login').catch(() => {
+          window.location.href = '/admin/login'
+        })
+      }).catch(() => {
+        window.location.href = '/admin/login'
+      })
+    } catch (e) {
+      window.location.href = '/admin/login'
+    }
+  }
+}
+
+/**
+ * 跳转到登录页（带返回）
+ */
+export function redirectToLogin(returnUrl = null) {
+  const url = returnUrl || window.location.href
+  window.location.href = `/admin/login?redirect=${encodeURIComponent(url)}`
 }

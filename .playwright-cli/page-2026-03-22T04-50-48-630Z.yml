@@ -1,0 +1,14 @@
+- generic [ref=e5]:
+  - generic [ref=e6]:
+    - generic [ref=e7]: C
+    - heading "Catter CMS" [level=1] [ref=e8]
+    - paragraph [ref=e9]: 轻量级内容管理系统
+  - generic [ref=e10]:
+    - generic [ref=e14]:
+      - img [ref=e17]
+      - textbox "邮箱" [ref=e19]
+    - generic [ref=e23]:
+      - img [ref=e26]
+      - textbox "密码" [ref=e29]
+    - button "登录" [ref=e32] [cursor=pointer]:
+      - generic [ref=e33]: 登录

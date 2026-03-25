@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "sessions": {
+    "a13b4fdb4b04456fb92dc9c72c15391c": [
+      {
+        "expertId": "BaiduSeoExpert",
+        "name": "Finn",
+        "profession": "百度SEO专家",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/03-Marketing/BaiduSeoExpert/BaiduSeoExpert.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/03-Marketing/BaiduSeoExpert/BaiduSeoExpert_zh.md",
+        "usedAt": 1774402689546,
+        "industryId": "all"
+      }
+    ]
+  },
+  "lastUpdated": 1774407336918
+}

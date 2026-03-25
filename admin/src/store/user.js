@@ -15,7 +15,7 @@ export const useUserStore = defineStore('user', () => {
       currentUser.value = res.data || res
       return currentUser.value
     } catch (error) {
-      console.error('获取用户信息失败:', error)
+      // 错误已在 request 拦截器中处理
       return null
     }
   }

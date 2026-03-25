@@ -62,7 +62,6 @@ const loadUser = async () => {
     form.role = data.role || 'editor'
     form.password = ''
   } catch (error) {
-    console.error('加载用户失败:', error)
     ElMessage.error('加载用户失败')
   }
 }
@@ -82,7 +81,6 @@ const handleSave = async () => {
     ElMessage.success('保存成功')
     router.push('/users')
   } catch (error) {
-    console.error('保存失败:', error)
     ElMessage.error('保存失败')
   } finally {
     saving.value = false

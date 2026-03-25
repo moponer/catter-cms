@@ -4,8 +4,10 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -64,8 +66,9 @@ func GetTheme(c *gin.Context) {
 	}
 
 	info := ThemeInfo{
+		ID:          0,
 		Name:        theme.Name,
-		Slug:        theme.Name,
+		Slug:        slug,
 		Version:     theme.Version,
 		Description: theme.Description,
 		Author:      theme.Author,
@@ -156,7 +159,7 @@ func GetThemeConfigFull(c *gin.Context) {
 	// 构建响应结果，包含配置表单定义和已保存的配置值
 	result := map[string]interface{}{
 		"name":        theme.Name,
-		"slug":        theme.Name,
+		"slug":        slug,
 		"version":     theme.Version,
 		"description": theme.Description,
 		"author":      theme.Author,
@@ -174,7 +177,6 @@ func GetThemeConfigFull(c *gin.Context) {
 // SaveThemeConfigFull 保存主题完整配置
 func SaveThemeConfigFull(c *gin.Context) {
 	slug := c.Param("slug")
-	fmt.Printf("[DEBUG] SaveThemeConfigFull called with slug=%s\n", slug)
 
 	theme := services.GetTheme(slug)
 	if theme == nil {
@@ -185,21 +187,16 @@ func SaveThemeConfigFull(c *gin.Context) {
 	// 解析配置
 	var config map[string]interface{}
 	if err := c.ShouldBindJSON(&config); err != nil {
-		fmt.Printf("[ERROR] Failed to bind JSON: %v\n", err)
 		BadRequest(c, "请求参数错误")
 		return
 	}
-	
-	fmt.Printf("[DEBUG] Received config from frontend: %+v\n", config)
 
 	// 保存配置到数据库
 	if err := services.UpdateThemeConfig(slug, config); err != nil {
-		fmt.Printf("[ERROR] Failed to update theme config: %v\n", err)
 		InternalError(c, "保存配置失败: "+err.Error())
 		return
 	}
 
-	fmt.Printf("[DEBUG] Config saved successfully\n")
 	SuccessWithMessage(c, "配置保存成功", config)
 }
 
@@ -263,7 +260,35 @@ func DeleteTheme(c *gin.Context) {
 		return
 	}
 
-	// TODO: 实现从文件系统删除主题的逻辑
+	// 获取主题目录路径
+	cfg := config.Get()
+	themesPath := cfg.Server.ThemePath
+	if themesPath == "" {
+		themesPath = "../templates/themes"
+	}
+	themeDir := filepath.Join(themesPath, slug)
+
+	// 删除主题目录
+	if _, err := os.Stat(themeDir); err == nil {
+		// 目录存在，尝试删除
+		if err := os.RemoveAll(themeDir); err != nil {
+			InternalError(c, "删除主题文件失败: "+err.Error())
+			return
+		}
+	}
+
+	// 删除数据库中的主题配置
+	if err := services.DeleteThemeConfig(slug); err != nil {
+		// 配置删除失败但文件已删除，记录警告但不返回错误
+		log.Printf("警告：删除主题 %s 配置失败: %v", slug, err)
+	}
+
+	// 重新加载主题服务
+	if err := services.InitThemeService(); err != nil {
+		InternalError(c, "重新加载主题服务失败: "+err.Error())
+		return
+	}
+
 	SuccessWithMessage(c, "主题删除成功", nil)
 }
 
@@ -384,4 +409,250 @@ func extractTheme(zipPath, destPath string) (string, error) {
 	}
 
 	return themeName, nil
+}
+
+// GetThemeModules 获取主题模块列表
+func GetThemeModules(c *gin.Context) {
+	slug := c.Param("slug")
+
+	theme := services.GetTheme(slug)
+	if theme == nil {
+		NotFound(c, "主题不存在")
+		return
+	}
+
+	// 获取模块配置
+	modulesConfig := make(map[string]interface{})
+	if config, err := services.GetThemeFullConfig(slug); err == nil {
+		if m, ok := config["modules"].(map[string]interface{}); ok {
+			modulesConfig = m
+		}
+	}
+
+	// 从 theme.yaml 或 settings.yaml 读取模块定义
+	modules := []map[string]interface{}{
+		{"id": "hero", "name": "首屏大图", "description": "首页顶部的大图展示区域", "icon": "Monitor"},
+		{"id": "services", "name": "服务展示", "description": "展示服务项目的模块", "icon": "Service"},
+		{"id": "stats", "name": "数据统计", "description": "展示关键数据的统计模块", "icon": "TrendCharts"},
+		{"id": "team", "name": "团队介绍", "description": "展示团队成员的模块", "icon": "UserFilled"},
+		{"id": "news", "name": "新闻动态", "description": "展示最新新闻的模块", "icon": "Document"},
+		{"id": "contact", "name": "联系我们", "description": "联系信息和表单模块", "icon": "Phone"},
+	}
+
+	// 合并配置（enabled, order）
+	for i, module := range modules {
+		moduleID := module["id"].(string)
+		if config, ok := modulesConfig[moduleID].(map[string]interface{}); ok {
+			if enabled, ok := config["enabled"].(bool); ok {
+				module["enabled"] = enabled
+			} else {
+				module["enabled"] = true
+			}
+			if order, ok := config["order"].(int); ok {
+				module["order"] = order
+			} else {
+				module["order"] = i + 1
+			}
+		} else {
+			module["enabled"] = true
+			module["order"] = i + 1
+		}
+	}
+
+	SuccessResponse(c, gin.H{
+		"theme":   theme.Name,
+		"modules": modules,
+	})
+}
+
+// UpdateModuleConfig 更新模块配置
+func UpdateModuleConfig(c *gin.Context) {
+	slug := c.Param("slug")
+	moduleID := c.Param("moduleId")
+
+	theme := services.GetTheme(slug)
+	if theme == nil {
+		NotFound(c, "主题不存在")
+		return
+	}
+
+	var configData map[string]interface{}
+	if err := c.ShouldBindJSON(&configData); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	// 获取当前配置
+	config, err := services.GetThemeFullConfig(slug)
+	if err != nil {
+		config = make(map[string]interface{})
+	}
+
+	// 更新模块配置
+	if config["modules"] == nil {
+		config["modules"] = make(map[string]interface{})
+	}
+	modules := config["modules"].(map[string]interface{})
+	modules[moduleID] = configData
+
+	// 保存配置
+	if err := services.UpdateThemeConfig(slug, config); err != nil {
+		InternalError(c, "保存配置失败: "+err.Error())
+		return
+	}
+
+	SuccessWithMessage(c, "模块配置更新成功", gin.H{
+		"moduleId": moduleID,
+	})
+}
+
+// UpdateModuleOrder 更新模块排序
+func UpdateModuleOrder(c *gin.Context) {
+	slug := c.Param("slug")
+
+	theme := services.GetTheme(slug)
+	if theme == nil {
+		NotFound(c, "主题不存在")
+		return
+	}
+
+	var reqData struct {
+		ModuleIds []string `json:"moduleIds" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&reqData); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	// 获取当前配置
+	config, err := services.GetThemeFullConfig(slug)
+	if err != nil {
+		config = make(map[string]interface{})
+	}
+
+	// 更新模块排序
+	if config["modules"] == nil {
+		config["modules"] = make(map[string]interface{})
+	}
+	modules := config["modules"].(map[string]interface{})
+
+	// 更新每个模块的 order
+	for i, moduleID := range reqData.ModuleIds {
+		if moduleConfig, exists := modules[moduleID]; exists {
+			if moduleMap, ok := moduleConfig.(map[string]interface{}); ok {
+				moduleMap["order"] = i + 1
+				modules[moduleID] = moduleMap
+			}
+		}
+	}
+
+	// 保存配置
+	if err := services.UpdateThemeConfig(slug, config); err != nil {
+		InternalError(c, "保存配置失败: "+err.Error())
+		return
+	}
+
+	SuccessWithMessage(c, "模块排序更新成功", nil)
+}
+
+// GetThemeSettingsSchema 获取主题设置定义（schema）
+func GetThemeSettingsSchema(c *gin.Context) {
+	slug := c.Param("slug")
+
+	theme := services.GetTheme(slug)
+	if theme == nil {
+		NotFound(c, "主题不存在")
+		return
+	}
+
+	// 从主题的 ConfigDefinition 获取设置定义
+	schema := theme.ConfigDefinition
+	if schema == nil {
+		schema = []services.ConfigSection{}
+	}
+
+	SuccessResponse(c, gin.H{
+		"schema": schema,
+	})
+}
+
+// ExportThemeConfig 导出主题配置
+func ExportThemeConfig(c *gin.Context) {
+	slug := c.Param("slug")
+
+	theme := services.GetTheme(slug)
+	if theme == nil {
+		NotFound(c, "主题不存在")
+		return
+	}
+
+	// 获取完整配置
+	config, err := services.GetThemeFullConfig(slug)
+	if err != nil {
+		config = make(map[string]interface{})
+	}
+
+	// 添加主题元数据
+	exportData := map[string]interface{}{
+		"theme":     theme.Name,
+		"slug":      slug,
+		"version":   theme.Version,
+		" exported": time.Now().Format("2006-01-02 15:04:05"),
+		"config":    config,
+	}
+
+	SuccessResponse(c, exportData)
+}
+
+// ClearThemeCache 清理主题缓存（模板缓存 + 重新加载主题）
+func ClearThemeCache(c *gin.Context) {
+	slug := c.Param("slug")
+
+	theme := services.GetTheme(slug)
+	if theme == nil {
+		NotFound(c, "主题不存在")
+		return
+	}
+
+	// 清理缓存并重新加载
+	if err := services.ClearThemeCache(slug); err != nil {
+		InternalError(c, "清理缓存失败: "+err.Error())
+		return
+	}
+
+	SuccessWithMessage(c, "缓存清理成功，主题已重新加载", nil)
+}
+
+// ImportThemeConfig 导入主题配置
+func ImportThemeConfig(c *gin.Context) {
+	slug := c.Param("slug")
+
+	theme := services.GetTheme(slug)
+	if theme == nil {
+		NotFound(c, "主题不存在")
+		return
+	}
+
+	// 解析导入数据
+	var importData struct {
+		Config map[string]interface{} `json:"config" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&importData); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	// 验证配置是否为有效 map
+	if importData.Config == nil {
+		BadRequest(c, "无效的配置文件")
+		return
+	}
+
+	// 保存配置到数据库
+	if err := services.UpdateThemeConfig(slug, importData.Config); err != nil {
+		InternalError(c, "导入配置失败: "+err.Error())
+		return
+	}
+
+	SuccessWithMessage(c, "配置导入成功", nil)
 }

@@ -133,7 +133,6 @@ const editorConfig = computed(() => ({
       const result = await response.json()
       return result.data?.url || result.url || result.path
     } catch (error) {
-      console.error('图片上传失败:', error)
       throw new Error('图片上传失败')
     }
   },

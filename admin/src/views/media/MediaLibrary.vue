@@ -134,7 +134,7 @@ const loadMedia = async () => {
     mediaList.value = res.data?.list || res.list || []
     total.value = res.data?.total || res.total || 0
   } catch (error) {
-    console.error('加载媒体列表失败:', error)
+    // 错误已在 request 拦截器中处理
   } finally {
     loading.value = false
   }
@@ -151,7 +151,6 @@ const handleUpload = async (file) => {
     ElMessage.success('上传成功')
     loadMedia()
   } catch (error) {
-    console.error('上传失败:', error)
     ElMessage.error('上传失败')
   }
   return false
@@ -179,7 +178,7 @@ const handleDelete = async (item) => {
     loadMedia()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
     }
   }
 }
@@ -202,7 +201,6 @@ const handleBatchDelete = async () => {
     loadMedia()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('批量删除失败:', error)
       ElMessage.error('批量删除失败')
     }
   }

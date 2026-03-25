@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .page.Title }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ .page.Excerpt }}">
+    <!-- 动态主题颜色配置 -->
+    <style>
+        :root {
+            --primary: {{ getConfig "primaryColor" "#2d5a4a" }};
+            --primary-light: {{ getConfig "primaryLight" "#4a7c6f" }};
+            --accent: {{ getConfig "accentColor" "#b8860b" }};
+            --text-color: {{ getConfig "textColor" "#1a1a1a" }};
+            --text-secondary: {{ getConfig "textSecondary" "#6b6b6b" }};
+            --bg-primary: {{ getConfig "bgColor" "#f8f5f0" }};
+            --bg-secondary: {{ getConfig "bgSecondary" "#fefcf9" }};
+            --border-color: {{ getConfig "borderColor" "#e8e4df" }};
+        }
+    </style>
+    <link rel="stylesheet" href="/themes/dianyan-blog/assets/css/base.css">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+</head>
+<body>
+
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/article">文章</a></li>
+                    <li><a href="/categories">分类</a></li>
+                    <li><a href="/archives">归档</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题 -->
+    <div class="article-header">
+        <h1 class="article-title">{{ .page.Title }}</h1>
+    </div>
+
+    <!-- 页面内容 -->
+    <article class="article-content">
+        {{ .page.Content }}
+    </article>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/">首页</a>
+                <a href="/article">文章</a>
+                <a href="/archives">归档</a>
+            </div>
+            <p class="footer-copyright">
+                © {{ .site.year }} {{ .site.title }} · 墨香书韵
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

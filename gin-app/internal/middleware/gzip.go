@@ -173,3 +173,10 @@ func FastCompression() gin.HandlerFunc {
 	config.Level = 1 // 最低压缩级别，最快
 	return GzipWithConfig(config)
 }
+
+// GzipExcludingPaths 创建 Gzip 中间件，排除指定路径前缀
+func GzipExcludingPaths(excludedPaths []string) gin.HandlerFunc {
+	config := DefaultGzipConfig()
+	config.ExcludedPaths = append(config.ExcludedPaths, excludedPaths...)
+	return GzipWithConfig(config)
+}

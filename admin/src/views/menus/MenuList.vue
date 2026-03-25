@@ -493,7 +493,7 @@ const fetchPages = async () => {
     const res = await request.get('/api/pages', { params: { status: 'published', page_size: 100 } })
     pages.value = res.data?.list || []
   } catch (error) {
-    console.error('获取页面列表失败', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 
@@ -502,7 +502,7 @@ const fetchCategories = async () => {
     const res = await request.get('/api/categories', { params: { page_size: 100 } })
     categories.value = res.data?.list || []
   } catch (error) {
-    console.error('获取分类列表失败', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 
@@ -511,7 +511,7 @@ const fetchPosts = async () => {
     const res = await request.get('/api/posts', { params: { status: 'published', page_size: 100 } })
     posts.value = res.data?.list || []
   } catch (error) {
-    console.error('获取文章列表失败', error)
+    // 错误已在 request 拦截器中处理
   }
 }
 
@@ -673,7 +673,6 @@ const saveMenuToServer = async () => {
     ElMessage.success('保存成功')
     fetchMenus()
   } catch (error) {
-    console.error('保存失败:', error)
     ElMessage.error('保存失败')
   } finally {
     saving.value = false

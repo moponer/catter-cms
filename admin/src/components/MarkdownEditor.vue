@@ -93,7 +93,6 @@ const handleUploadImage = async (files, callback) => {
     const imageUrl = res.data?.path || res.path
     callback([imageUrl])
   } catch (error) {
-    console.error('图片上传失败:', error)
     // 返回失败回调，编辑器会显示错误
     callback([])
   }

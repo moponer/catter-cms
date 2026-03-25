@@ -137,7 +137,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
+import request from '@/utils/request'
 
 const router = useRouter()
 
@@ -202,7 +202,7 @@ const handleSearch = async () => {
   selectedIndex.value = 0
 
   try {
-    const response = await axios.get('/api/search', {
+    const response = await request.get('/api/search', {
       params: {
         q: searchQuery.value,
         type: searchType.value,
@@ -211,15 +211,14 @@ const handleSearch = async () => {
       }
     })
 
-    if (response.data.success) {
-      searchResults.value = response.data.data.results
-      totalResults.value = response.data.data.total
+    if (response.success) {
+      searchResults.value = response.data.results
+      totalResults.value = response.data.total
     } else {
-      ElMessage.error(response.data.message)
+      ElMessage.error(response.message)
       searchResults.value = []
     }
   } catch (error) {
-    console.error('搜索失败:', error)
     ElMessage.error('搜索失败,请稍后重试')
     searchResults.value = []
   } finally {

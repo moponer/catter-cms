@@ -198,7 +198,6 @@ const fetchSitemapInfo = async () => {
     }
   } catch (error) {
     ElMessage.error('获取Sitemap信息失败')
-    console.error('Failed to fetch sitemap info:', error)
   }
 }
 
@@ -234,7 +233,6 @@ const saveConfig = async () => {
     }
   } catch (error) {
     ElMessage.error('保存配置失败')
-    console.error('Failed to save config:', error)
   } finally {
     saving.value = false
   }
@@ -273,7 +271,6 @@ const rebuildSitemap = async () => {
     }
   } catch (error) {
     ElMessage.error('重新生成Sitemap失败')
-    console.error('Failed to rebuild sitemap:', error)
   } finally {
     rebuilding.value = false
   }
@@ -300,7 +297,6 @@ const copySitemapUrl = async () => {
     ElMessage.success('Sitemap URL已复制到剪贴板')
   } catch (error) {
     ElMessage.error('复制失败')
-    console.error('Failed to copy:', error)
   }
 }
 
@@ -332,7 +328,7 @@ const loadConfig = async () => {
       }
     }
   } catch (error) {
-    console.error('Failed to load config:', error)
+    ElMessage.error('加载配置失败')
   }
 }
 
