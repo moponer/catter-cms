@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"os"
@@ -34,23 +35,28 @@ func getSiteData() map[string]interface{} {
 
 // loadConfig 加载配置文件
 func loadConfig() *config.Config {
-	// 尝试多个路径加载配置文件
-	paths := []string{
-		"./config.yaml",     // 当前目录
-		"../config.yaml",    // 上级目录（从gin-app运行）
-		"../../config.yaml", // 上两级目录
+	// 使用新的 InitConfig 方法
+	cfg, err := config.InitConfig(
+		"./config.yaml",
+		"../config.yaml",
+		"../../config.yaml",
+	)
+	if err != nil {
+		log.Printf("Config initialization error: %v, using defaults", err)
+		cfg = config.Get()
 	}
 
-	for _, path := range paths {
-		cfg, err := config.Load(path)
-		if err == nil {
-			log.Printf("Config loaded from: %s", path)
-			return cfg
+	// 输出配置信息（不包含敏感信息）
+	log.Printf("Config loaded: %s", cfg.String())
+
+	// 检查安全警告
+	if warnings := cfg.ValidateSecurity(); len(warnings) > 0 {
+		for _, w := range warnings {
+			log.Printf("Security warning: %s", w)
 		}
 	}
 
-	log.Printf("Config file not found, using default config")
-	return config.Get()
+	return cfg
 }
 
 func main() {
@@ -58,7 +64,7 @@ func main() {
 	log.SetOutput(os.Stderr)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	// 加载配置 - 优先从根目录，其次从gin-app目录
+	// 加载配置
 	cfg := loadConfig()
 
 	// 初始化数据库
@@ -111,22 +117,34 @@ func main() {
 		log.Println("Task scheduler started")
 	}
 
-	// 创建 Gin 引擎 - 强制使用 ReleaseMode 避免调试日志干扰 HTTP 响应
-	gin.SetMode(gin.ReleaseMode)
+	// 创建 Gin 引擎
+	if cfg.IsProduction() {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 
 	r := gin.New()
-	// 禁用默认的Logger中间件，使用自定义的
-	// r.Use(gin.Logger())
-	r.Use(gin.Recovery())                 // 错误恢复
-	r.Use(middleware.SecurityHeaders())   // 安全头
-	r.Use(middleware.CORS())              // CORS
-	r.Use(middleware.RequestIDHandler())  // 请求ID
-	// Gzip 压缩 - 排除管理后台和静态资源路径
-	// 管理后台：SPA 模式，HTML 通过 NoRoute 返回，不需要 Gzip；静态资源已是预压缩格式
-	// 前台主题：Go 模板渲染的 HTML，不经过静态文件服务，应该启用 Gzip
+
+	// 恢复和日志中间件
+	r.Use(gin.Recovery())
+	if !cfg.IsProduction() {
+		r.Use(gin.Logger())
+	}
+
+	// 安全头中间件
+	r.Use(middleware.SecurityHeaders())
+
+	// CORS 中间件
+	r.Use(middleware.CORS())
+
+	// 请求 ID
+	r.Use(middleware.RequestIDHandler())
+
+	// Gzip 压缩（排除管理后台和静态资源）
 	r.Use(middleware.GzipExcludingPaths([]string{"/admin", "/uploads", "/themes", "/fontawesome", "/public"}))
 
-	// 设置信任的代理，避免安全警告
+	// 设置信任的代理
 	r.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
 	// 健康检查
@@ -134,6 +152,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "ok",
 			"message": "Catter CMS is running",
+			"env":     cfg.Env,
 		})
 	})
 
@@ -283,40 +302,32 @@ func main() {
 	// Sitemap（公开）
 	r.GET("/sitemap.xml", api.SitemapHandler)
 
-	// 管理后台静态文件 - 使用相对路径
-	adminDistPath := "../admin/dist"
-	if _, err := os.Stat(adminDistPath); err != nil {
-		// 尝试当前目录下的 admin/dist
-		adminDistPath = "./admin/dist"
-	}
-
+	// ========================================
+	// 管理后台静态文件服务 - SPA 模式
+	// ========================================
+	adminDistPath := cfg.GetAdminDistPath()
 	if _, err := os.Stat(adminDistPath); err == nil {
-		// 登录页面路由
+		// 登录页面
 		r.GET("/login", func(c *gin.Context) {
 			c.Header("Content-Type", "text/html; charset=utf-8")
 			c.File(adminDistPath + "/index.html")
 		})
 
-		// 注册 /admin 的静态文件服务（通过 Group + 中间件实现）
-		// 中间件：只允许磁盘上存在的文件通过，否则让 NoRoute 处理（SPA fallback）
-		adminGroup := r.Group("/admin")
-		adminGroup.Use(func(c *gin.Context) {
-			filePath := adminDistPath + c.Request.URL.Path[len("/admin"):]
-			if _, err := os.Stat(filePath); os.IsNotExist(err) {
-				c.Abort() // 阻止后续 handler，让 NoRoute 生效
-			}
-		})
-		adminGroup.Static("/", adminDistPath)
+		// 管理后台静态文件（带 SPA fallback 中间件）
+		// SPA 中间件会在请求的文件不存在时返回 index.html
+		r.Use(middleware.SPAMiddleware(adminDistPath, "/admin"))
+		r.Static("/admin", adminDistPath)
 
-		// SPA fallback - 处理所有未被静态文件处理的 /admin 路径
+		// NoRoute 处理 - SPA fallback
 		r.NoRoute(func(c *gin.Context) {
 			path := c.Request.URL.Path
-			if strings.HasPrefix(path, "/admin") {
+			// 管理后台路由
+			if strings.HasPrefix(path, "/admin") || path == "/login" {
 				c.Header("Content-Type", "text/html; charset=utf-8")
 				c.File(adminDistPath + "/index.html")
 				return
 			}
-			// 对于其他路径，返回404页面
+			// 其他路径返回 404
 			c.Header("Content-Type", "text/html; charset=utf-8")
 			c.Status(http.StatusNotFound)
 			c.File("./templates/404.html")
@@ -325,52 +336,60 @@ func main() {
 		log.Printf("Warning: Admin dist not found at %s, admin UI won't be available", adminDistPath)
 	}
 
-	// 静态文件必须放在通配符路由之前
-	// 检测静态文件路径（支持从根目录或 gin-app 目录运行）
+	// ========================================
+	// 其他静态文件服务
+	// ========================================
 
-	// 检测 templates/fontawesome 路径
+	// FontAwesome
 	fontawesomePath := "./templates/fontawesome"
 	if _, err := os.Stat(fontawesomePath); err != nil {
 		fontawesomePath = "../templates/fontawesome"
 	}
 	r.Static("/fontawesome", fontawesomePath)
 
-	// 检测 uploads 路径
-	uploadsPath := "./uploads"
+	// Uploads
+	uploadsPath := cfg.GetUploadsPath()
 	if _, err := os.Stat(uploadsPath); err != nil {
 		uploadsPath = "../uploads"
 	}
 	r.Static("/uploads", uploadsPath)
 
-	// 检测 public 路径
+	// Public
 	publicPath := "./public"
 	if _, err := os.Stat(publicPath); err != nil {
 		publicPath = "../public"
 	}
 	r.Static("/public", publicPath)
 
-	// 检测 themes 路径（主题静态资源）
-	themesPath := "./templates/themes"
+	// Themes
+	themesPath := cfg.GetThemePath()
 	if _, err := os.Stat(themesPath); err != nil {
 		themesPath = "../templates/themes"
 	}
 	r.Static("/themes", themesPath)
 
-	// 前台页面路由（放在静态文件之后）
+	// ========================================
+	// 前台页面路由
+	// ========================================
 	r.GET("/", homeHandler)
-	r.GET("/article", articleListHandler)          // 文章列表页
-	r.GET("/article/:slug", articleShowHandler)    // 文章详情页
-	r.GET("/page/:slug", pageShowHandler)       // 独立页面
-	r.GET("/categories", categoriesListHandler) // 分类列表页
-	r.GET("/category/:slug", categoryHandler)   // 分类文章列表页
-	r.GET("/tags", tagsListHandler)             // 标签列表页
-	r.GET("/tag/:slug", tagHandler)             // 标签文章列表页
-	r.GET("/archives", archivesHandler)         // 文章归档页
-	r.GET("/search", searchHandler)             // 搜索页
+	r.GET("/article", articleListHandler)
+	r.GET("/article/:slug", articleShowHandler)
+	r.GET("/page/:slug", pageShowHandler)
+	r.GET("/categories", categoriesListHandler)
+	r.GET("/category/:slug", categoryHandler)
+	r.GET("/tags", tagsListHandler)
+	r.GET("/tag/:slug", tagHandler)
+	r.GET("/archives", archivesHandler)
+	r.GET("/search", searchHandler)
 
+	// ========================================
 	// 启动服务器
-	addr := fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
-	log.Printf("Starting server on %s", addr)
+	// ========================================
+	addr := cfg.GetFullPort()
+	log.Printf("Starting Catter CMS (%s) on %s", cfg.Env, addr)
+	log.Printf("Admin panel: http://localhost:%s/admin", cfg.Server.Port)
+	log.Printf("API: http://localhost:%s/api", cfg.Server.Port)
+
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
@@ -379,8 +398,6 @@ func main() {
 // ========== 前台页面处理函数 ==========
 
 func homeHandler(c *gin.Context) {
-	// 获取已发布的文章
-	// 使用 COALESCE 让 published_at 为 NULL 时回退到 created_at
 	var posts []models.Post
 	models.DB.Where("status = ?", "published").
 		Preload("Category").
@@ -389,22 +406,18 @@ func homeHandler(c *gin.Context) {
 		Limit(10).
 		Find(&posts)
 
-	// 获取最近文章（用于侧边栏）
 	var recentPosts []models.Post
 	models.DB.Where("status = ?", "published").
 		Order("COALESCE(published_at, created_at) DESC").
 		Limit(5).
 		Find(&recentPosts)
 
-	// 获取分类
 	var categories []models.Category
 	models.DB.Find(&categories)
 
-	// 获取标签
 	var tags []models.Tag
 	models.DB.Find(&tags)
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":        siteData,
@@ -415,7 +428,6 @@ func homeHandler(c *gin.Context) {
 		"tags":        tags,
 	}
 
-	// 尝试渲染主题模板
 	theme := services.GetActiveTheme()
 	if theme == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -427,13 +439,12 @@ func homeHandler(c *gin.Context) {
 
 	content, err := services.RenderTemplate("home", data)
 	if err != nil {
-		// 渲染失败，返回详细错误信息
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
 			"message": "主题渲染失败",
 			"error":   err.Error(),
-			"theme":    theme.Name,
-			"path":     theme.Path,
+			"theme":   theme.Name,
+			"path":    theme.Path,
 		})
 		return
 	}
@@ -445,7 +456,6 @@ func homeHandler(c *gin.Context) {
 func articleShowHandler(c *gin.Context) {
 	slug := c.Param("slug")
 
-	// 获取文章
 	var post models.Post
 	if err := models.DB.Where("slug = ? AND status = ?", slug, "published").
 		Preload("Category").
@@ -455,25 +465,19 @@ func articleShowHandler(c *gin.Context) {
 		return
 	}
 
-	// 增加浏览量
 	models.DB.Model(&post).Update("views", post.Views+1)
 
-	// 获取分类
 	var categories []models.Category
 	models.DB.Find(&categories)
-
-	// 获取标签
 	var tags []models.Tag
 	models.DB.Find(&tags)
 
-	// 获取最近文章（用于侧边栏）
 	var recentPosts []models.Post
 	models.DB.Where("status = ?", "published").
 		Order("published_at DESC").
 		Limit(5).
 		Find(&recentPosts)
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":        siteData,
@@ -484,14 +488,13 @@ func articleShowHandler(c *gin.Context) {
 		"recentPosts": recentPosts,
 	}
 
-	// 尝试渲染主题模板
 	if content, err := services.RenderTemplate("article_show", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
 	}
 
-	// 如果主题渲染失败，使用默认页面
+	// 默认页面 - XSS 安全修复：使用 html.EscapeString 转义
 	defaultHTML := fmt.Sprintf(`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -499,7 +502,7 @@ func articleShowHandler(c *gin.Context) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>%s - Catter CMS</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                background: #f5f5f5; min-height: 100vh; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h1 { color: #333; margin-bottom: 20px; }
@@ -516,7 +519,12 @@ func articleShowHandler(c *gin.Context) {
         <a href="/" class="back-link">Back to Home</a>
     </div>
 </body>
-</html>`, post.Title, post.Title, post.Views, post.PublishedAt.Format("2006-01-02"), post.Content)
+</html>`,
+		html.EscapeString(post.Title),
+		html.EscapeString(post.Title),
+		post.Views,
+		post.PublishedAt.Format("2006-01-02"),
+		html.EscapeString(post.Content))
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.String(http.StatusOK, defaultHTML)
@@ -525,24 +533,20 @@ func articleShowHandler(c *gin.Context) {
 func pageShowHandler(c *gin.Context) {
 	slug := c.Param("slug")
 
-	// 获取页面
 	var page models.Page
 	if err := models.DB.Where("slug = ? AND status = ?", slug, "published").First(&page).Error; err != nil {
 		c.HTML(http.StatusNotFound, "text/html", []byte("<html><body><h1>404 - Page Not Found</h1></body></html>"))
 		return
 	}
 
-	// 增加浏览量
 	models.DB.Model(&page).Update("views", page.Views+1)
 
-	// 获取最近文章（用于侧边栏）
 	var recentPosts []models.Post
 	models.DB.Where("status = ?", "published").
 		Order("published_at DESC").
 		Limit(5).
 		Find(&recentPosts)
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":        siteData,
@@ -551,7 +555,6 @@ func pageShowHandler(c *gin.Context) {
 		"recentPosts": recentPosts,
 	}
 
-	// 使用页面指定的模板，如果没有则使用默认的 "page" 模板
 	templateName := "page"
 	if page.Template != "" && page.Template != "default" {
 		templateName = "page-" + page.Template
@@ -563,7 +566,6 @@ func pageShowHandler(c *gin.Context) {
 		return
 	}
 
-	// 如果指定模板不存在，回退到默认模板
 	if templateName != "page" {
 		if content, err := services.RenderTemplate("page", data); err == nil {
 			c.Header("Content-Type", "text/html; charset=utf-8")
@@ -572,7 +574,6 @@ func pageShowHandler(c *gin.Context) {
 		}
 	}
 
-	// 默认页面
 	defaultHTML := fmt.Sprintf(`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -580,7 +581,7 @@ func pageShowHandler(c *gin.Context) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>%s - Catter CMS</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                background: #f5f5f5; min-height: 100vh; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h1 { color: #333; margin-bottom: 20px; }
@@ -593,7 +594,10 @@ func pageShowHandler(c *gin.Context) {
         <div class="content">%s</div>
     </div>
 </body>
-</html>`, page.Title, page.Title, page.Content)
+</html>`,
+		html.EscapeString(page.Title),
+		html.EscapeString(page.Title),
+		html.EscapeString(page.Content))
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.String(http.StatusOK, defaultHTML)
@@ -602,27 +606,23 @@ func pageShowHandler(c *gin.Context) {
 func categoryHandler(c *gin.Context) {
 	slug := c.Param("slug")
 
-	// 获取分类
 	var category models.Category
 	if err := models.DB.Where("slug = ?", slug).First(&category).Error; err != nil {
 		c.HTML(http.StatusNotFound, "text/html", []byte("<html><body><h1>404 - Category Not Found</h1></body></html>"))
 		return
 	}
 
-	// 获取该分类下的已发布文章
 	var posts []models.Post
 	models.DB.Where("category_id = ? AND status = ?", category.ID, "published").
 		Preload("Category").
 		Order("published_at DESC").
 		Find(&posts)
 
-	// 获取所有分类和标签（用于侧边栏）
 	var categories []models.Category
 	models.DB.Find(&categories)
 	var tags []models.Tag
 	models.DB.Find(&tags)
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":       siteData,
@@ -633,17 +633,18 @@ func categoryHandler(c *gin.Context) {
 		"tags":       tags,
 	}
 
-	// 尝试渲染主题模板
 	if content, err := services.RenderTemplate("category", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
 	}
 
-	// 默认页面
+	// 默认页面 - XSS 安全修复
 	postsHTML := ""
 	for _, post := range posts {
-		postsHTML += fmt.Sprintf(`<div class="post-item"><h3><a href="/blog/%s">%s</a></h3></div>`, post.Slug, post.Title)
+		postsHTML += fmt.Sprintf(`<div class="post-item"><h3><a href="/article/%s">%s</a></h3></div>`,
+			html.EscapeString(post.Slug),
+			html.EscapeString(post.Title))
 	}
 	if postsHTML == "" {
 		postsHTML = "<p>No posts in this category.</p>"
@@ -656,7 +657,7 @@ func categoryHandler(c *gin.Context) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>%s - Catter CMS</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                background: #f5f5f5; min-height: 100vh; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h1 { color: #333; margin-bottom: 20px; }
@@ -671,15 +672,17 @@ func categoryHandler(c *gin.Context) {
         <div class="posts">%s</div>
     </div>
 </body>
-</html>`, category.Name, category.Name, category.Description, postsHTML)
+</html>`,
+		html.EscapeString(category.Name),
+		html.EscapeString(category.Name),
+		html.EscapeString(category.Description),
+		postsHTML)
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.String(http.StatusOK, defaultHTML)
 }
 
-// articleListHandler 文章列表页
 func articleListHandler(c *gin.Context) {
-	// 获取分页参数
 	page := 1
 	pageSize := 10
 	if p := c.Query("page"); p != "" {
@@ -689,7 +692,6 @@ func articleListHandler(c *gin.Context) {
 		fmt.Sscanf(ps, "%d", &pageSize)
 	}
 
-	// 获取文章列表
 	var posts []models.Post
 	var total int64
 	models.DB.Where("status = ?", "published").
@@ -701,13 +703,11 @@ func articleListHandler(c *gin.Context) {
 		Find(&posts)
 	models.DB.Model(&models.Post{}).Where("status = ?", "published").Count(&total)
 
-	// 获取分类和标签
 	var categories []models.Category
 	var tags []models.Tag
 	models.DB.Find(&categories)
 	models.DB.Find(&tags)
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":       siteData,
@@ -723,26 +723,21 @@ func articleListHandler(c *gin.Context) {
 		},
 	}
 
-	// 尝试渲染主题模板
-	if content, err := services.RenderTemplate("article_list", data); err == nil {
+	content, err := services.RenderTemplate("article_list", data)
+	if err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
-	} else {
-		log.Printf("[ERROR] article_list template render failed: %v", err)
 	}
 
-	// 默认页面
+	log.Printf("[ERROR] article_list template render failed: %v", err)
 	c.String(http.StatusOK, "<h1>文章列表</h1><p>请创建 article_list.html 模板</p>")
 }
 
-// categoriesListHandler 分类列表页
 func categoriesListHandler(c *gin.Context) {
-	// 获取所有分类及文章数
 	var categories []models.Category
 	models.DB.Find(&categories)
 
-	// 为每个分类计算文章数
 	type CategoryWithCount struct {
 		models.Category
 		PostCount int `json:"post_count"`
@@ -757,7 +752,6 @@ func categoriesListHandler(c *gin.Context) {
 		})
 	}
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":       siteData,
@@ -765,7 +759,6 @@ func categoriesListHandler(c *gin.Context) {
 		"categories": categoriesWithCount,
 	}
 
-	// 尝试渲染主题模板
 	if content, err := services.RenderTemplate("categories", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
@@ -775,13 +768,10 @@ func categoriesListHandler(c *gin.Context) {
 	c.String(http.StatusOK, "<h1>分类列表页</h1><p>请创建 categories.plush.html 模板</p>")
 }
 
-// tagsListHandler 标签列表页
 func tagsListHandler(c *gin.Context) {
-	// 获取所有标签及文章数
 	var tags []models.Tag
 	models.DB.Find(&tags)
 
-	// 为每个标签计算文章数
 	type TagWithCount struct {
 		models.Tag
 		PostCount int `json:"post_count"`
@@ -796,7 +786,6 @@ func tagsListHandler(c *gin.Context) {
 		})
 	}
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":      siteData,
@@ -804,7 +793,6 @@ func tagsListHandler(c *gin.Context) {
 		"tags":      tagsWithCount,
 	}
 
-	// 尝试渲染主题模板
 	if content, err := services.RenderTemplate("tags", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
@@ -814,18 +802,15 @@ func tagsListHandler(c *gin.Context) {
 	c.String(http.StatusOK, "<h1>标签列表页</h1><p>请创建 tags.plush.html 模板</p>")
 }
 
-// tagHandler 标签文章列表页
 func tagHandler(c *gin.Context) {
 	slug := c.Param("slug")
 
-	// 获取标签
 	var tag models.Tag
 	if err := models.DB.Where("slug = ?", slug).First(&tag).Error; err != nil {
 		c.HTML(http.StatusNotFound, "text/html", []byte("<html><body><h1>404 - Tag Not Found</h1></body></html>"))
 		return
 	}
 
-	// 获取该标签下的文章
 	var posts []models.Post
 	models.DB.Joins("JOIN post_tags ON posts.id = post_tags.post_id").
 		Where("post_tags.tag_id = ? AND posts.status = ?", tag.ID, "published").
@@ -833,7 +818,6 @@ func tagHandler(c *gin.Context) {
 		Order("posts.published_at DESC").
 		Find(&posts)
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":      siteData,
@@ -842,25 +826,23 @@ func tagHandler(c *gin.Context) {
 		"posts":     posts,
 	}
 
-	// 尝试渲染主题模板
 	if content, err := services.RenderTemplate("tag", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
 	}
 
-	c.String(http.StatusOK, "<h1>标签: "+tag.Name+"</h1><p>请创建 tag.plush.html 模板</p>")
+	// XSS 安全修复
+	c.String(http.StatusOK, fmt.Sprintf("<h1>标签: %s</h1><p>请创建 tag.plush.html 模板</p>",
+		html.EscapeString(tag.Name)))
 }
 
-// archivesHandler 文章归档页
 func archivesHandler(c *gin.Context) {
-	// 获取所有已发布文章，按日期分组
 	var posts []models.Post
 	models.DB.Where("status = ?", "published").
 		Order("published_at DESC").
 		Find(&posts)
 
-	// 按年月分组
 	archives := make(map[string][]models.Post)
 	for _, post := range posts {
 		if post.PublishedAt != nil {
@@ -869,7 +851,6 @@ func archivesHandler(c *gin.Context) {
 		}
 	}
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":      siteData,
@@ -878,7 +859,6 @@ func archivesHandler(c *gin.Context) {
 		"posts":     posts,
 	}
 
-	// 尝试渲染主题模板
 	if content, err := services.RenderTemplate("archives", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
@@ -888,7 +868,6 @@ func archivesHandler(c *gin.Context) {
 	c.String(http.StatusOK, "<h1>文章归档</h1><p>请创建 archives.plush.html 模板</p>")
 }
 
-// searchHandler 搜索页
 func searchHandler(c *gin.Context) {
 	query := c.Query("q")
 
@@ -903,7 +882,6 @@ func searchHandler(c *gin.Context) {
 			Find(&posts)
 	}
 
-	// 准备模板数据
 	siteData := getSiteData()
 	data := map[string]interface{}{
 		"site":      siteData,
@@ -913,12 +891,13 @@ func searchHandler(c *gin.Context) {
 		"count":     len(posts),
 	}
 
-	// 尝试渲染主题模板
 	if content, err := services.RenderTemplate("search", data); err == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
 	}
 
-	c.String(http.StatusOK, "<h1>搜索: "+query+"</h1><p>请创建 search.plush.html 模板</p>")
+	// XSS 安全修复
+	c.String(http.StatusOK, fmt.Sprintf("<h1>搜索: %s</h1><p>请创建 search.plush.html 模板</p>",
+		html.EscapeString(query)))
 }

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"log"
 	"time"
 
@@ -54,6 +56,7 @@ func (u *User) IsAdmin() bool {
 }
 
 // CreateDefaultAdmin 创建默认管理员用户
+// 注意：首次部署时请修改默认密码！
 func CreateDefaultAdmin() error {
 	var count int64
 	DB.Model(&User{}).Count(&count)
@@ -70,7 +73,14 @@ func CreateDefaultAdmin() error {
 		Role:  "admin",
 	}
 
-	if err := admin.SetPassword("admin123"); err != nil {
+	// 生成随机初始密码（生产环境应要求用户在首次登录后修改）
+	initialPassword, err := generateRandomPassword(16)
+	if err != nil {
+		// 如果生成失败，使用一个占位符，生产环境必须修改
+		initialPassword = "CHANGE_ME_FIRST"
+	}
+
+	if err := admin.SetPassword(initialPassword); err != nil {
 		return err
 	}
 
@@ -78,6 +88,18 @@ func CreateDefaultAdmin() error {
 		return err
 	}
 
-	log.Println("Default admin user created: admin@example.com / admin123")
+	// 只在开发环境输出密码提示，生产环境不应输出任何密码信息
+	log.Println("Default admin user created: admin@example.com")
+	log.Printf("Initial password set. Please change it immediately after first login!")
+
 	return nil
+}
+
+// generateRandomPassword 生成随机密码
+func generateRandomPassword(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
 }

@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,14 +22,16 @@ func SecurityHeaders() gin.HandlerFunc {
 		// 禁用 IE 的兼容模式
 		c.Header("X-UA-Compatible", "IE=edge")
 
-		// 强制使用 HTTPS（如果配置了）
-		// c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-
 		// 引用来源策略
 		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
 
-		// 禁用缓存（对于 API，敏感页面）
-		// 对于静态资源，应该在路由层面单独处理缓存
+		// Content Security Policy (CSP)
+		csp := getCSPHeader(c)
+		if csp != "" {
+			c.Header("Content-Security-Policy", csp)
+		}
+
+		// 禁用缓存（对于 API 健康检查）
 		if c.Request.URL.Path == "/api/health" {
 			c.Header("Cache-Control", "no-store, no-cache, must-revalidate")
 			c.Header("Pragma", "no-cache")
@@ -35,6 +39,17 @@ func SecurityHeaders() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+// getCSPHeader 根据环境获取 CSP 头
+func getCSPHeader(c *gin.Context) string {
+	// 开发环境使用宽松的 CSP
+	if gin.Mode() == gin.DebugMode {
+		return "default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' ws: wss: http: https:;"
+	}
+
+	// 生产环境使用严格的 CSP
+	return "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
 }
 
 // CacheHeaders 缓存头中间件
@@ -52,6 +67,46 @@ func NoCacheHeaders() gin.HandlerFunc {
 		c.Header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
 		c.Header("Pragma", "no-cache")
 		c.Header("Expires", "0")
+		c.Next()
+	}
+}
+
+// ForceHTTPS 强制 HTTPS 中间件
+// 用于生产环境强制使用安全连接
+func ForceHTTPS() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 检查是否已经是 HTTPS
+		if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+			c.Next()
+			return
+		}
+
+		// 获取原始主机和路径
+		host := c.GetHeader("X-Forwarded-Host")
+		if host == "" {
+			host = c.Request.Host
+		}
+		path := c.Request.URL.RequestURI()
+
+		// 重定向到 HTTPS
+		httpsURL := "https://" + host + path
+		c.Redirect(301, httpsURL)
+		c.Abort()
+	}
+}
+
+// HSTSHeaders HSTS 安全头
+// Strict-Transport-Security
+func HSTSHeaders(maxAge int64, includeSubDomains bool, preload bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		hsts := fmt.Sprintf("max-age=%d", maxAge)
+		if includeSubDomains {
+			hsts += "; includeSubDomains"
+		}
+		if preload {
+			hsts += "; preload"
+		}
+		c.Header("Strict-Transport-Security", hsts)
 		c.Next()
 	}
 }

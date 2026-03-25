@@ -24,6 +24,7 @@ type Post struct {
 	Author          *User      `json:"author,omitempty" gorm:"foreignKey:AuthorID"`
 	Tags            []Tag      `json:"tags,omitempty" gorm:"many2many:post_tags;"`
 	PublishedAt     *time.Time `json:"published_at"`
+	ScheduledAt     *time.Time `json:"scheduled_at"` // 预定发布时间
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 }
@@ -44,4 +45,22 @@ func (p *Post) BeforeCreate(tx *gorm.DB) error {
 // IsPublished 检查是否已发布
 func (p *Post) IsPublished() bool {
 	return p.Status == "published"
+}
+
+// PublishPost 发布文章
+func PublishPost(postID uint) error {
+	now := time.Now()
+	return DB.Model(&Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
+		"status":       "published",
+		"published_at": &now,
+	}).Error
+}
+
+// GetScheduledPosts 获取已到预定发布时间但未发布的文章
+func GetScheduledPosts() ([]Post, error) {
+	var posts []Post
+	now := time.Now()
+	err := DB.Where("status = ? AND scheduled_at <= ? AND published_at IS NULL", "scheduled", now).
+		Find(&posts).Error
+	return posts, err
 }

@@ -1,16 +1,25 @@
 @echo off
 chcp 65001 >nul
-echo Starting Catter CMS...
+echo ================================================
+echo   Catter CMS 启动脚本
+echo ================================================
 echo.
-
-:: 禁用 Buffalo 插件加载，避免 "not a valid Win32 application" 错误
-set BUFFALO_PLUGIN_PATH=
-set BUFFALO_PLUGINS_OFF=1
 
 :: 设置 Go 环境
 set GO_ENV=development
+set APP_ENV=development
 
-:: 运行应用
-go run ./cmd/app/main.go
+:: 启动应用
+:: 从 gin-app 目录运行时
+if exist "gin-app\cmd\main.go" (
+    go run ./gin-app/cmd/main.go
+) else if exist "cmd\main.go" (
+    go run ./cmd/main.go
+) else (
+    echo [错误] 无法找到 main.go 文件
+    echo 请确保在项目根目录运行此脚本
+    pause
+    exit /b 1
+)
 
 pause
