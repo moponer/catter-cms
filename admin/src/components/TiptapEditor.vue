@@ -146,6 +146,7 @@
 <script setup>
 import { ref, watch, onBeforeUnmount, computed } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
+import { ElMessage } from 'element-plus'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
@@ -207,7 +208,10 @@ const editor = useEditor({
     }),
     Image.configure({
       inline: true,
-      allowBase64: false
+      allowBase64: false,
+      HTMLAttributes: {
+        class: 'editor-image'
+      }
     }),
     Link.configure({
       openOnClick: false,

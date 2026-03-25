@@ -151,6 +151,8 @@ func main() {
 			protected.POST("/posts", api.CreatePost)
 			protected.PUT("/posts/:id", api.UpdatePost)
 			protected.DELETE("/posts/:id", api.DeletePost)
+			protected.DELETE("/posts/batch", api.BatchDeletePosts)
+			protected.PUT("/posts/batch/status", api.BatchUpdateStatus)
 
 			// 分类 API
 			protected.GET("/categories", api.ListCategories)

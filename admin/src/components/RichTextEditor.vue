@@ -41,6 +41,11 @@ import 'tinymce/plugins/wordcount'
 import 'tinymce/plugins/emoticons'
 import 'tinymce/plugins/codesample'
 
+// 获取 token
+const getToken = () => {
+  return localStorage.getItem('token') || ''
+}
+
 const props = defineProps({
   modelValue: {
     type: String,
@@ -127,6 +132,9 @@ const editorConfig = computed(() => ({
       
       const response = await fetch('/api/media/upload', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`
+        },
         body: formData
       })
       

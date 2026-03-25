@@ -27,6 +27,13 @@
               />
             </el-form-item>
 
+            <el-form-item label="URL别名（slug）">
+              <el-input
+                v-model="form.slug"
+                placeholder="文章URL，如：my-first-post（留空则自动生成）"
+              />
+            </el-form-item>
+
             <el-form-item prop="content">
               <TiptapEditor
                 ref="editorRef"
@@ -65,14 +72,24 @@
             </el-form-item>
 
             <el-form-item label="标签">
-              <el-select v-model="form.tags" multiple placeholder="选择标签" style="width: 100%">
+              <el-select
+                v-model="form.tag_names"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                :reserve-keyword="false"
+                placeholder="选择或输入标签"
+                style="width: 100%"
+              >
                 <el-option
                   v-for="tag in tags"
                   :key="tag.id"
                   :label="tag.name"
-                  :value="tag.id"
+                  :value="tag.name"
                 />
               </el-select>
+              <div class="tag-hint">可选择已有标签，或输入新标签名称后按回车创建</div>
             </el-form-item>
 
             <el-form-item label="摘要">
@@ -143,11 +160,12 @@ const isEdit = computed(() => !!route.params.id)
 
 const form = reactive({
   title: '',
+  slug: '',
   content: '',
   excerpt: '',
   status: 'draft',
   category_id: null,
-  tags: [],
+  tag_names: [],
   featured_image: '',
   meta_title: '',
   meta_description: ''
@@ -186,12 +204,17 @@ const loadPost = async () => {
     const data = res.data || res
     Object.assign(form, {
       title: data.title || '',
+      slug: data.slug || '',
       content: data.content || '',
       excerpt: data.excerpt || '',
       status: data.status || 'draft',
       category_id: data.category_id || data.CategoryID || null,
-      tags: data.tags || [],
-      featured_image: data.featured_image || '',
+      // 从 Tag 对象数组提取名称
+      tag_names: Array.isArray(data.tags)
+        ? data.tags.map(t => typeof t === 'object' ? t.name : t)
+        : [],
+      // 字段映射：cover → featured_image
+      featured_image: data.cover || data.featured_image || '',
       meta_title: data.meta_title || '',
       meta_description: data.meta_description || ''
     })
@@ -222,11 +245,27 @@ const savePost = async () => {
 
   saving.value = true
   try {
+    // 构建请求数据，映射字段名
+    const postData = {
+      title: form.title,
+      slug: form.slug,
+      content: form.content,
+      excerpt: form.excerpt,
+      status: form.status,
+      category_id: form.category_id,
+      // 使用标签名称（支持创建新标签）
+      tag_names: form.tag_names,
+      // 字段映射：featured_image → cover
+      cover: form.featured_image,
+      meta_title: form.meta_title,
+      meta_description: form.meta_description
+    }
+
     if (isEdit.value) {
-      await put(`/api/posts/${route.params.id}`, form)
+      await put(`/api/posts/${route.params.id}`, postData)
       ElMessage.success('文章更新成功')
     } else {
-      await post('/api/posts', form)
+      await post('/api/posts', postData)
       ElMessage.success('文章创建成功')
     }
     router.push('/posts')
@@ -348,6 +387,12 @@ onMounted(() => {
   max-height: 150px;
   border-radius: 4px;
   margin-bottom: 10px;
+}
+
+.tag-hint {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
 }
 
 @media (max-width: 1024px) {
