@@ -1,33 +1,52 @@
+# Dependencies
 vendor/
-**/*.log
-**/*.sqlite
-.idea/
-bin/
-tmp/
-node_modules/
-.sass-cache/
-public/assets/
-.vscode/
-.grifter/
-.env
-**/.DS_Store
+
+# Build output
+*.exe
+*.exe~
 *.pid
-coverage
-coverage.data
-.svn
-.console_history
-.sass-cache/*
-.jhw-cache/
-jhw.*
+*.db
+*.log
+*.sqlite
+
+# IDE
+.idea/
+.vscode/
 *.sublime*
-dist/
-generated/
-.vendor/
+.svn/
+
+# Node
+node_modules/
 .pnp.*
-.yarn/*
+.yarn/
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+dist/
+
+# Cache
+.sass-cache/
+.jhw-cache/
+.console_history/
+coverage/
+coverage.data
+generated/
+.grifter/
+
+# Environment
+.env
+
+# OS
+.DS_Store
 nul
+app.log
+
+# Project specific
+.playwright-cli/
+.sisyphus/
+uploads/
+.workbuddy/
+admin/node_modules/
+admin/dist/
