@@ -70,9 +70,6 @@
                         :fields="field.type === 'repeater' ? (field.fields || field.children || []) : []"
                         :item-title="field.itemTitle"
                       />
-                      <div v-if="field.description" :id="`desc-${field.name}`" class="field-help" role="tooltip">
-                        {{ field.description }}
-                      </div>
                     </el-form-item>
                   </el-form>
                 </div>

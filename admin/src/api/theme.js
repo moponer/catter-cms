@@ -164,3 +164,12 @@ export function clearThemeCache(themeId) {
     method: 'post'
   })
 }
+
+// 清理所有缓存（全局）
+export function clearAllCache() {
+  return request({
+    url: '/api/admin/cache/clear',
+    method: 'post',
+    data: { type: 'all' }
+  })
+}

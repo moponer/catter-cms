@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全部分类 - {{ .site.title }}</title>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/list.css" }}">
+    <style>
+        :root {
+            --primary: {{ getConfig "primaryColor" "#FF6B6B" }};
+            --primary-hover: {{ getConfig "primaryDark" "#EE5A5A" }};
+            --accent: {{ getConfig "accentColor" "#4ECDC4" }};
+            --secondary: {{ getConfig "secondaryColor" "#FFE66D" }};
+            --purple: {{ getConfig "purpleAccent" "#A78BFA" }};
+            --bg-primary: {{ getConfig "bgPrimary" "#FAFAFA" }};
+            --bg-secondary: {{ getConfig "bgSecondary" "#FFFFFF" }};
+            --bg-dark: {{ getConfig "bgDarkSection" "#2D2A4A" }};
+            --text-primary: {{ getConfig "textPrimary" "#2D3748" }};
+            --text-secondary: {{ getConfig "textSecondary" "#718096" }};
+            --text-muted: {{ getConfig "textMuted" "#A0AEC0" }};
+            --banner-bg: {{ getConfig "bannerBg" "var(--primary)" }};
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/" class="logo">
+                <span class="logo-icon"><i class="fa-solid fa-feather-pointed"></i></span>
+                {{ .site.title }}
+            </a>
+            <nav class="nav-menu">
+                {{ range .headerMenu.Items }}
+                <a href="{{ .URL }}" class="nav-link" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            <div class="header-actions">
+                <a href="/search" class="search-btn" aria-label="搜索">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Inner Page Hero -->
+    {{ if getConfig "innerHeroEnabled" true }}
+    <section class="hero page-hero">
+        {{ $heroSlidesRaw := getConfig "heroSlides" "[]" }}
+        {{ $heroSlides := json_decode $heroSlidesRaw }}
+        {{ if $heroSlides }}
+        <div class="hero-carousel">
+            <div class="carousel-slides">
+                {{ range $index, $slide := $heroSlides }}
+                <div class="carousel-slide {{ if eq $index 0 }}active{{ end }}" style="background-image: url('{{ $slide.url }}')">
+                </div>
+                {{ end }}
+            </div>
+            {{ if gt (len $heroSlides) 1 }}
+            <div class="carousel-dots">
+                {{ range $index, $slide := $heroSlides }}
+                <span class="carousel-dot {{ if eq $index 0 }}active{{ end }}" data-index="{{ $index }}"></span>
+                {{ end }}
+            </div>
+            {{ end }}
+        </div>
+        {{ end }}
+        <div class="hero-content page-hero-content">
+            <h1 class="page-hero-title">全部分类</h1>
+            <p class="page-hero-subtitle">共 {{ len .categories }} 个分类</p>
+        </div>
+    </section>
+    {{ else }}
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1 class="page-hero-title">全部分类</h1>
+            <p class="page-hero-subtitle">共 {{ len .categories }} 个分类</p>
+        </div>
+    </div>
+    {{ end }}
+
+    <!-- Categories Grid -->
+    <div class="categories-page">
+        <div class="categories-grid">
+            {{ range .categories }}
+            <a href="/category/{{ .Slug }}" class="category-card">
+                <div class="category-card-icon">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <h3 class="category-card-name">{{ .Name }}</h3>
+                {{ if .Description }}
+                <p class="category-card-count">{{ .Description }}</p>
+                {{ end }}
+                <span class="category-card-link">
+                    浏览文章 <i class="fa-solid fa-arrow-right"></i>
+                </span>
+            </a>
+            {{ else }}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <i class="fa-solid fa-folder-open empty-state-icon"></i>
+                <h3 class="empty-state-title">暂无分类</h3>
+                <p class="empty-state-text">还没有创建任何分类！</p>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-simple">
+                <div class="footer-nav">
+                    {{ range .footerMenu.Items }}
+                    <a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a>
+                    {{ end }}
+                </div>
+                <p class="footer-copyright">&copy; {{ .site.year }} {{ .site.title }} &middot; 用心记录每一天</p>
+            </div>
+        </div>
+    </footer>
+    {{ if getConfig "innerHeroEnabled" true }}
+    <script>
+    (function() {
+        var slides = document.querySelectorAll('.carousel-slide');
+        var dots = document.querySelectorAll('.carousel-dot');
+        if (slides.length <= 1) return;
+        var current = 0;
+        function showSlide(n) {
+            slides[current].classList.remove('active');
+            if (dots[current]) dots[current].classList.remove('active');
+            current = (n + slides.length) % slides.length;
+            slides[current].classList.add('active');
+            if (dots[current]) dots[current].classList.add('active');
+        }
+        dots.forEach(function(dot, i) {
+            dot.addEventListener('click', function() { showSlide(i); });
+        });
+        setInterval(function() { showSlide(current + 1); }, 4000);
+    })();
+    </script>
+    {{ end }}
+</body>
+</html>

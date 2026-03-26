@@ -597,14 +597,15 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 	}
 
 	// 从模板集中获取指定模板
-	cachedTmpl, ok := set.Template[templateName]
+	_, ok := set.Template[templateName]
 	if !ok {
 		return "", fmt.Errorf("template %s not found in theme %s", templateName, theme.Name)
 	}
 
-	// 执行模板
+	// 执行模板（使用 Root 的 ExecuteTemplate 确保正确渲染具名模板）
 	var buf bytes.Buffer
-	if err := cachedTmpl.Execute(&buf, templateData); err != nil {
+	if err := set.Root.ExecuteTemplate(&buf, templateName+".html", templateData); err != nil {
+		log.Printf("[ERROR] ExecuteTemplate %q failed: %v", templateName, err)
 		return "", fmt.Errorf("template execute error: %v", err)
 	}
 

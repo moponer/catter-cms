@@ -992,5 +992,100 @@ type Post struct {
 
 ---
 
-**文档版本：** 1.2
-**最后更新：** 2026-03-25
+**文档版本：** 1.3
+**最后更新：** 2026-03-26
+
+---
+
+### 问题 19: `asset_path` 路径重复导致 MIME 类型错误
+
+**错误信息：**
+```
+Refused to apply style from 'http://localhost:3000/themes/duocai-blog//themes/duocai-blog/assets/css/base.css'
+because its MIME type ('text/html') is not a supported stylesheet MIME type
+```
+
+**原因：**
+`asset_path` 函数会自动添加 `/themes/{theme-name}/` 前缀，但传入的路径已经包含了这部分，导致路径重复。
+
+**错误写法：**
+```html
+{{ asset_path "/themes/duocai-blog/assets/css/base.css" }}
+<!-- 结果: /themes/duocai-blog//themes/duocai-blog/assets/css/base.css -->
+```
+
+**正确写法：**
+```html
+{{ asset_path "assets/css/base.css" }}
+<!-- 结果: /themes/duocai-blog/assets/css/base.css -->
+```
+
+**`asset_path` 函数实现：**
+```go
+"asset_path": func(path string) string {
+    if theme == nil {
+        return "/" + path
+    }
+    return "/themes/" + theme.Name + "/" + path
+},
+```
+
+**影响文件：**
+- `templates/themes/duocai-blog/pages/home.html`
+- `templates/themes/duocai-blog/pages/article_show.html`
+- `templates/themes/duocai-blog/pages/article_list.html`
+- `templates/themes/duocai-blog/pages/category.html`
+- `templates/themes/duocai-blog/pages/tag.html`
+- `templates/themes/duocai-blog/pages/tags.html`
+- `templates/themes/duocai-blog/pages/archives.html`
+- `templates/themes/duocai-blog/pages/categories.html`
+- `templates/themes/duocai-blog/pages/search.html`
+- `templates/themes/duocai-blog/pages/page.html`
+- `templates/themes/duocai-blog/pages/404.html`
+
+**修复日期：** 2026-03-26
+
+---
+
+## 新增问题（2026-03-26）
+
+### 问题 18: `cannot index slice/array with type models.Post`
+
+**错误信息：**
+```
+template execute error: template: home.html:240:61: executing "home.html" at <index $.posts .>: error calling index: cannot index slice/array with type models.Post
+```
+
+**原因：**
+在 `range` 循环中，`.` 是**当前迭代对象**，不是索引。错误地使用 `index $.posts .` 试图用 Post 对象作为索引。
+
+**错误写法：**
+```html
+{{ range first 5 .posts }}
+    <span class="popular-number">{{ add (index $.posts .) 1 }}</span>
+    <!-- ❌ 错误：. 是 Post 对象，不能用作数组索引 -->
+```
+
+**正确写法：**
+```html
+{{ range $index, $post := first 5 .posts }}
+    <span class="popular-number">{{ add $index 1 }}</span>
+    <!-- ✅ 正确：使用 $index 获取位置 -->
+```
+
+**Go 模板 range 循环语法：**
+```html
+{{ range $index, $item := collection }}
+    {{ $index }}  <!-- 当前索引（从0开始）-->
+    {{ $item }}   <!-- 当前元素 -->
+{{ end }}
+
+{{ range $item := collection }}
+    {{ . }}       <!-- 当前元素（隐式 dot）-->
+{{ end }}
+```
+
+**影响文件：**
+- `templates/themes/duocai-blog/pages/home.html`
+
+**修复日期：** 2026-03-26

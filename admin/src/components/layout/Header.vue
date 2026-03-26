@@ -16,6 +16,18 @@
     </div>
 
     <div class="header-right">
+      <!-- 清缓存 -->
+      <el-tooltip content="清理全站缓存，使主题模板修改立即生效" placement="bottom">
+        <el-button
+          :icon="Refresh"
+          :loading="cacheClearing"
+          class="clear-cache-btn"
+          @click="handleClearCache"
+        >
+          清缓存
+        </el-button>
+      </el-tooltip>
+
       <!-- 搜索 -->
       <el-input
         v-model="searchKeyword"
@@ -66,10 +78,12 @@ import {
   ArrowDown,
   User,
   Key,
-  SwitchButton
+  SwitchButton,
+  Refresh
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store'
 import { logout } from '@/utils/auth'
+import { clearAllCache } from '@/api/theme'
 
 const props = defineProps({
   collapsed: {
@@ -87,6 +101,20 @@ const userStore = useUserStore()
 const searchKeyword = ref('')
 const userName = ref('管理员')
 const userAvatar = ref('')
+const cacheClearing = ref(false)
+
+// 清缓存
+const handleClearCache = async () => {
+  cacheClearing.value = true
+  try {
+    await clearAllCache()
+    ElMessage.success('缓存已清理，页面将使用最新模板')
+  } catch (err) {
+    ElMessage.error('清缓存失败：' + (err?.message || '未知错误'))
+  } finally {
+    cacheClearing.value = false
+  }
+}
 
 // 面包屑导航
 const breadcrumbs = computed(() => {
@@ -223,6 +251,10 @@ onMounted(async () => {
   }
 
   .user-name {
+    display: none;
+  }
+
+  .clear-cache-btn span:not(.el-icon) {
     display: none;
   }
 }

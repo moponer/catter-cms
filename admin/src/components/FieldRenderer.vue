@@ -142,12 +142,17 @@
       </div>
 
       <!-- Image -->
-      <MediaPicker
+      <ImageUploadField
         v-else-if="type === 'image'"
         v-model="modelValue"
         :disabled="disabled"
-        :multiple="multiple"
-        :accept="accept || 'image/*'"
+      />
+
+      <!-- Image List (Carousel) -->
+      <ImageListUploadField
+        v-else-if="type === 'image-list'"
+        v-model="modelValue"
+        :disabled="disabled"
       />
 
       <!-- RichText -->
@@ -240,6 +245,8 @@ import { computed } from 'vue'
 import MediaPicker from './MediaPicker.vue'
 import RichTextEditor from './RichTextEditor.vue'
 import RepeaterField from './RepeaterField.vue'
+import ImageUploadField from './ImageUploadField.vue'
+import ImageListUploadField from './ImageListUploadField.vue'
 
 const props = defineProps({
   modelValue: [String, Number, Boolean, Array, Object, Date],

@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客 - {{ .site.title }}</title>
+    <meta name="description" content="{{ .site.description }}">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/home.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/list.css" }}">
+    <style>
+        :root {
+            --primary: {{ getConfig "primaryColor" "#FF6B6B" }};
+            --primary-hover: {{ getConfig "primaryDark" "#EE5A5A" }};
+            --primary-light: {{ getConfig "primaryLight" "#FF8E8E" }};
+            --accent: {{ getConfig "accentColor" "#4ECDC4" }};
+            --secondary: {{ getConfig "secondaryColor" "#FFE66D" }};
+            --purple: {{ getConfig "purpleAccent" "#A78BFA" }};
+            --bg-primary: {{ getConfig "bgPrimary" "#FAFAFA" }};
+            --bg-secondary: {{ getConfig "bgSecondary" "#FFFFFF" }};
+            --bg-dark: {{ getConfig "bgDarkSection" "#2D2A4A" }};
+            --text-primary: {{ getConfig "textPrimary" "#2D3748" }};
+            --text-secondary: {{ getConfig "textSecondary" "#718096" }};
+            --text-muted: {{ getConfig "textMuted" "#A0AEC0" }};
+            --banner-bg: {{ getConfig "bannerBg" "var(--primary)" }};
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/" class="logo">
+                <span class="logo-icon"><i class="fa-solid fa-feather-pointed"></i></span>
+                {{ .site.title }}
+            </a>
+            <nav class="nav-menu">
+                {{ range .headerMenu.Items }}
+                <a href="{{ .URL }}" class="nav-link" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            <div class="header-actions">
+                <a href="/search" class="search-btn" aria-label="搜索">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Inner Page Hero -->
+    {{ if getConfig "innerHeroEnabled" true }}
+    <section class="hero page-hero">
+        {{ $heroSlidesRaw := getConfig "heroSlides" "[]" }}
+        {{ $heroSlides := json_decode $heroSlidesRaw }}
+        {{ if $heroSlides }}
+        <div class="hero-carousel">
+            <div class="carousel-slides">
+                {{ range $index, $slide := $heroSlides }}
+                <div class="carousel-slide {{ if eq $index 0 }}active{{ end }}" style="background-image: url('{{ $slide.url }}')">
+                </div>
+                {{ end }}
+            </div>
+            {{ if gt (len $heroSlides) 1 }}
+            <div class="carousel-dots">
+                {{ range $index, $slide := $heroSlides }}
+                <span class="carousel-dot {{ if eq $index 0 }}active{{ end }}" data-index="{{ $index }}"></span>
+                {{ end }}
+            </div>
+            {{ end }}
+        </div>
+        {{ end }}
+        <div class="hero-content page-hero-content">
+            <h1 class="page-hero-title">全部文章</h1>
+            <p class="page-hero-subtitle">这里汇集了所有的精彩内容</p>
+        </div>
+    </section>
+    {{ else }}
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1 class="page-hero-title">全部文章</h1>
+            <p class="page-hero-subtitle">这里汇集了所有的精彩内容</p>
+        </div>
+    </div>
+    {{ end }}
+
+    <!-- Main Content -->
+    <main class="main-wrapper {{ if eq (getConfig "sidebarPosition" "right") "left" }}sidebar-left{{ end }}">
+        <div class="main-content">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-bar-left">
+                    <span class="filter-label">共 {{ len .posts }} 篇文章</span>
+                </div>
+            </div>
+
+            <!-- Articles Grid -->
+            <div class="articles-grid">
+                {{ range .posts }}
+                <article class="article-card">
+                    {{ if getConfig "showThumbnail" true }}
+                    <div class="article-card-image">
+                        {{ if .Cover }}
+                        <img src="{{ .Cover }}" alt="{{ .Title }}">
+                        {{ else }}
+                        <i class="fa-solid fa-image article-card-placeholder"></i>
+                        {{ end }}
+                    </div>
+                    {{ end }}
+                    <div class="article-card-body">
+                        <div class="article-card-meta">
+                            {{ if and (getConfig "showCategory" true) .Category }}
+                            <a href="/category/{{ .Category.Slug }}" class="article-card-category">{{ .Category.Name }}</a>
+                            {{ end }}
+                            {{ if .PublishedAt }}
+                            <span><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" .PublishedAt }}</span>
+                            {{ end }}
+                        </div>
+                        <h3 class="article-card-title">
+                            <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+                        </h3>
+                        {{ if getConfig "showExcerpt" true }}
+                        {{ if .Excerpt }}
+                        <p class="article-card-excerpt">{{ substr .Excerpt 0 120 }}...</p>
+                        {{ end }}
+                        {{ end }}
+                        <div class="article-card-footer">
+                            <div class="article-card-info">
+                                {{ if getConfig "showViews" true }}
+                                <span><i class="fa-regular fa-eye"></i> {{ .Views }}</span>
+                                {{ end }}
+                            </div>
+                            {{ if getConfig "showTags" true }}
+                            <div class="article-card-tags">
+                                {{ range first 2 .Tags }}
+                                <a href="/tag/{{ .Slug }}" class="tag">{{ .Name }}</a>
+                                {{ end }}
+                            </div>
+                            {{ end }}
+                        </div>
+                    </div>
+                </article>
+                {{ else }}
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <i class="fa-regular fa-newspaper empty-state-icon"></i>
+                    <h3 class="empty-state-title">暂无文章</h3>
+                    <p class="empty-state-text">还没有发布任何文章，敬请期待！</p>
+                </div>
+                {{ end }}
+            </div>
+
+            <!-- Pagination -->
+            {{ if .pagination }}
+            <nav class="pagination">
+                {{ if gt .pagination.page 1 }}
+                <a href="?page={{ sub .pagination.page 1 }}" class="pagination-item">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+                {{ end }}
+                {{ range (iterate .pagination.totalPages) }}
+                <a href="?page={{ . }}" class="pagination-item {{ if eq $.pagination.page . }}active{{ end }}">
+                    {{ . }}
+                </a>
+                {{ end }}
+                {{ if lt .pagination.page .pagination.totalPages }}
+                <a href="?page={{ add .pagination.page 1 }}" class="pagination-item">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                {{ end }}
+            </nav>
+            {{ end }}
+        </div>
+
+        <!-- Sidebar -->
+        {{ if getConfig "sidebarEnabled" true }}
+        <aside class="sidebar">
+            <!-- Search Widget -->
+            <div class="sidebar-widget">
+                <h3 class="sidebar-widget-title">
+                    <i class="fa-solid fa-magnifying-glass"></i> 搜索
+                </h3>
+                <form action="/search" method="get" class="search-form" style="flex-direction: column;">
+                    <input type="text" name="q" class="search-input" placeholder="搜索文章...">
+                </form>
+            </div>
+
+            <!-- Categories Widget -->
+            {{ if and (getConfig "sidebarCategories" true) .categories }}
+            <div class="sidebar-widget">
+                <h3 class="sidebar-widget-title">
+                    <i class="fa-solid fa-folder"></i> 分类目录
+                </h3>
+                <ul class="categories-list">
+                    {{ range .categories }}
+                    <li>
+                        <a href="/category/{{ .Slug }}">
+                            <span><i class="fa-regular fa-folder"></i> {{ .Name }}</span>
+                        </a>
+                    </li>
+                    {{ end }}
+                </ul>
+            </div>
+            {{ end }}
+
+            <!-- Tags Widget -->
+            {{ if and (getConfig "sidebarTags" true) .tags }}
+            <div class="sidebar-widget">
+                <h3 class="sidebar-widget-title">
+                    <i class="fa-solid fa-tags"></i> 标签云
+                </h3>
+                <div class="tags-cloud">
+                    {{ range .tags }}
+                    <a href="/tag/{{ .Slug }}" class="tag">{{ .Name }}</a>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+        </aside>
+        {{ end }}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-simple">
+                <div class="footer-nav">
+                    {{ range .footerMenu.Items }}
+                    <a href="{{ .URL }}" {{ if eq .Target "_blank" }}target="_blank" rel="noopener"{{ end }}>{{ .Label }}</a>
+                    {{ end }}
+                </div>
+                <p class="footer-copyright">&copy; {{ .site.year }} {{ .site.title }} &middot; 用心记录每一天</p>
+            </div>
+        </div>
+    </footer>
+    {{ if getConfig "innerHeroEnabled" true }}
+    <script>
+    (function() {
+        var slides = document.querySelectorAll('.carousel-slide');
+        var dots = document.querySelectorAll('.carousel-dot');
+        if (slides.length <= 1) return;
+        var current = 0;
+        function showSlide(n) {
+            slides[current].classList.remove('active');
+            if (dots[current]) dots[current].classList.remove('active');
+            current = (n + slides.length) % slides.length;
+            slides[current].classList.add('active');
+            if (dots[current]) dots[current].classList.add('active');
+        }
+        dots.forEach(function(dot, i) {
+            dot.addEventListener('click', function() { showSlide(i); });
+        });
+        setInterval(function() { showSlide(current + 1); }, 4000);
+    })();
+    </script>
+    {{ end }}
+</body>
+</html>

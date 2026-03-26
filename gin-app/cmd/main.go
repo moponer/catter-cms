@@ -327,10 +327,8 @@ func main() {
 				c.File(adminDistPath + "/index.html")
 				return
 			}
-			// 其他路径返回 404
-			c.Header("Content-Type", "text/html; charset=utf-8")
-			c.Status(http.StatusNotFound)
-			c.File("./templates/404.html")
+			// 其他路径返回 404（主题优先）
+			render404(c)
 		})
 	} else {
 		log.Printf("Warning: Admin dist not found at %s, admin UI won't be available", adminDistPath)
@@ -393,6 +391,26 @@ func main() {
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+
+// ========== 工具函数 ==========
+
+// render404 渲染 404 页面：优先使用当前主题的 404 模板，回退到系统 404.html
+func render404(c *gin.Context) {
+	siteData := getSiteData()
+	data := map[string]interface{}{
+		"site":      siteData,
+		"pageTitle": "页面未找到",
+	}
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusNotFound)
+	// 尝试用当前主题渲染 404 模板
+	if content, err := services.RenderTemplate("404", data); err == nil {
+		c.String(http.StatusNotFound, string(content))
+		return
+	}
+	// 回退到系统静态 404.html
+	c.File("./templates/404.html")
 }
 
 // ========== 前台页面处理函数 ==========
@@ -461,7 +479,7 @@ func articleShowHandler(c *gin.Context) {
 		Preload("Category").
 		Preload("Tags").
 		First(&post).Error; err != nil {
-		c.HTML(http.StatusNotFound, "text/html", []byte("<html><body><h1>404 - Post Not Found</h1></body></html>"))
+		render404(c)
 		return
 	}
 
@@ -535,7 +553,7 @@ func pageShowHandler(c *gin.Context) {
 
 	var page models.Page
 	if err := models.DB.Where("slug = ? AND status = ?", slug, "published").First(&page).Error; err != nil {
-		c.HTML(http.StatusNotFound, "text/html", []byte("<html><body><h1>404 - Page Not Found</h1></body></html>"))
+		render404(c)
 		return
 	}
 
@@ -608,7 +626,7 @@ func categoryHandler(c *gin.Context) {
 
 	var category models.Category
 	if err := models.DB.Where("slug = ?", slug).First(&category).Error; err != nil {
-		c.HTML(http.StatusNotFound, "text/html", []byte("<html><body><h1>404 - Category Not Found</h1></body></html>"))
+		render404(c)
 		return
 	}
 
@@ -807,7 +825,7 @@ func tagHandler(c *gin.Context) {
 
 	var tag models.Tag
 	if err := models.DB.Where("slug = ?", slug).First(&tag).Error; err != nil {
-		c.HTML(http.StatusNotFound, "text/html", []byte("<html><body><h1>404 - Tag Not Found</h1></body></html>"))
+		render404(c)
 		return
 	}
 
