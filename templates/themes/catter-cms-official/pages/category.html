@@ -30,7 +30,7 @@
 {{ range .posts }}
 <article class="post-card">
 <h3><a href="/article/{{ .Slug }}">{{ .Title }}</a></h3>
-<div class="post-meta">📅 {{ if .PublishedAt }}{{ .PublishedAt.Format "2006-01-02" }}{{ end }}</div>
+<div class="post-meta"><i class="fa-solid fa-calendar"></i> {{ if .PublishedAt }}{{ .PublishedAt.Format "2006-01-02" }}{{ end }}</div>
 <p>{{ .Excerpt }}</p>
 </article>
 {{ end }}

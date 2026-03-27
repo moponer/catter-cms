@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html"
 	"log"
@@ -16,6 +17,15 @@ import (
 	"catter-cms-gin/internal/models"
 	"catter-cms-gin/internal/services"
 )
+
+// parseJSON 解析 JSON 字符串为 map
+func parseJSON(jsonStr string) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
 
 // getSiteData 获取站点基础数据
 func getSiteData() map[string]interface{} {
@@ -222,6 +232,9 @@ func main() {
 			// 主题设置 Schema API
 			protected.GET("/themes/:slug/schema", api.GetThemeSettingsSchema)
 
+			// 主题页面模板 API
+			protected.GET("/themes/:slug/templates", api.GetPageTemplates)
+
 			// 主题配置导入/导出 API
 			protected.GET("/themes/:slug/config/export", api.ExportThemeConfig)
 			protected.POST("/themes/:slug/config/import", api.ImportThemeConfig)
@@ -311,6 +324,16 @@ func main() {
 		r.GET("/login", func(c *gin.Context) {
 			c.Header("Content-Type", "text/html; charset=utf-8")
 			c.File(adminDistPath + "/index.html")
+		})
+
+		// Favicon.ico 处理（避免 404 HTML 页面被当作脚本执行）
+		r.GET("/favicon.ico", func(c *gin.Context) {
+			faviconPath := adminDistPath + "/favicon.ico"
+			if _, err := os.Stat(faviconPath); err == nil {
+				c.File(faviconPath)
+			} else {
+				c.Status(http.StatusNoContent)
+			}
 		})
 
 		// 管理后台静态文件（带 SPA fallback 中间件）
@@ -576,6 +599,15 @@ func pageShowHandler(c *gin.Context) {
 	templateName := "page"
 	if page.Template != "" && page.Template != "default" {
 		templateName = "page-" + page.Template
+	}
+
+	// 解析页面模板专属数据
+	if page.TemplateData != "" {
+		data["templateData"] = page.TemplateData // 原始 JSON 字符串
+		// 解析为 map 方便模板直接访问
+		if varData, err := parseJSON(page.TemplateData); err == nil {
+			data["td"] = varData
+		}
 	}
 
 	if content, err := services.RenderTemplate(templateName, data); err == nil {

@@ -33,6 +33,7 @@ var DefaultSettings = map[string]interface{}{
 
 // InitSettings 初始化默认设置
 func InitSettings() error {
+	// 第一步：确保所有默认设置都存在
 	for key, value := range DefaultSettings {
 		var setting Setting
 		result := DB.Where("key = ?", key).First(&setting)
@@ -48,7 +49,49 @@ func InitSettings() error {
 			}
 		}
 	}
+
+	// 第二步：检查并修复损坏的数据
+	if err := validateAndFixSettings(); err != nil {
+		// 只记录错误，不阻止启动
+		fmt.Printf("WARNING: settings validation found issues: %v\n", err)
+	}
+
 	return nil
+}
+
+// validateAndFixSettings 检查并修复损坏的设置值
+func validateAndFixSettings() error {
+	var settings []Setting
+	if err := DB.Find(&settings).Error; err != nil {
+		return err
+	}
+
+	for _, setting := range settings {
+		// 检查值是否是有效的 JSON
+		if !json.Valid([]byte(setting.Value)) {
+			fmt.Printf("WARNING: corrupted setting detected: %s = %s, resetting to default\n",
+				setting.Key, truncateString(setting.Value, 50))
+
+			// 如果有默认值，用默认值覆盖
+			if defaultValue, exists := DefaultSettings[setting.Key]; exists {
+				valueStr, _ := json.Marshal(defaultValue)
+				DB.Model(&setting).Update("value", string(valueStr))
+			} else {
+				// 没有默认值，设为空字符串的JSON
+				DB.Model(&setting).Update("value", `""`)
+			}
+		}
+	}
+
+	return nil
+}
+
+// truncateString 截断字符串用于日志显示
+func truncateString(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
 }
 
 // GetSetting 获取单个设置值

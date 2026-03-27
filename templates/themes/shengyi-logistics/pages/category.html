@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <title>{{ .category.Name }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ .category.Description | default .site.description }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
+    {{ if getConfig "customCSS" "" }}<style>{{ getConfig "customCSS" "" }}</style>{{ end }}
+</head>
+<body>
+
+<nav class="site-nav">
+    <div class="container">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo"><div class="nav-logo-icon"><i class="fa-solid fa-truck"></i></div><div class="nav-logo-text"><span class="nav-logo-main">XXX危化品物流有限公司</span><span class="nav-logo-sub">专业危化品道路运输服务商</span></div></a>
+            <ul class="nav-menu" id="navMenu">
+                {{ with .headerMenu }}{{ range .Items }}
+                <li><a href="{{ .URL }}">{{ .Label }}</a></li>
+                {{ end }}{{ else }}
+                <li><a href="/">首页</a></li>
+                <li><a href="/article-list">新闻动态</a></li>
+                <li><a href="/page/about">关于我们</a></li>
+                <li><a href="/page/fleet">运力展示</a></li>
+                <li><a href="/page/contact">联系我们</a></li>
+                {{ end }}
+            </ul>
+            <a href="tel:{{ getConfig "phone" "" }}" class="nav-phone"><span class="nav-phone-icon"><i class="fa-solid fa-phone"></i></span>{{ getConfig "phone" "" }}</a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+        </div>
+    </div>
+</nav>
+
+<div class="page-banner">
+    <h1 class="page-banner-title">{{ .category.Name }}</h1>
+    <div class="page-banner-breadcrumb"><a href="/">首页</a><span>›</span><a href="/article-list">新闻动态</a><span>›</span>{{ .category.Name }}</div>
+</div>
+
+<main class="main-wrapper">
+    <div class="container">
+        {{ if .category.Description }}<p class="category-desc">{{ .category.Description }}</p>{{ end }}
+        {{ range .posts }}
+        <a href="/article/{{ .Slug }}" class="news-list-item-row">
+            {{ if .Cover }}<img src="{{ .Cover }}" alt="{{ .Title }}" class="news-list-thumb">{{ else }}<div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>{{ end }}
+            <div class="news-list-body">
+                <div class="news-list-meta">{{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}<span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span></div>
+                <div class="news-list-item-title">{{ .Title }}</div>
+                <p class="news-list-excerpt">{{ .Excerpt }}</p>
+            </div>
+        </a>
+        {{ end }}
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div><div class="footer-brand-name">XXX危化品物流有限公司</div><p class="footer-brand-desc">{{ getConfig "footerDesc" "" }}</p><div class="footer-contact-item"><span class="footer-contact-item-icon"><i class="fa-solid fa-phone"></i></span><span>{{ getConfig "phone" "" }}</span></div><div class="footer-contact-item"><span class="footer-contact-item-icon"><i class="fa-solid fa-location-dot"></i></span><span>{{ getConfig "address" "" }}</span></div></div>
+            <div><div class="footer-col-title">快速导航</div><ul class="footer-links">{{ range .categories }}<li><a href="/category/{{ .Slug }}">{{ .Name }}</a></li>{{ end }}</ul></div>
+            <div><div class="footer-col-title">服务项目</div><ul class="footer-links"><li><a href="/page/contact">危化品整车配送</a></li><li><a href="/page/contact">危化品零担运输</a></li><li><a href="/page/contact">集装箱运输</a></li></ul></div>
+            <div><div class="footer-col-title">联系我们</div><ul class="footer-links"><li><a href="tel:{{ getConfig "phone" "" }}">{{ getConfig "phone" "" }}</a></li><li><a href="mailto:{{ getConfig "email" "" }}">{{ getConfig "email" "" }}</a></li></ul></div>
+        </div>
+    </div>
+    <div class="footer-bottom"><div class="container">Copyright © {{ .site.year }} XXX危化品物流有限公司 {{ if getConfig "icp" "" }} | <a href="https://beian.miit.gov.cn" target="_blank">{{ getConfig "icp" "" }}</a>{{ end }}</div></div>
+</footer>
+
+<script>(function(){var t=document.getElementById('navToggle'),m=document.getElementById('navMenu');if(t&&m)t.addEventListener('click',function(){m.classList.toggle('open');});})()</script>
+{{ if getConfig "customJS" "" }}<script>{{ getConfig "customJS" "" }}</script>{{ end }}
+</body>
+</html>

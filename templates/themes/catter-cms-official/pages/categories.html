@@ -30,7 +30,7 @@
             {{ if gt (len .categories) 0 }}
             {{ range .categories }}
             <a href="/category/{{ .Slug }}" class="category-card">
-                <div class="category-icon">📁</div>
+                <div class="category-icon"><i class="fa-solid fa-folder"></i></div>
                 <div class="category-info">
                     <h3 class="category-name">{{ .Name }}</h3>
                     <span class="category-count">{{ .PostCount }} 篇文章</span>

@@ -33,8 +33,8 @@
             <article class="post-card">
                 <h2><a href="/article/{{ .Slug }}">{{ .Title }}</a></h2>
                 <div class="post-meta">
-                    {{ if .PublishedAt }}<span>📅 {{ .PublishedAt.Format "2006-01-02" }}</span>{{ end }}
-                    <span>👁 {{ .Views }} 阅读</span>
+                    {{ if .PublishedAt }}<span><i class="fa-solid fa-calendar"></i> {{ .PublishedAt.Format "2006-01-02" }}</span>{{ end }}
+                    <span><i class="fa-solid fa-eye"></i> {{ .Views }} 阅读</span>
                 </div>
             </article>
             {{ end }}

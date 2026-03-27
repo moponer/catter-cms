@@ -60,11 +60,11 @@
             {{ range (json_decode .themeConfig.features) }}
             <div class="feature-card">
                 <div class="feature-icon">
-                    {{ if eq .icon "lightning" }}<i class="fas fa-bolt"></i>
-                    {{ else if eq .icon "puzzle" }}<i class="fas fa-puzzle-piece"></i>
-                    {{ else if eq .icon "paintbrush" }}<i class="fas fa-paint-brush"></i>
-                    {{ else if eq .icon "shield" }}<i class="fas fa-shield-alt"></i>
-                    {{ else }}<i class="fas fa-check"></i>{{ end }}
+                    {{ if eq .icon "lightning" }}<i class="fa-solid fa-bolt"></i>
+                    {{ else if eq .icon "puzzle" }}<i class="fa-solid fa-puzzle-piece"></i>
+                    {{ else if eq .icon "paintbrush" }}<i class="fa-solid fa-paintbrush"></i>
+                    {{ else if eq .icon "shield" }}<i class="fa-solid fa-shield-halved"></i>
+                    {{ else }}<i class="fa-solid fa-check"></i>{{ end }}
                 </div>
                 <h3>{{ .title }}</h3>
                 <p>{{ .desc }}</p>
@@ -85,7 +85,7 @@
             {{ range (json_decode .themeConfig.products) }}
             <div class="product-card">
                 <div class="product-image">
-                    <i class="fas fa-gem"></i>
+                    <i class="fa-solid fa-gem"></i>
                 </div>
                 <div class="product-content">
                     <h3>{{ .name }}</h3>
@@ -116,7 +116,7 @@
                 </div>
                 <ul>
                     {{ range .features }}
-                    <li><i class="fas fa-check"></i>{{ . }}</li>
+                    <li><i class="fa-solid fa-check"></i>{{ . }}</li>
                     {{ end }}
                 </ul>
                 <a href="{{ .link }}" class="pricing-btn {{ if .recommended }}pricing-btn-primary{{ else }}pricing-btn-outline{{ end }}">{{ .button }}</a>

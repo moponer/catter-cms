@@ -16,6 +16,7 @@ type PageRequest struct {
 	Excerpt         string `json:"excerpt"`
 	Status          string `json:"status"`
 	Template        string `json:"template"`
+	TemplateData    string `json:"template_data"`
 	MetaTitle       string `json:"meta_title"`
 	MetaDescription string `json:"meta_description"`
 	SortOrder       int    `json:"sort_order"`
@@ -109,6 +110,7 @@ func CreatePage(c *gin.Context) {
 		Excerpt:         req.Excerpt,
 		Status:          req.Status,
 		Template:        req.Template,
+		TemplateData:    req.TemplateData,
 		MetaTitle:       req.MetaTitle,
 		MetaDescription: req.MetaDescription,
 		SortOrder:       req.SortOrder,
@@ -157,15 +159,16 @@ func UpdatePage(c *gin.Context) {
 	}
 
 	updates := map[string]interface{}{
-		"title":            req.Title,
-		"slug":             req.Slug,
-		"content":         req.Content,
-		"excerpt":          req.Excerpt,
-		"status":           req.Status,
-		"template":         req.Template,
-		"meta_title":       req.MetaTitle,
-		"meta_description": req.MetaDescription,
-		"sort_order":      req.SortOrder,
+		"title":             req.Title,
+		"slug":              req.Slug,
+		"content":          req.Content,
+		"excerpt":           req.Excerpt,
+		"status":            req.Status,
+		"template":          req.Template,
+		"template_data":     req.TemplateData,
+		"meta_title":        req.MetaTitle,
+		"meta_description":  req.MetaDescription,
+		"sort_order":       req.SortOrder,
 	}
 
 	if err := models.DB.Model(&page).Updates(updates).Error; err != nil {

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <title>联系我们 - {{ .site.title }}</title>
+    <meta name="description" content="危险化学品运输企业联系信息，危化品物流服务咨询">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
+    {{ if getConfig "customCSS" "" }}<style>{{ getConfig "customCSS" "" }}</style>{{ end }}
+</head>
+<body>
+
+<nav class="site-nav">
+    <div class="container">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo"><div class="nav-logo-icon"><i class="fa-solid fa-truck"></i></div><div class="nav-logo-text"><span class="nav-logo-main">XXX危化品物流有限公司</span><span class="nav-logo-sub">专业危化品道路运输服务商</span></div></a>
+            <ul class="nav-menu" id="navMenu">
+                {{ with .headerMenu }}{{ range .Items }}
+                <li><a href="{{ .URL }}">{{ .Label }}</a></li>
+                {{ end }}{{ else }}
+                <li><a href="/">首页</a></li>
+                <li><a href="/article-list">新闻动态</a></li>
+                <li><a href="/page/about">关于我们</a></li>
+                <li><a href="/page/fleet">运力展示</a></li>
+                <li><a href="/page/contact">联系我们</a></li>
+                {{ end }}
+            </ul>
+            <a href="tel:{{ getConfig "phone" "" }}" class="nav-phone"><span class="nav-phone-icon"><i class="fa-solid fa-phone"></i></span>{{ getConfig "phone" "" }}</a>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+        </div>
+    </div>
+</nav>
+
+<div class="page-banner">
+    <h1 class="page-banner-title">联系我们</h1>
+    <div class="page-banner-breadcrumb"><a href="/">首页</a><span>›</span>联系我们</div>
+</div>
+
+<main class="main-wrapper">
+    <div class="container">
+        <!-- 联系信息卡片 -->
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="contact-card-icon"><i class="fa-solid fa-phone"></i></div>
+                <div class="contact-card-title">联系电话</div>
+                <div class="contact-card-value"><a href="tel:{{ getConfig "phone" "" }}">{{ getConfig "phone" "" }}</a></div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon"><i class="fa-solid fa-fax"></i></div>
+                <div class="contact-card-title">公司传真</div>
+                <div class="contact-card-value">021-XXXX-XXXX</div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon"><i class="fa-solid fa-envelope"></i></div>
+                <div class="contact-card-title">联系邮箱</div>
+                <div class="contact-card-value"><a href="mailto:{{ getConfig "email" "" }}">{{ getConfig "email" "" }}</a></div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon"><i class="fa-solid fa-location-dot"></i></div>
+                <div class="contact-card-title">公司地址</div>
+                <div class="contact-card-value">{{ getConfig "address" "" }}</div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon"><i class="fa-solid fa-list"></i></div>
+                <div class="contact-card-title">邮编</div>
+                <div class="contact-card-value">200000</div>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon"><i class="fa-solid fa-comments"></i></div>
+                <div class="contact-card-title">在线 QQ</div>
+                <div class="contact-card-value">131-XXXX-XXX</div>
+            </div>
+        </div>
+
+        <div class="contact-grid-wrap">
+            <!-- 留言表单 -->
+            <div class="form-card">
+                <div class="form-card-title"><i class="fa-solid fa-cloud"></i> 在线留言</div>
+                <form id="contactForm" onsubmit="return handleSubmit(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">姓名 *</label>
+                            <input type="text" name="author_name" class="form-input" placeholder="请输入您的姓名" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">电话 *</label>
+                            <input type="tel" name="phone" class="form-input" placeholder="请输入联系电话" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" name="author_email" class="form-input" placeholder="请输入电子邮箱">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">需求描述 *</label>
+                        <textarea name="content" class="form-input" placeholder="请描述您的运输需求（货物类型、重量、始发地、目的地等）" required></textarea>
+                    </div>
+                    <button type="submit" class="form-submit">提交留言</button>
+                </form>
+            </div>
+
+            <!-- 地图 -->
+            <div>
+                <div class="sidebar-widget contact-address-widget">
+                    <div class="sidebar-widget-title"><i class="fa-solid fa-location-dot"></i> 公司地址</div>
+                    <p class="contact-address-text">{{ getConfig "address" "" }}</p>
+                    <div class="contact-hours-box">
+                        <p class="contact-hours-label"><i class="fa-solid fa-clock"></i> 服务时间</p>
+                        <p class="contact-hours-text">周一至周六 08:30 - 18:00<br>24小时应急调度热线</p>
+                    </div>
+                </div>
+                {{ if getConfig "mapUrl" "" }}
+                <div class="map-wrap">
+                    <iframe src="{{ getConfig "mapUrl" "" }}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div><div class="footer-brand-name">XXX危化品物流有限公司</div><p class="footer-brand-desc">{{ getConfig "footerDesc" "" }}</p><div class="footer-contact-item"><span class="footer-contact-item-icon"><i class="fa-solid fa-phone"></i></span><span>{{ getConfig "phone" "" }}</span></div></div>
+            <div><div class="footer-col-title">快速导航</div><ul class="footer-links">{{ with .footerMenu }}{{ range .Items }}<li><a href="{{ .URL }}">{{ .Label }}</a></li>{{ end }}{{ else }}<li><a href="/">首页</a></li><li><a href="/article-list">新闻动态</a></li><li><a href="/page/about">关于我们</a></li><li><a href="/page/contact">联系我们</a></li>{{ end }}</ul></div>
+            <div><div class="footer-col-title">服务项目</div><ul class="footer-links"><li><a href="/page/contact">危化品整车配送</a></li><li><a href="/page/contact">危化品零担运输</a></li><li><a href="/page/contact">集装箱运输</a></li></ul></div>
+            <div><div class="footer-col-title">资质认证</div><ul class="footer-links"><li><a href="#">道路危货运输许可证</a></li><li><a href="#">ISO9001质量体系认证</a></li></ul></div>
+        </div>
+    </div>
+    <div class="footer-bottom"><div class="container">Copyright © {{ .site.year }} XXX危化品物流有限公司 {{ if getConfig "icp" "" }} | <a href="https://beian.miit.gov.cn" target="_blank">{{ getConfig "icp" "" }}</a>{{ end }}</div></div>
+</footer>
+
+<script>
+(function(){
+    var t=document.getElementById('navToggle'),m=document.getElementById('navMenu');
+    if(t&&m)t.addEventListener('click',function(){m.classList.toggle('open');});
+})();
+function handleSubmit(e){
+    e.preventDefault();
+    var form=e.target;
+    var phone=form.phone ? form.phone.value : '';
+    var bodyContent=phone ? '电话：'+phone+'\n\n'+form.content.value : form.content.value;
+    var data={
+        post_id:1,
+        author_name:form.author_name.value,
+        author_email:form.author_email ? form.author_email.value : '',
+        author_url:'',
+        content:bodyContent
+    };
+    fetch('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+    .then(function(r){return r.json();})
+    .then(function(r){
+        if(r.code===0){alert('提交成功！我们将尽快与您联系。');form.reset();}
+        else{alert('提交失败：'+(r.message||'请稍后重试'));}
+    })
+    .catch(function(){alert('网络错误，请稍后重试');});
+    return false;
+}
+</script>
+{{ if getConfig "customJS" "" }}<script>{{ getConfig "customJS" "" }}</script>{{ end }}
+</body>
+</html>

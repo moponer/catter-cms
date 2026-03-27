@@ -23,12 +23,58 @@ import (
 )
 
 // ConfigSection 配置分组结构
+// 支持三种 YAML 格式：
+//   1. section: xxx  (catter-cms-official 等旧主题，section 兼作显示名)
+//   2. label: xxx, key: yyy  (dianyan-blog / duocai-blog)
+//   3. name: xxx, key: yyy   (shengyi-logistics)
 type ConfigSection struct {
 	Section     string  `yaml:"section" json:"section"`
 	Label       string  `yaml:"label" json:"label"`
 	Description string  `yaml:"description" json:"description"`
 	Icon        string  `yaml:"icon" json:"icon"`
 	Fields      []Field `yaml:"fields" json:"fields"`
+}
+
+// PageTemplate 页面模板定义
+type PageTemplate struct {
+	Name        string  `yaml:"name" json:"name"`
+	Type        string  `yaml:"type" json:"type"`
+	Icon        string  `yaml:"icon" json:"icon"`
+	Description string  `yaml:"description" json:"description"`
+	Fields      []Field `yaml:"fields" json:"fields"`
+}
+
+// UnmarshalYAML 兼容多种 YAML 格式
+func (cs *ConfigSection) UnmarshalYAML(node *yaml.Node) error {
+	type plain ConfigSection
+	if err := node.Decode((*plain)(cs)); err != nil {
+		return err
+	}
+
+	// 如果 Label 为空，尝试用 Section 的值
+	if cs.Label == "" && cs.Section != "" {
+		cs.Label = cs.Section
+	}
+
+	// 支持 name + key 格式（shengyi-logistics）
+	// name 字段存到 Label，key 字段存到 Section
+	for i := 0; i < len(node.Content); i++ {
+		child := node.Content[i]
+		if child.Value == "name" && i+1 < len(node.Content) {
+			if cs.Label == "" {
+				cs.Label = node.Content[i+1].Value
+			}
+		}
+		if child.Value == "key" && i+1 < len(node.Content) {
+			if cs.Section == "" {
+				cs.Section = node.Content[i+1].Value
+			}
+		}
+	}
+
+	// 兼容 label + key 格式（dianyan-blog / duocai-blog）
+	// Label 和 Section 已在 Decode 时正确赋值
+	return nil
 }
 
 // Field 配置字段结构
@@ -131,6 +177,7 @@ type Theme struct {
 	Path             string                 // 主题路径
 	Config           map[string]interface{} `yaml:"config"`
 	ConfigDefinition []ConfigSection        `yaml:"configDefinition"`
+	PageTemplates    []PageTemplate         `yaml:"pageTemplates"`
 }
 
 // TemplateSet 模板集 - 存储组合后的所有模板
@@ -292,9 +339,23 @@ func (s *ThemeService) LoadTheme(name, path string) (*Theme, error) {
 		}
 	}
 
+	// 如果 YAML 中没有 config 节点，从 configDefinition 的 default 值初始化
+	if theme.Config == nil {
+		theme.Config = make(map[string]interface{})
+	}
+
+	// 从 configDefinition 提取 default 值（扁平格式）
+	for _, section := range theme.ConfigDefinition {
+		for _, field := range section.Fields {
+			if field.Default != nil {
+				theme.Config[field.Name] = field.Default
+			}
+		}
+	}
+
 	// 关键修复：先将 YAML 的嵌套 config 扁平化，再与数据库的扁平格式合并
 	// 这样 DeepMerge(flat, flat) 就能正确处理所有 key
-	if theme.Config != nil {
+	if len(theme.Config) > 0 {
 		theme.Config = FlattenMap(theme.Config)
 	}
 
@@ -304,9 +365,6 @@ func (s *ThemeService) LoadTheme(name, path string) (*Theme, error) {
 		log.Printf("[WARN] Failed to load theme config for %s: %v", name, err)
 	} else if len(savedConfig) > 0 {
 		// 扁平合并：数据库值覆盖 YAML 默认值
-		if theme.Config == nil {
-			theme.Config = make(map[string]interface{})
-		}
 		theme.Config = models.DeepMerge(theme.Config, savedConfig)
 	}
 
@@ -377,19 +435,15 @@ func getMapKeys(m map[string]interface{}) []string {
 }
 
 // preloadAllTemplates 预加载主题的所有模板（页面 + 模块）
-// 使用组合解析方式，使 {{template "模块名"}} 调用正常工作
+// 模板文件必须放在 pages/ 子目录下，模块文件放在 modules/ 子目录下
 func (s *ThemeService) preloadAllTemplates(theme *Theme) {
 	if theme == nil {
 		return
 	}
 
-	// 收集所有模板文件
 	var templateFiles []string
 	themePath := theme.Path
 
-	// 获取当前工作目录
-	cwd, _ := os.Getwd()
-	log.Printf("[DEBUG] CWD: %s", cwd)
 	log.Printf("[DEBUG] Preloading templates for theme: %s, path: %s", theme.Name, themePath)
 
 	// 添加 modules 目录下的模板（如果存在）
@@ -400,12 +454,14 @@ func (s *ThemeService) preloadAllTemplates(theme *Theme) {
 		log.Printf("[DEBUG] Found %d module templates in: %s", len(moduleFiles), modulesPath)
 	}
 
-	// 添加 pages 目录下的模板
+	// 添加 pages 目录下的模板（必须）
 	pagesPath := filepath.Join(themePath, "pages")
 	if info, err := os.Stat(pagesPath); err == nil && info.IsDir() {
 		pageFiles, _ := filepath.Glob(filepath.Join(pagesPath, "*.html"))
 		templateFiles = append(templateFiles, pageFiles...)
 		log.Printf("[DEBUG] Found %d page templates in: %s", len(pageFiles), pagesPath)
+	} else {
+		log.Printf("[ERROR] pages/ directory not found for theme: %s at: %s", theme.Name, pagesPath)
 	}
 
 	if len(templateFiles) == 0 {
@@ -561,15 +617,23 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 
 	// 添加站点信息
 	if site, ok := data["site"].(map[string]interface{}); ok {
+		log.Printf("[DEBUG] RenderTemplate: data['site'] found, keys: %v", getMapKeys(site))
+		log.Printf("[DEBUG] RenderTemplate: site['title'] = %v, site['year'] = %v", site["title"], site["year"])
 		if configMap, ok := templateData["config"].(map[string]interface{}); ok {
 			configMap["siteTitle"] = site["title"]
 			configMap["siteDescription"] = site["description"]
 			configMap["siteYear"] = site["year"]
+			log.Printf("[DEBUG] RenderTemplate: configMap now has keys: %v", getMapKeys(configMap))
 		}
 		if title, ok := site["title"].(string); ok {
 			templateData["siteName"] = title
 		}
+	} else {
+		log.Printf("[WARN] RenderTemplate: data['site'] is NOT a map[string]interface{}, type: %T", data["site"])
 	}
+
+	log.Printf("[DEBUG] RenderTemplate: templateData['site'] type = %T, keys = %v", templateData["site"], getMapKeys(templateData["site"].(map[string]interface{})))
+	log.Printf("[DEBUG] RenderTemplate: templateData['config'] keys = %v", getMapKeys(templateData["config"].(map[string]interface{})))
 
 	// 添加菜单数据
 	headerMenu, _ := models.GetMenuByLocation("header")
@@ -792,10 +856,83 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 			return 0
 		},
 
+		// mul函数 - 乘法（支持 int, int64, float64）
+		"mul": func(a, b interface{}) float64 {
+			toFloat := func(v interface{}) float64 {
+				switch n := v.(type) {
+				case int:
+					return float64(n)
+				case int64:
+					return float64(n)
+				case float64:
+					return n
+				default:
+					return 0
+				}
+			}
+			return toFloat(a) * toFloat(b)
+		},
+
+		// div函数 - 除法（支持 int, int64, float64）
+		"div": func(a, b interface{}) float64 {
+			toFloat := func(v interface{}) float64 {
+				switch n := v.(type) {
+				case int:
+					return float64(n)
+				case int64:
+					return float64(n)
+				case float64:
+					return n
+				default:
+					return 0
+				}
+			}
+			bf := toFloat(b)
+			if bf == 0 {
+				return 0
+			}
+			return toFloat(a) / bf
+		},
+
+		// divide100函数 - 将 0-100 的整数转换为 0.00-1.00 的小数（用于 opacity 等）
+		"divide100": func(v interface{}) float64 {
+			if v == nil {
+				return 0.25
+			}
+			switch n := v.(type) {
+			case int:
+				return float64(n) / 100.0
+			case int64:
+				return float64(n) / 100.0
+			case float32:
+				return float64(n) / 100.0
+			case float64:
+				return n / 100.0
+			case string:
+				// 尝试解析字符串
+				if f, err := strconv.ParseFloat(n, 64); err == nil {
+					return f / 100.0
+				}
+				return 0.25
+			default:
+				log.Printf("[WARN] divide100: unsupported type %T, value: %v", v, v)
+				return 0.25
+			}
+		},
+
 		// iterate函数 - 生成数字序列（用于分页）
 		"iterate": func(n int64) []int {
 			result := make([]int, int(n))
 			for i := 0; i < int(n); i++ {
+				result[i] = i
+			}
+			return result
+		},
+
+		// until函数 - 生成 0 到 n-1 的整数序列（与 iterate 相同）
+		"until": func(n int) []int {
+			result := make([]int, n)
+			for i := 0; i < n; i++ {
 				result[i] = i
 			}
 			return result
@@ -931,14 +1068,6 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 			default:
 				return 0
 			}
-		},
-
-		// div函数 - 整数除法
-		"div": func(a, b int) int {
-			if b == 0 {
-				return 0
-			}
-			return a / b
 		},
 
 		// dateFormat函数 - 日期格式化

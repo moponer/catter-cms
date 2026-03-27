@@ -656,3 +656,42 @@ func ImportThemeConfig(c *gin.Context) {
 
 	SuccessWithMessage(c, "配置导入成功", nil)
 }
+
+// GetPageTemplates 获取主题的页面模板定义
+func GetPageTemplates(c *gin.Context) {
+	slug := c.Param("slug")
+
+	// 如果是 "current" 或空字符串，获取当前激活主题
+	if slug == "current" || slug == "" {
+		activeTheme := services.GetActiveTheme()
+		if activeTheme == nil {
+			NotFound(c, "没有激活的主题")
+			return
+		}
+		SuccessResponse(c, gin.H{
+			"templates":    activeTheme.PageTemplates,
+			"templateMap": buildTemplateMap(activeTheme.PageTemplates),
+		})
+		return
+	}
+
+	theme := services.GetTheme(slug)
+	if theme == nil {
+		NotFound(c, "主题不存在")
+		return
+	}
+
+	SuccessResponse(c, gin.H{
+		"templates":    theme.PageTemplates,
+		"templateMap": buildTemplateMap(theme.PageTemplates),
+	})
+}
+
+// buildTemplateMap 将页面模板数组转为 map（key 为 type）
+func buildTemplateMap(templates []services.PageTemplate) map[string]services.PageTemplate {
+	result := make(map[string]services.PageTemplate)
+	for _, t := range templates {
+		result[t.Type] = t
+	}
+	return result
+}
