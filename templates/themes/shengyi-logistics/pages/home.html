@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
-    <title>{{ .pageTitle }} - {{ .site.title }}</title>
+    <title>{{ .site.title }}</title>
     <meta name="description" content="{{ getConfig "metaDescription" "" }}">
     <meta name="keywords" content="{{ getConfig "metaKeywords" "" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
@@ -57,7 +57,7 @@
 <!-- ====== 首页内容模块（按配置顺序渲染） ====== -->
 {{ $moduleOrder := getConfig "homeModuleOrder" "" }}
 {{ $modules := ensureSlice $moduleOrder }}
-{{ if $modules }}
+{{ if gt (len $modules) 0 }}
     {{ range $modules }}
         {{ if eq .id "hero" }}
 {{ if getConfig "heroEnabled" true }}
@@ -103,12 +103,12 @@
             <h2>{{ if getConfig "advantagesTitle" "" }}{{ getConfig "advantagesTitle" "" }}{{ else }}核心服务优势{{ end }}</h2>
             <p>多年深耕危化品运输领域，为客户提供安全、专业、全程可溯源的物流保障</p>
         </div>
-        <div class="grid-3">
+        <div class="features-grid">
             {{ $items := getConfig "advantagesItems" "" }}
             {{ if $items }}
                 {{ range $items }}
                 <div class="feature-card">
-                    <div class="feature-icon"><i class="fa-solid fa-{{ if eq .icon "shield" }}certificate{{ else if eq .icon "gps" }}satellite-dish{{ else if eq .icon "lightning" }}bolt{{ else if eq .icon "globe" }}globe{{ else if eq .icon "certificate" }}certificate{{ else if eq .icon "industry" }}industry{{ else }}certificate{{ end }}"></i></div>
+                    <div class="feature-icon"><i class="fa-solid {{ .icon }}"></i></div>
                     <h3 class="feature-title">{{ .title }}</h3>
                     <p class="feature-desc">{{ .description }}</p>
                 </div>
@@ -157,13 +157,13 @@
             <h2>{{ if getConfig "servicesTitle" "" }}{{ getConfig "servicesTitle" "" }}{{ else }}服务项目{{ end }}</h2>
             <p>聚焦危化品运输全链路，提供多种运输解决方案</p>
         </div>
-        <div class="grid-3">
+        <div class="services-grid">
             {{ $items := getConfig "servicesItems" "" }}
             {{ if $items }}
                 {{ range $items }}
                 <div class="service-card">
                     <div class="service-card-header">
-                        <div class="service-icon"><i class="fa-solid fa-{{ if eq .icon "truck" }}truck{{ else if eq .icon "package" }}box{{ else if eq .icon "list" }}list{{ else if eq .icon "clock" }}clock{{ else if eq .icon "shield" }}shield-halved{{ else }}truck{{ end }}"></i></div>
+                        <div class="service-icon"><i class="fa-solid {{ .icon }}"></i></div>
                         <div class="service-card-header-text">
                             <h3>{{ .title }}</h3>
                             <p>{{ .description }}</p>
@@ -174,7 +174,7 @@
                             {{ $features := .features }}
                             {{ if $features }}
                                 {{ range split $features "\n" }}
-                                {{ if . }}<li><span class="service-features-icon">●</span> {{ . }}</li>{{ end }}
+                                {{ if . }}<li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span> {{ . }}</li>{{ end }}
                                 {{ end }}
                             {{ end }}
                         </ul>
@@ -193,10 +193,10 @@
                 </div>
                 <div class="service-card-body">
                     <ul class="service-features">
-                        <li><span class="service-features-icon">●</span>适用于大批量危化品运输</li>
-                        <li><span class="service-features-icon">●</span>专属危化品运输车辆</li>
-                        <li><span class="service-features-icon">●</span>一对一专项押运服务</li>
-                        <li><span class="service-features-icon">●</span>点到点直达，全程无中转</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>适用于大批量危化品运输</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>专属危化品运输车辆</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>一对一专项押运服务</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>点到点直达，全程无中转</li>
                     </ul>
                     <a href="/page/contact" class="btn btn-blue">立即询价</a>
                 </div>
@@ -211,10 +211,10 @@
                 </div>
                 <div class="service-card-body">
                     <ul class="service-features">
-                        <li><span class="service-features-icon">●</span>适用于小批量、多频次需求</li>
-                        <li><span class="service-features-icon">●</span>与整车分类规范装载</li>
-                        <li><span class="service-features-icon">●</span>专业分拣，防止货物混装</li>
-                        <li><span class="service-features-icon">●</span>灵活发车，降低库存压力</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>适用于小批量、多频次需求</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>与整车分类规范装载</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>专业分拣，防止货物混装</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>灵活发车，降低库存压力</li>
                     </ul>
                     <a href="/page/contact" class="btn btn-blue">立即询价</a>
                 </div>
@@ -229,10 +229,10 @@
                 </div>
                 <div class="service-card-body">
                     <ul class="service-features">
-                        <li><span class="service-features-icon">●</span>对接港口及工厂集装箱</li>
-                        <li><span class="service-features-icon">●</span>符合国际危化品装箱规范</li>
-                        <li><span class="service-features-icon">●</span>提供危化品申报协助</li>
-                        <li><span class="service-features-icon">●</span>海陆联运一站式衔接</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>对接港口及工厂集装箱</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>符合国际危化品装箱规范</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>提供危化品申报协助</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>海陆联运一站式衔接</li>
                     </ul>
                     <a href="/page/contact" class="btn btn-blue">立即询价</a>
                 </div>
@@ -379,12 +379,12 @@
             <h2>{{ if getConfig "advantagesTitle" "" }}{{ getConfig "advantagesTitle" "" }}{{ else }}核心服务优势{{ end }}</h2>
             <p>多年深耕危化品运输领域，为客户提供安全、专业、全程可溯源的物流保障</p>
         </div>
-        <div class="grid-3">
+        <div class="features-grid">
             {{ $items := getConfig "advantagesItems" "" }}
             {{ if $items }}
                 {{ range $items }}
                 <div class="feature-card">
-                    <div class="feature-icon"><i class="fa-solid fa-{{ if eq .icon "shield" }}certificate{{ else if eq .icon "gps" }}satellite-dish{{ else if eq .icon "lightning" }}bolt{{ else if eq .icon "globe" }}globe{{ else if eq .icon "certificate" }}certificate{{ else if eq .icon "industry" }}industry{{ else }}certificate{{ end }}"></i></div>
+                    <div class="feature-icon"><i class="fa-solid {{ .icon }}"></i></div>
                     <h3 class="feature-title">{{ .title }}</h3>
                     <p class="feature-desc">{{ .description }}</p>
                 </div>
@@ -432,13 +432,13 @@
             <h2>{{ if getConfig "servicesTitle" "" }}{{ getConfig "servicesTitle" "" }}{{ else }}服务项目{{ end }}</h2>
             <p>聚焦危化品运输全链路，提供多种运输解决方案</p>
         </div>
-        <div class="grid-3">
+        <div class="services-grid">
             {{ $items := getConfig "servicesItems" "" }}
             {{ if $items }}
                 {{ range $items }}
                 <div class="service-card">
                     <div class="service-card-header">
-                        <div class="service-icon"><i class="fa-solid fa-{{ if eq .icon "truck" }}truck{{ else if eq .icon "package" }}box{{ else if eq .icon "list" }}list{{ else if eq .icon "clock" }}clock{{ else if eq .icon "shield" }}shield-halved{{ else }}truck{{ end }}"></i></div>
+                        <div class="service-icon"><i class="fa-solid {{ .icon }}"></i></div>
                         <div class="service-card-header-text">
                             <h3>{{ .title }}</h3>
                             <p>{{ .description }}</p>
@@ -449,7 +449,7 @@
                             {{ $features := .features }}
                             {{ if $features }}
                                 {{ range split $features "\n" }}
-                                {{ if . }}<li><span class="service-features-icon">●</span> {{ . }}</li>{{ end }}
+                                {{ if . }}<li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span> {{ . }}</li>{{ end }}
                                 {{ end }}
                             {{ end }}
                         </ul>
@@ -468,10 +468,10 @@
                 </div>
                 <div class="service-card-body">
                     <ul class="service-features">
-                        <li><span class="service-features-icon">●</span>适用于大批量危化品运输</li>
-                        <li><span class="service-features-icon">●</span>专属危化品运输车辆</li>
-                        <li><span class="service-features-icon">●</span>一对一专项押运服务</li>
-                        <li><span class="service-features-icon">●</span>点到点直达，全程无中转</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>适用于大批量危化品运输</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>专属危化品运输车辆</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>一对一专项押运服务</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>点到点直达，全程无中转</li>
                     </ul>
                     <a href="/page/contact" class="btn btn-blue">立即询价</a>
                 </div>
@@ -486,10 +486,10 @@
                 </div>
                 <div class="service-card-body">
                     <ul class="service-features">
-                        <li><span class="service-features-icon">●</span>适用于小批量、多频次需求</li>
-                        <li><span class="service-features-icon">●</span>与整车分类规范装载</li>
-                        <li><span class="service-features-icon">●</span>专业分拣，防止货物混装</li>
-                        <li><span class="service-features-icon">●</span>灵活发车，降低库存压力</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>适用于小批量、多频次需求</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>与整车分类规范装载</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>专业分拣，防止货物混装</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>灵活发车，降低库存压力</li>
                     </ul>
                     <a href="/page/contact" class="btn btn-blue">立即询价</a>
                 </div>
@@ -504,10 +504,10 @@
                 </div>
                 <div class="service-card-body">
                     <ul class="service-features">
-                        <li><span class="service-features-icon">●</span>对接港口及工厂集装箱</li>
-                        <li><span class="service-features-icon">●</span>符合国际危化品装箱规范</li>
-                        <li><span class="service-features-icon">●</span>提供危化品申报协助</li>
-                        <li><span class="service-features-icon">●</span>海陆联运一站式衔接</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>对接港口及工厂集装箱</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>符合国际危化品装箱规范</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>提供危化品申报协助</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>海陆联运一站式衔接</li>
                     </ul>
                     <a href="/page/contact" class="btn btn-blue">立即询价</a>
                 </div>

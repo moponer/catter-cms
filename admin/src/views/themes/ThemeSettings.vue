@@ -402,7 +402,15 @@ const loadThemeData = async () => {
     originalConfig.value = JSON.parse(JSON.stringify(values))
 
     // 加载模块顺序：如果 homeModuleOrder 是空数组，使用默认值
+    // 同时确保 hero 模块存在（向后兼容旧数据）
     if (values.homeModuleOrder && Array.isArray(values.homeModuleOrder) && values.homeModuleOrder.length > 0) {
+      // 检查是否包含 hero 模块，如果没有则自动添加（兼容旧数据）
+      const hasHero = values.homeModuleOrder.some(m => m.id === 'hero')
+      if (!hasHero) {
+        values.homeModuleOrder.unshift({ id: 'hero', name: 'Hero横幅', dataKey: 'heroEnabled' })
+        // 同时更新 configValues，这样保存时会一起提交
+        configValues.value.homeModuleOrder = values.homeModuleOrder
+      }
       moduleOrder.value = values.homeModuleOrder
       originalModuleOrder.value = JSON.parse(JSON.stringify(values.homeModuleOrder))
     } else if (homeModuleOrderDefault && Array.isArray(homeModuleOrderDefault) && homeModuleOrderDefault.length > 0) {

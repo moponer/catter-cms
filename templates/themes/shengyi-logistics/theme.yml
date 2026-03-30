@@ -102,6 +102,9 @@ configDefinition:
         type: "repeater"
         itemTitle: "name"
         default:
+          - id: "hero"
+            name: "Hero横幅"
+            dataKey: "heroEnabled"
           - id: "advantages"
             name: "核心优势"
             dataKey: "advantagesItems"
