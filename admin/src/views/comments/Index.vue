@@ -50,7 +50,7 @@
         <div class="card-header">
           <span>评论列表</span>
           <div class="header-actions">
-            <el-checkbox v-model="selectAll" @change="handleSelectAll">全选</el-checkbox>
+            <el-checkbox :value="selectedComments.length === comments.length && comments.length > 0" @change="handleSelectAll">全选</el-checkbox>
             <el-button
               type="success"
               size="small"
@@ -74,8 +74,9 @@
       <div v-loading="loading" class="comments-list">
         <el-empty v-if="!loading && comments.length === 0" description="暂无评论" />
 
+        <el-checkbox-group v-model="selectedComments">
         <div v-for="comment in comments" :key="comment.id" class="comment-item">
-          <el-checkbox v-model="selectedComments" :value="comment.id" class="comment-checkbox" />
+          <el-checkbox :value="comment.id" class="comment-checkbox" />
           <div class="comment-content">
             <div class="comment-header">
               <div class="comment-author">
@@ -142,6 +143,7 @@
             </div>
           </div>
         </div>
+        </el-checkbox-group>
       </div>
 
       <!-- 分页 -->
@@ -247,8 +249,8 @@ const loadComments = async () => {
       ...filters
     }
     const res = await get('/api/admin/comments', params)
-    comments.value = res.data || res.items || []
-    pagination.total = res.total || 0
+    comments.value = res.data?.list || res.data || []
+    pagination.total = res.data?.total || 0
   } catch (error) {
     ElMessage.error('加载评论列表失败')
   } finally {
@@ -267,8 +269,8 @@ const refreshList = () => {
   loadComments()
 }
 
-const handleSelectAll = () => {
-  if (selectAll.value) {
+const handleSelectAll = (checked) => {
+  if (checked) {
     selectedComments.value = comments.value.map(c => c.id)
   } else {
     selectedComments.value = []

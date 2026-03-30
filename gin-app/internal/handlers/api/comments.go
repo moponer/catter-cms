@@ -148,6 +148,56 @@ func RejectComment(c *gin.Context) {
 	SuccessWithMessage(c, "评论已拒绝", comment)
 }
 
+// BatchDeleteComments 批量删除评论
+func BatchDeleteComments(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "无效的请求参数")
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		BadRequest(c, "请选择要删除的评论")
+		return
+	}
+
+	// 删除评论及其子评论
+	for _, id := range req.IDs {
+		models.DB.Where("parent_id = ?", id).Delete(&models.Comment{})
+	}
+	if err := models.DB.Where("id IN ?", req.IDs).Delete(&models.Comment{}).Error; err != nil {
+		InternalError(c, "批量删除评论失败")
+		return
+	}
+
+	SuccessWithMessage(c, "批量删除成功", nil)
+}
+
+// BatchApproveComments 批量批准评论
+func BatchApproveComments(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "无效的请求参数")
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		BadRequest(c, "请选择要批准的评论")
+		return
+	}
+
+	if err := models.DB.Model(&models.Comment{}).Where("id IN ?", req.IDs).Update("status", "approved").Error; err != nil {
+		InternalError(c, "批量批准评论失败")
+		return
+	}
+
+	SuccessWithMessage(c, "批量批准成功", nil)
+}
+
 // ListPostComments 获取文章评论（公开）
 func ListPostComments(c *gin.Context) {
 	postID, err := strconv.ParseUint(c.Param("post_id"), 10, 32)

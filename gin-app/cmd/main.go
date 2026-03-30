@@ -256,11 +256,13 @@ func main() {
 			protected.PUT("/users/:id", api.UpdateUser)
 			protected.DELETE("/users/:id", api.DeleteUser)
 
-			// 评论 API
-			protected.GET("/comments", api.ListComments)
-			protected.DELETE("/comments/:id", api.DeleteComment)
-			protected.POST("/comments/:id/approve", api.ApproveComment)
-			protected.POST("/comments/:id/reject", api.RejectComment)
+			// 评论管理 API
+			protected.GET("/admin/comments", api.ListComments)
+			protected.DELETE("/admin/comments/:id", api.DeleteComment)
+			protected.POST("/admin/comments/:id/approve", api.ApproveComment)
+			protected.POST("/admin/comments/:id/reject", api.RejectComment)
+			protected.POST("/admin/comments/batch/delete", api.BatchDeleteComments)
+			protected.POST("/admin/comments/batch/approve", api.BatchApproveComments)
 
 			// Sitemap管理 API
 			protected.GET("/admin/sitemap/info", api.GetSitemapInfo)
