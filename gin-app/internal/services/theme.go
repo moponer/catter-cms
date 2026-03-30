@@ -409,7 +409,16 @@ func (s *ThemeService) SetActiveTheme(name string) error {
 	}
 
 	// 同步预加载所有模板（页面 + 模块），确保立即可用
-	s.preloadAllTemplates(theme)
+	if err := s.preloadAllTemplates(theme); err != nil {
+		// 清理已设置的活动主题，恢复到之前的状态
+		s.activeTheme = nil
+		// 从缓存中删除（如果已写入）
+		s.templateMu.Lock()
+		delete(s.templateCache, name)
+		s.templateMu.Unlock()
+		log.Printf("[ERROR] Failed to preload templates for theme %s: %v", name, err)
+		return fmt.Errorf("failed to preload templates for theme %s: %v", name, err)
+	}
 
 	return nil
 }
@@ -440,9 +449,10 @@ func getMapKeys(m map[string]interface{}) []string {
 
 // preloadAllTemplates 预加载主题的所有模板（页面 + 模块）
 // 模板文件必须放在 pages/ 子目录下，模块文件放在 modules/ 子目录下
-func (s *ThemeService) preloadAllTemplates(theme *Theme) {
+// 返回 error 如果模板解析失败
+func (s *ThemeService) preloadAllTemplates(theme *Theme) error {
 	if theme == nil {
-		return
+		return nil
 	}
 
 	var templateFiles []string
@@ -466,11 +476,12 @@ func (s *ThemeService) preloadAllTemplates(theme *Theme) {
 		log.Printf("[DEBUG] Found %d page templates in: %s", len(pageFiles), pagesPath)
 	} else {
 		log.Printf("[ERROR] pages/ directory not found for theme: %s at: %s", theme.Name, pagesPath)
+		return fmt.Errorf("pages directory not found for theme: %s at: %s", theme.Name, pagesPath)
 	}
 
 	if len(templateFiles) == 0 {
 		log.Printf("[ERROR] No templates found for theme: %s at path: %s", theme.Name, themePath)
-		return
+		return fmt.Errorf("no template files found for theme: %s", theme.Name)
 	}
 
 	log.Printf("[DEBUG] Total template files to parse: %d", len(templateFiles))
@@ -482,7 +493,7 @@ func (s *ThemeService) preloadAllTemplates(theme *Theme) {
 	parsedTmpl, err := tmpl.ParseFiles(templateFiles...)
 	if err != nil {
 		log.Printf("[ERROR] Failed to parse templates for %s: %v", theme.Name, err)
-		return
+		return fmt.Errorf("failed to parse templates for theme %s: %v", theme.Name, err)
 	}
 
 	// 构建模板索引
@@ -509,6 +520,7 @@ func (s *ThemeService) preloadAllTemplates(theme *Theme) {
 	s.templateMu.Unlock()
 
 	log.Printf("[INFO] Preloaded %d templates for theme: %s", len(templateFiles), theme.Name)
+	return nil
 }
 
 // SetActiveTheme 设置活动主题（包级别函数）
