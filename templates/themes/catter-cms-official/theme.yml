@@ -179,7 +179,7 @@ configDefinition:
         label: 统计数据
         itemTitle: label
         show_if: "moduleStatsEnabled == true"
-        children:
+        fields:
           - name: value
             type: text
             label: 数值
@@ -200,7 +200,7 @@ configDefinition:
         label: 特性列表
         itemTitle: title
         show_if: "moduleFeaturesEnabled == true"
-        children:
+        fields:
           - name: icon
             type: text
             label: 图标
@@ -225,7 +225,7 @@ configDefinition:
         label: 产品列表
         itemTitle: name
         show_if: "moduleProductsEnabled == true"
-        children:
+        fields:
           - name: name
             type: text
             label: 产品名称
@@ -254,7 +254,7 @@ configDefinition:
         label: 价格方案
         itemTitle: name
         show_if: "modulePricingEnabled == true"
-        children:
+        fields:
           - name: name
             type: text
             label: 方案名称
@@ -295,7 +295,7 @@ configDefinition:
         label: 用户评价
         itemTitle: name
         show_if: "moduleTestimonialsEnabled == true"
-        children:
+        fields:
           - name: name
             type: text
             label: 姓名
@@ -361,7 +361,7 @@ configDefinition:
         label: 链接列表
         itemTitle: text
         show_if: "footerEnabled == true"
-        children:
+        fields:
           - name: text
             type: text
             label: 链接文字
@@ -375,7 +375,7 @@ configDefinition:
         label: 社交媒体
         itemTitle: icon
         show_if: "footerEnabled == true"
-        children:
+        fields:
           - name: icon
             type: select
             label: 图标

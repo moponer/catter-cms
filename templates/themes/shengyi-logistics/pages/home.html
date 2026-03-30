@@ -631,31 +631,34 @@
             <div>
                 <div class="footer-col-title">快速导航</div>
                 <ul class="footer-links">
-                    {{ with .footerMenu }}{{ range .Items }}
+                    {{ if .footerMenu }}
+                    {{ range .footerMenu.Items }}
                     <li><a href="{{ .URL }}">{{ .Label }}</a></li>
-                    {{ end }}{{ else }}
-                    <li><a href="/">网站首页</a></li>
-                    <li><a href="/article-list">新闻动态</a></li>
-                    <li><a href="/page/about">关于我们</a></li>
-                    <li><a href="/page/fleet">运力展示</a></li>
-                    <li><a href="/page/contact">联系我们</a></li>
+                    {{ end }}
+                    {{ else }}
+                    {{ $footerNav := getConfig "footerNav" (makeSlice (dict "label" "网站首页" "url" "/") (dict "label" "新闻动态" "url" "/article-list") (dict "label" "关于我们" "url" "/page/about") (dict "label" "运力展示" "url" "/page/fleet") (dict "label" "联系我们" "url" "/page/contact")) }}
+                    {{ range $footerNav }}
+                    <li><a href="{{ .url }}">{{ .label }}</a></li>
+                    {{ end }}
                     {{ end }}
                 </ul>
+            </div>
+            <div>
                 <div class="footer-col-title">服务项目</div>
                 <ul class="footer-links">
-                    <li><a href="/page/contact">危化品整车配送</a></li>
-                    <li><a href="/page/contact">危化品零担运输</a></li>
-                    <li><a href="/page/contact">集装箱运输</a></li>
-                    <li><a href="/page/contact">应急运输服务</a></li>
+                    {{ $footerServices := getConfig "footerServices" (makeSlice (dict "label" "危化品整车配送" "url" "/page/contact") (dict "label" "危化品零担运输" "url" "/page/contact") (dict "label" "集装箱运输" "url" "/page/contact") (dict "label" "应急运输服务" "url" "/page/contact")) }}
+                    {{ range $footerServices }}
+                    <li><a href="{{ .url }}">{{ .label }}</a></li>
+                    {{ end }}
                 </ul>
             </div>
             <div>
                 <div class="footer-col-title">资质认证</div>
                 <ul class="footer-links">
-                    <li><a href="#">道路危货运输许可证</a></li>
-                    <li><a href="#">ISO9001质量体系</a></li>
-                    <li><a href="#">安全生产许可证</a></li>
-                    <li><a href="#">危化品经营许可证</a></li>
+                    {{ $footerCerts := getConfig "footerCerts" (makeSlice (dict "label" "道路危货运输许可证" "url" "#") (dict "label" "ISO9001质量体系" "url" "#") (dict "label" "安全生产许可证" "url" "#") (dict "label" "危化品经营许可证" "url" "#")) }}
+                    {{ range $footerCerts }}
+                    <li><a href="{{ .url }}">{{ .label }}</a></li>
+                    {{ end }}
                 </ul>
             </div>
         </div>

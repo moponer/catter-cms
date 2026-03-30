@@ -396,6 +396,9 @@ func (s *ThemeService) SetActiveTheme(name string) error {
 
 	log.Printf("[DEBUG] Theme %s found, path: %s", theme.Name, theme.Path)
 
+	// 保存之前的主题，以便失败时回滚
+	previousTheme := s.activeTheme
+
 	// 清理旧主题的模板缓存，确保使用新主题
 	s.templateMu.Lock()
 	delete(s.templateCache, name)
@@ -406,12 +409,15 @@ func (s *ThemeService) SetActiveTheme(name string) error {
 	// 持久化到数据库
 	if err := models.SetActiveTheme(name); err != nil {
 		log.Printf("[WARN] Failed to save active theme to database: %v", err)
+		// 数据库保存失败时回滚到之前的主题
+		s.activeTheme = previousTheme
+		return fmt.Errorf("failed to save active theme to database: %v", err)
 	}
 
 	// 同步预加载所有模板（页面 + 模块），确保立即可用
 	if err := s.preloadAllTemplates(theme); err != nil {
-		// 清理已设置的活动主题，恢复到之前的状态
-		s.activeTheme = nil
+		// 预加载失败时恢复到之前的主题
+		s.activeTheme = previousTheme
 		// 从缓存中删除（如果已写入）
 		s.templateMu.Lock()
 		delete(s.templateCache, name)
@@ -723,6 +729,12 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 							// 解析失败，返回原字符串
 							return val
 						}
+						// 如果值不是字符串，只在值是 map（错误格式）时返回默认值
+						// slice、array、int、bool、float 等都直接返回
+						if _, ok := val.(map[string]interface{}); ok {
+							log.Printf("[WARN] getConfig %s: unexpected map type, returning default", path)
+							return defaultValue
+						}
 						return val
 					}
 					return defaultValue
@@ -736,6 +748,33 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 			}
 
 			return defaultValue
+		},
+
+		// makeSlice函数 - 替代Go内置slice，支持map类型
+		"makeSlice": func(values ...interface{}) []interface{} {
+			result := make([]interface{}, len(values))
+			for i, v := range values {
+				result[i] = v
+			}
+			return result
+		},
+
+		// dict函数 - 创建map（用于在模板中构造键值对）
+		"dict": func(values ...interface{}) map[string]interface{} {
+			if len(values)%2 != 0 {
+				log.Printf("[WARN] dict needs even number of arguments, got %d", len(values))
+				return nil
+			}
+			result := make(map[string]interface{}, len(values)/2)
+			for i := 0; i < len(values); i += 2 {
+				key, ok := values[i].(string)
+				if !ok {
+					log.Printf("[WARN] dict key must be string, got %T", values[i])
+					return nil
+				}
+				result[key] = values[i+1]
+			}
+			return result
 		},
 
 		// len函数 - 用于获取长度

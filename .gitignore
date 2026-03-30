@@ -54,3 +54,7 @@ docs/
 admin/src/assets/fontawesome-icons.json
 gin-app/debug.html
 gin-app/static/
+
+# Test data folders
+data-*/
+*-reference-data/

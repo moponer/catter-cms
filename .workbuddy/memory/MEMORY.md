@@ -56,6 +56,8 @@ page.html         → { site, config, pageTitle, page, recentPosts[] }
 ## 静态资源路径规范
 - FontAwesome：`/fontawesome/css/all.min.css`
 - 主题 CSS/JS：`{{ asset_path "assets/css/base.css" }}`（不要带 `/themes/xxx/`）
+- `asset_path` 函数会自动添加 `/themes/{themeName}/` 前缀，传入相对路径即可
+- 错误示例：`{{ asset_path "/themes/catter-cms-official/assets/css/base.css" }}` → 会变成 `/themes/catter-cms-official//themes/catter-cms-official/...`
 - 禁止 Google Fonts（国内问题），改用系统字体栈
 - **禁止使用 Emoji 作为 UI 图标**，必须用 FontAwesome `<i class="fa-solid fa-xxx"></i>`
 

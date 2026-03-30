@@ -243,6 +243,92 @@ configDefinition:
         type: "text"
         default: ""
 
+  # ========== 页脚导航 ==========
+  - section: "footerNav"
+    label: "页脚导航"
+    icon: "fa-solid fa-compass"
+    fields:
+      - name: "footerNav"
+        label: "快速导航链接"
+        type: "repeater"
+        itemTitle: label
+        default:
+          - label: "网站首页"
+            url: "/"
+          - label: "新闻动态"
+            url: "/article-list"
+          - label: "关于我们"
+            url: "/page/about"
+          - label: "运力展示"
+            url: "/page/fleet"
+          - label: "联系我们"
+            url: "/page/contact"
+        fields:
+          - name: label
+            type: text
+            label: 链接文字
+            default: ""
+          - name: url
+            type: text
+            label: 链接地址
+            default: "#"
+
+  # ========== 页脚服务项目 ==========
+  - section: "footerServices"
+    label: "页脚服务项目"
+    icon: "fa-solid fa-truck"
+    fields:
+      - name: "footerServices"
+        label: "服务项目列表"
+        type: "repeater"
+        itemTitle: label
+        default:
+          - label: "危化品整车配送"
+            url: "/page/contact"
+          - label: "危化品零担运输"
+            url: "/page/contact"
+          - label: "集装箱运输"
+            url: "/page/contact"
+          - label: "应急运输服务"
+            url: "/page/contact"
+        fields:
+          - name: label
+            type: text
+            label: 服务名称
+            default: ""
+          - name: url
+            type: text
+            label: 链接地址
+            default: "#"
+
+  # ========== 页脚资质认证 ==========
+  - section: "footerCerts"
+    label: "页脚资质认证"
+    icon: "fa-solid fa-certificate"
+    fields:
+      - name: "footerCerts"
+        label: "资质认证列表"
+        type: "repeater"
+        itemTitle: label
+        default:
+          - label: "道路危货运输许可证"
+            url: "#"
+          - label: "ISO9001质量体系"
+            url: "#"
+          - label: "安全生产许可证"
+            url: "#"
+          - label: "危化品经营许可证"
+            url: "#"
+        fields:
+          - name: label
+            type: text
+            label: 资质名称
+            default: ""
+          - name: url
+            type: text
+            label: 链接地址
+            default: "#"
+
   # ========== 自定义代码 ==========
   - section: "custom"
     label: "自定义代码"
