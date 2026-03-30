@@ -114,6 +114,9 @@ configDefinition:
           - id: "stats"
             name: "数据统计"
             dataKey: "statsItems"
+          - id: "news"
+            name: "新闻动态"
+            dataKey: "newsItems"
         fields:
           - name: "id"
             label: "模块ID"
@@ -223,6 +226,20 @@ configDefinition:
           - name: "suffix"
             label: "单位后缀"
             type: "text"
+
+      # 新闻动态数据
+      - name: "newsEnabled"
+        label: "启用新闻动态模块"
+        type: "switch"
+        default: true
+      - name: "newsTitle"
+        label: "新闻动态标题"
+        type: "text"
+        default: "最新动态"
+      - name: "newsShowDate"
+        label: "显示发布日期"
+        type: "switch"
+        default: true
 
   # ========== SEO 设置 ==========
   - section: "seo"

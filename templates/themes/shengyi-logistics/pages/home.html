@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    {{ if .site.favicon }}
+    <link rel="icon" href="{{ .site.favicon }}">
+    {{ end }}
     <title>{{ .site.title }}</title>
     <meta name="description" content="{{ getConfig "metaDescription" "" }}">
     <meta name="keywords" content="{{ getConfig "metaKeywords" "" }}">
@@ -16,43 +19,12 @@
         }
     </style>
     {{ if getConfig "customCSS" "" }}
-    <style>{{ getConfig "customCSS" "" }}</style>
+    <style>{{ getConfig "customCSS" "" | safe }}</style>
     {{ end }}
 </head>
 <body>
 
-<!-- ====== 导航栏 ====== -->
-<nav class="site-nav">
-    <div class="container">
-        <div class="nav-inner">
-            <a href="/" class="nav-logo">
-                <div class="nav-logo-icon"><i class="fa-solid fa-truck"></i></div>
-                <div class="nav-logo-text">
-                    <span class="nav-logo-main">XXX危化品物流有限公司</span>
-                    <span class="nav-logo-sub">专业危化品道路运输服务商</span>
-                </div>
-            </a>
-            <ul class="nav-menu" id="navMenu">
-                {{ with .headerMenu }}{{ range .Items }}
-                <li><a href="{{ .URL }}">{{ .Label }}</a></li>
-                {{ end }}{{ else }}
-                <li><a href="/">首页</a></li>
-                <li><a href="/article-list">新闻动态</a></li>
-                <li><a href="/page/about">关于我们</a></li>
-                <li><a href="/page/fleet">运力展示</a></li>
-                <li><a href="/page/contact">联系我们</a></li>
-                {{ end }}
-            </ul>
-            <a href="tel:{{ getConfig "phone" "" }}" class="nav-phone">
-                <span class="nav-phone-icon"><i class="fa-solid fa-phone"></i></span>
-                {{ getConfig "phone" "" }}
-            </a>
-            <button class="nav-toggle" id="navToggle" aria-label="菜单">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </div>
-</nav>
+{{ template "header" . }}
 
 <!-- ====== 首页内容模块（按配置顺序渲染） ====== -->
 {{ $moduleOrder := getConfig "homeModuleOrder" "" }}
@@ -291,7 +263,7 @@
         </div>
         <div class="news-layout">
             <div class="news-featured">
-                {{ range $index, $post := .posts }}
+                {{ range $index, $post := $.posts }}
                 {{ if lt $index 2 }}
                 <div class="news-card">
                     {{ if $post.Cover }}
@@ -319,9 +291,9 @@
             <div class="news-list-panel">
                 <div class="news-list-header">
                     <h3><i class="fa-solid fa-list"></i> 更多动态</h3>
-                    <a href="/article-list" class="news-list-more">查看全部 →</a>
+                    <a href="/article" class="news-list-more">查看全部 →</a>
                 </div>
-                {{ range $index, $post := .recentPosts }}
+                {{ range $index, $post := $.recentPosts }}
                 {{ if lt $index 8 }}
                 <div class="news-list-item">
                     <span class="news-list-title"><a href="/article/{{ $post.Slug }}">{{ $post.Title }}</a></span>
@@ -564,7 +536,7 @@
         </div>
         <div class="news-layout">
             <div class="news-featured">
-                {{ range $index, $post := .posts }}
+                {{ range $index, $post := $.posts }}
                 {{ if lt $index 2 }}
                 <div class="news-card">
                     {{ if $post.Cover }}
@@ -592,9 +564,9 @@
             <div class="news-list-panel">
                 <div class="news-list-header">
                     <h3><i class="fa-solid fa-list"></i> 更多动态</h3>
-                    <a href="/article-list" class="news-list-more">查看全部 →</a>
+                    <a href="/article" class="news-list-more">查看全部 →</a>
                 </div>
-                {{ range $index, $post := .recentPosts }}
+                {{ range $index, $post := $.recentPosts }}
                 {{ if lt $index 8 }}
                 <div class="news-list-item">
                     <span class="news-list-title"><a href="/article/{{ $post.Slug }}">{{ $post.Title }}</a></span>
@@ -608,82 +580,7 @@
 </section>
 {{ end }}
 {{ end }}
-<!-- ====== 页脚 ====== -->
-<footer class="site-footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div>
-                <div class="footer-brand-name">XXX危化品物流有限公司</div>
-                <p class="footer-brand-desc">{{ getConfig "footerDesc" "" }}</p>
-                <div class="footer-contact-item">
-                    <span class="footer-contact-item-icon"><i class="fa-solid fa-phone"></i></span>
-                    <span>{{ getConfig "phone" "" }}</span>
-                </div>
-                <div class="footer-contact-item">
-                    <span class="footer-contact-item-icon"><i class="fa-solid fa-location-dot"></i></span>
-                    <span>{{ getConfig "address" "" }}</span>
-                </div>
-                <div class="footer-contact-item">
-                    <span class="footer-contact-item-icon"><i class="fa-solid fa-envelope"></i></span>
-                    <span>{{ getConfig "email" "" }}</span>
-                </div>
-            </div>
-            <div>
-                <div class="footer-col-title">快速导航</div>
-                <ul class="footer-links">
-                    {{ if .footerMenu }}
-                    {{ range .footerMenu.Items }}
-                    <li><a href="{{ .URL }}">{{ .Label }}</a></li>
-                    {{ end }}
-                    {{ else }}
-                    {{ $footerNav := getConfig "footerNav" (makeSlice (dict "label" "网站首页" "url" "/") (dict "label" "新闻动态" "url" "/article-list") (dict "label" "关于我们" "url" "/page/about") (dict "label" "运力展示" "url" "/page/fleet") (dict "label" "联系我们" "url" "/page/contact")) }}
-                    {{ range $footerNav }}
-                    <li><a href="{{ .url }}">{{ .label }}</a></li>
-                    {{ end }}
-                    {{ end }}
-                </ul>
-            </div>
-            <div>
-                <div class="footer-col-title">服务项目</div>
-                <ul class="footer-links">
-                    {{ $footerServices := getConfig "footerServices" (makeSlice (dict "label" "危化品整车配送" "url" "/page/contact") (dict "label" "危化品零担运输" "url" "/page/contact") (dict "label" "集装箱运输" "url" "/page/contact") (dict "label" "应急运输服务" "url" "/page/contact")) }}
-                    {{ range $footerServices }}
-                    <li><a href="{{ .url }}">{{ .label }}</a></li>
-                    {{ end }}
-                </ul>
-            </div>
-            <div>
-                <div class="footer-col-title">资质认证</div>
-                <ul class="footer-links">
-                    {{ $footerCerts := getConfig "footerCerts" (makeSlice (dict "label" "道路危货运输许可证" "url" "#") (dict "label" "ISO9001质量体系" "url" "#") (dict "label" "安全生产许可证" "url" "#") (dict "label" "危化品经营许可证" "url" "#")) }}
-                    {{ range $footerCerts }}
-                    <li><a href="{{ .url }}">{{ .label }}</a></li>
-                    {{ end }}
-                </ul>
-            </div>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        <div class="container">
-            Copyright © {{ .site.year }} XXX危化品物流有限公司 版权所有
-            {{ if getConfig "icp" "" }} &nbsp;|&nbsp; <a href="https://beian.miit.gov.cn" target="_blank">{{ getConfig "icp" "" }}</a>{{ end }}
-        </div>
-    </div>
-</footer>
 
-<script>
-(function(){
-    var toggle = document.getElementById('navToggle');
-    var menu = document.getElementById('navMenu');
-    if(toggle && menu){
-        toggle.addEventListener('click', function(){
-            menu.classList.toggle('open');
-        });
-    }
-})();
-</script>
-{{ if getConfig "customJS" "" }}
-<script>{{ getConfig "customJS" "" }}</script>
-{{ end }}
+{{ template "footer" . }}
 </body>
 </html>

@@ -7,29 +7,11 @@
     <title>页面未找到 - {{ .site.title }}</title>
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
-    {{ if getConfig "customCSS" "" }}<style>{{ getConfig "customCSS" "" }}</style>{{ end }}
+    {{ if getConfig "customCSS" "" }}<style>{{ getConfig "customCSS" "" | safe }}</style>{{ end }}
 </head>
 <body>
 
-<nav class="site-nav">
-    <div class="container">
-        <div class="nav-inner">
-            <a href="/" class="nav-logo"><div class="nav-logo-icon"><i class="fa-solid fa-truck"></i></div><div class="nav-logo-text"><span class="nav-logo-main">XXX危化品物流有限公司</span><span class="nav-logo-sub">专业危化品道路运输服务商</span></div></a>
-            <ul class="nav-menu" id="navMenu">
-                {{ with .headerMenu }}{{ range .Items }}
-                <li><a href="{{ .URL }}">{{ .Label }}</a></li>
-                {{ end }}{{ else }}
-                <li><a href="/">首页</a></li>
-                <li><a href="/article-list">新闻动态</a></li>
-                <li><a href="/page/about">关于我们</a></li>
-                <li><a href="/page/contact">联系我们</a></li>
-                {{ end }}
-            </ul>
-            <a href="tel:{{ getConfig "phone" "" }}" class="nav-phone"><span class="nav-phone-icon"><i class="fa-solid fa-phone"></i></span>{{ getConfig "phone" "" }}</a>
-            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
-        </div>
-    </div>
-</nav>
+{{ template "header" . }}
 
 <div class="error-page">
     <div class="error-content">
@@ -43,7 +25,6 @@
     </div>
 </div>
 
-<script>(function(){var t=document.getElementById('navToggle'),m=document.getElementById('navMenu');if(t&&m)t.addEventListener('click',function(){m.classList.toggle('open');});})()</script>
-{{ if getConfig "customJS" "" }}<script>{{ getConfig "customJS" "" }}</script>{{ end }}
+{{ template "footer" . }}
 </body>
 </html>

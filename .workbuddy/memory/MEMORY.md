@@ -102,3 +102,24 @@ page.html         → { site, config, pageTitle, page, recentPosts[] }
 - **文件**：SKILL.md + references/（template-examples、css-base-template、theme-yml-examples、bug-patterns）
 - **Bug 模式**：B001-B021，最常命中 #1 getConfig 默认值、#8 markdownHTML|safe、#8 Emoji 禁止
 - **触发时机**：开发、修改、调试任何 Catter CMS 主题时加载
+
+## 2026-03-30 修复记录
+
+### shengyi-logistics 主题问题修复
+1. **Hero 模块不显示**：根因是 `homeModuleOrder` 数据库值缺少 hero，前端保存配置时会覆盖。修复：更新数据库 + ThemeSettings.vue 加载时自动补充缺失的 hero 模块
+2. **服务项目按钮不对齐**：修改 home.css，`.service-card` 改 flex 纵向布局，按钮 `margin-top: auto` 固定底部
+3. **首页标题多出"首页"**：home.html 标题改为只显示 `.site.title`
+4. **模板 unexpected EOF**：删除 home.html 第 520 行重复的 `{{ if getConfig "statsEnabled" true }}`
+5. **空模块列表时 Hero 不显示**：home.html `{{ if $modules }}` 改为 `{{ if gt (len $modules) 0 }}`
+
+### theme.yml 规范
+- `homeModuleOrder` 默认值必须包含 hero 和 news 模块，否则新激活主题时对应模块不会显示
+- ThemeSettings.vue 加载时自动补充缺失的 hero 和 news 模块（向后兼容旧数据）
+
+### shengyi-logistics 新闻动态模块不显示
+6. **新闻动态模块不显示**：根因是 `homeModuleOrder` 默认值和数据库存储都缺少 `news` 模块。修复：
+   - theme.yml `homeModuleOrder` default 添加 `{id: "news", name: "新闻动态", dataKey: "newsItems"}`
+   - theme.yml 添加 `newsEnabled`（switch）、`newsTitle`（text）、`newsShowDate`（switch）配置定义
+   - ThemeSettings.vue 加载时自动补充缺失的 news 模块（与 hero 同理）
+7. **新闻模块文章不显示**：模板在 `{{ range $modules }}` 循环内使用 `.posts`/`.recentPosts`，但 `.` 指向模块项。修复：改为 `$.posts`/`$.recentPosts` 访问根数据
+8. **文章列表链接 404**：模板使用 `/article-list` 但路由是 `/article`。修复：所有链接改为 `/article`，同时更新数据库 footerNav 配置

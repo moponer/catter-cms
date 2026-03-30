@@ -7,30 +7,11 @@
     <title>搜索结果：{{ .query }} - {{ .site.title }}</title>
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
-    {{ if getConfig "customCSS" "" }}<style>{{ getConfig "customCSS" "" }}</style>{{ end }}
+    {{ if getConfig "customCSS" "" }}<style>{{ getConfig "customCSS" "" | safe }}</style>{{ end }}
 </head>
 <body>
 
-<nav class="site-nav">
-    <div class="container">
-        <div class="nav-inner">
-            <a href="/" class="nav-logo"><div class="nav-logo-icon"><i class="fa-solid fa-truck"></i></div><div class="nav-logo-text"><span class="nav-logo-main">XXX危化品物流有限公司</span><span class="nav-logo-sub">专业危化品道路运输服务商</span></div></a>
-            <ul class="nav-menu" id="navMenu">
-                {{ with .headerMenu }}{{ range .Items }}
-                <li><a href="{{ .URL }}">{{ .Label }}</a></li>
-                {{ end }}{{ else }}
-                <li><a href="/">首页</a></li>
-                <li><a href="/article-list">新闻动态</a></li>
-                <li><a href="/page/about">关于我们</a></li>
-                <li><a href="/page/fleet">运力展示</a></li>
-                <li><a href="/page/contact">联系我们</a></li>
-                {{ end }}
-            </ul>
-            <a href="tel:{{ getConfig "phone" "" }}" class="nav-phone"><span class="nav-phone-icon"><i class="fa-solid fa-phone"></i></span>{{ getConfig "phone" "" }}</a>
-            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
-        </div>
-    </div>
-</nav>
+{{ template "header" . }}
 
 <div class="page-banner">
     <h1 class="page-banner-title">搜索结果</h1>
@@ -55,25 +36,12 @@
         <div class="search-no-results">
             <div class="search-no-results-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
             <p class="search-no-results-title">未找到相关结果</p>
-            <p class="search-no-results-link">请尝试其他关键词，或<a href="/article-list" style="color:var(--primary)">浏览全部文章</a></p>
+            <p class="search-no-results-link">请尝试其他关键词，或<a href="/article" style="color:var(--primary)">浏览全部文章</a></p>
         </div>
         {{ end }}
     </div>
 </main>
 
-<footer class="site-footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div><div class="footer-brand-name">XXX危化品物流有限公司</div><p class="footer-brand-desc">{{ getConfig "footerDesc" "" }}</p><div class="footer-contact-item"><span class="footer-contact-item-icon"><i class="fa-solid fa-phone"></i></span><span>{{ getConfig "phone" "" }}</span></div></div>
-            <div><div class="footer-col-title">快速导航</div><ul class="footer-links">{{ with .footerMenu }}{{ range .Items }}<li><a href="{{ .URL }}">{{ .Label }}</a></li>{{ end }}{{ else }}<li><a href="/">首页</a></li><li><a href="/article-list">新闻动态</a></li><li><a href="/page/about">关于我们</a></li>{{ end }}</ul></div>
-            <div><div class="footer-col-title">服务项目</div><ul class="footer-links"><li><a href="/page/contact">危化品整车配送</a></li><li><a href="/page/contact">危化品零担运输</a></li><li><a href="/page/contact">集装箱运输</a></li></ul></div>
-            <div></div>
-        </div>
-    </div>
-    <div class="footer-bottom"><div class="container">Copyright © {{ .site.year }} XXX危化品物流有限公司 {{ if getConfig "icp" "" }} | <a href="https://beian.miit.gov.cn" target="_blank">{{ getConfig "icp" "" }}</a>{{ end }}</div></div>
-</footer>
-
-<script>(function(){var t=document.getElementById('navToggle'),m=document.getElementById('navMenu');if(t&&m)t.addEventListener('click',function(){m.classList.toggle('open');});})()</script>
-{{ if getConfig "customJS" "" }}<script>{{ getConfig "customJS" "" }}</script>{{ end }}
+{{ template "footer" . }}
 </body>
 </html>
