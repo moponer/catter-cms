@@ -1,60 +1,79 @@
 <template>
   <div class="icon-picker">
-    <el-popover
-      v-model:visible="popoverVisible"
-      placement="bottom-start"
-      :width="400"
-      trigger="click"
+    <!-- 当前选中的图标显示 -->
+    <div class="icon-preview" @click="dialogVisible = true">
+      <i v-if="modelValue" :class="getIconClass(modelValue.replace('fa-', ''))"></i>
+      <span v-else class="placeholder-text">点击选择图标</span>
+    </div>
+
+    <!-- 图标选择对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="选择图标"
+      width="700px"
+      :destroy-on-close="true"
     >
-      <template #reference>
-        <el-input
-          v-model="iconName"
-          placeholder="选择图标"
-          clearable
-          @clear="handleClear"
+      <!-- 搜索框 -->
+      <el-input
+        v-model="searchKeyword"
+        placeholder="搜索图标..."
+        prefix-icon="Search"
+        clearable
+        class="icon-search"
+      />
+
+      <!-- 分类标签 -->
+      <div class="category-tabs">
+        <el-tag
+          v-for="cat in categoryList"
+          :key="cat"
+          :type="selectedCategory === cat ? 'primary' : 'info'"
+          class="category-tag"
+          @click="selectedCategory = cat"
         >
-          <template #prefix>
-            <el-icon v-if="iconName"><component :is="iconName" /></el-icon>
-            <el-icon v-else><Search /></el-icon>
-          </template>
-        </el-input>
-      </template>
-      
-      <div class="icon-picker-content">
-        <el-input
-          v-model="searchText"
-          placeholder="搜索图标..."
-          :prefix-icon="Search"
-          size="small"
-          style="margin-bottom: 12px;"
-        />
-        
-        <div class="icon-grid">
-          <div
-            v-for="icon in filteredIcons"
-            :key="icon"
-            class="icon-item"
-            :class="{ selected: iconName === icon }"
-            @click="handleSelect(icon)"
-            :title="icon"
-          >
-            <el-icon :size="20"><component :is="icon" /></el-icon>
-          </div>
-        </div>
-        
-        <el-empty v-if="filteredIcons.length === 0" description="没有找到匹配的图标" />
+          {{ cat }}
+        </el-tag>
       </div>
-    </el-popover>
+
+      <!-- 图标网格 -->
+      <div class="icon-grid">
+        <div
+          v-for="icon in filteredIcons"
+          :key="icon.id"
+          class="icon-item"
+          :class="{ selected: isIconSelected(icon.id) }"
+          @click="selectIcon(icon)"
+          :title="icon.label"
+        >
+          <i :class="getIconClass(icon.id)"></i>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <el-empty v-if="filteredIcons.length === 0" description="未找到匹配的图标" />
+
+      <template #footer>
+        <div class="dialog-footer">
+          <span v-if="modelValue" class="selected-info">
+            当前: <i :class="getIconClass(modelValue.replace('fa-', ''))"></i> {{ modelValue }}
+          </span>
+          <el-button @click="dialogVisible = false">关闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Search } from '@element-plus/icons-vue'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import iconsData from '@/assets/fontawesome-icons.json'
 
 const props = defineProps({
   modelValue: {
+    type: String,
+    default: ''
+  },
+  placeholder: {
     type: String,
     default: ''
   }
@@ -62,38 +81,87 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const popoverVisible = ref(false)
-const searchText = ref('')
-const iconName = ref(props.modelValue)
+const dialogVisible = ref(false)
+const searchKeyword = ref('')
+const selectedCategory = ref('常用')
 
-// 获取所有图标名称
-const allIcons = Object.keys(ElementPlusIconsVue).filter(key => key !== 'default')
-
-// 过滤图标
-const filteredIcons = computed(() => {
-  if (!searchText.value) {
-    return allIcons.slice(0, 100) // 默认显示前100个
+// 获取图标的完整 class（包含 fa-solid 前缀）
+const getIconClass = (iconId) => {
+  if (!iconId) return ''
+  // 如果已经包含 fa- 前缀，直接返回
+  if (iconId.startsWith('fa-')) {
+    return `fa-solid ${iconId}`
   }
-  const keyword = searchText.value.toLowerCase()
-  return allIcons.filter(icon => icon.toLowerCase().includes(keyword))
+  return `fa-solid fa-${iconId}`
+}
+
+// 判断 modelValue 是否选中
+const isIconSelected = (iconId) => {
+  const fullClass = `fa-${iconId}`
+  return props.modelValue === fullClass
+}
+
+// 分类列表
+const categoryList = computed(() => {
+  return Object.keys(iconsData)
 })
 
-// 监听外部值变化
-watch(() => props.modelValue, (val) => {
-  iconName.value = val
+// 常用图标（优先显示）
+const commonIcons = computed(() => {
+  const common = iconsData['常用'] || []
+  return common.map(i => ({ ...i, id: i.id }))
+})
+
+// 所有其他图标（排除常用）
+const otherIcons = computed(() => {
+  const result = []
+  for (const [cat, icons] of Object.entries(iconsData)) {
+    if (cat !== '常用') {
+      for (const icon of icons) {
+        // 排除已经在常用中的
+        if (!(commonIcons.value.some(c => c.id === icon.id))) {
+          result.push({ ...icon, category: cat })
+        }
+      }
+    }
+  }
+  return result
+})
+
+// 过滤后的图标列表
+const filteredIcons = computed(() => {
+  let icons = []
+
+  // 如果选择了分类
+  if (selectedCategory.value === '常用') {
+    icons = commonIcons.value
+  } else if (selectedCategory.value === '全部') {
+    icons = [...commonIcons.value, ...otherIcons.value]
+  } else if (iconsData[selectedCategory.value]) {
+    icons = iconsData[selectedCategory.value].map(i => ({ ...i }))
+  }
+
+  // 搜索过滤
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.toLowerCase()
+    icons = icons.filter(icon => {
+      const idMatch = icon.id.toLowerCase().includes(keyword)
+      const labelMatch = (icon.label || '').toLowerCase().includes(keyword)
+      const searchMatch = (icon.searchTerms || []).some(term =>
+        term.toLowerCase().includes(keyword)
+      )
+      return idMatch || labelMatch || searchMatch
+    })
+  }
+
+  return icons
 })
 
 // 选择图标
-const handleSelect = (icon) => {
-  iconName.value = icon
-  emit('update:modelValue', icon)
-  popoverVisible.value = false
-}
-
-// 清除图标
-const handleClear = () => {
-  iconName.value = ''
-  emit('update:modelValue', '')
+const selectIcon = (icon) => {
+  emit('update:modelValue', `fa-${icon.id}`)
+  dialogVisible.value = false
+  searchKeyword.value = ''
 }
 </script>
 
@@ -102,42 +170,103 @@ const handleClear = () => {
   width: 100%;
 }
 
-.icon-picker-content {
-  max-height: 400px;
+.icon-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  cursor: pointer;
+  min-height: 32px;
+  transition: border-color 0.2s;
+}
+
+.icon-preview:hover {
+  border-color: #409eff;
+}
+
+.icon-preview i {
+  font-size: 18px;
+  color: #409eff;
+}
+
+.placeholder-text {
+  color: #909399;
+  font-size: 13px;
+}
+
+.icon-search {
+  margin-bottom: 12px;
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.category-tag {
+  cursor: pointer;
+  user-select: none;
 }
 
 .icon-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
   gap: 8px;
-  max-height: 300px;
+  max-height: 350px;
   overflow-y: auto;
-  padding: 8px;
-  background: #f5f5f5;
-  border-radius: 8px;
+  padding: 4px;
 }
 
 .icon-item {
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
   cursor: pointer;
-  border: 2px solid transparent;
   transition: all 0.2s;
 }
 
 .icon-item:hover {
   border-color: #409eff;
-  color: #409eff;
+  background-color: #f5f7fa;
 }
 
 .icon-item.selected {
   border-color: #409eff;
-  background: #ecf5ff;
+  background-color: #ecf5ff;
+}
+
+.icon-item i {
+  font-size: 20px;
+  color: #606266;
+}
+
+.icon-item.selected i,
+.icon-item:hover i {
+  color: #409eff;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selected-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #606266;
+}
+
+.selected-info i {
   color: #409eff;
 }
 </style>

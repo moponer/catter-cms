@@ -51,3 +51,6 @@ uploads/
 admin/node_modules/
 admin/dist/
 docs/
+admin/src/assets/fontawesome-icons.json
+gin-app/debug.html
+gin-app/static/

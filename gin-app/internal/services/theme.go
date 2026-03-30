@@ -79,20 +79,24 @@ func (cs *ConfigSection) UnmarshalYAML(node *yaml.Node) error {
 
 // Field 配置字段结构
 type Field struct {
-	Name        string      `yaml:"name" json:"name"`
-	Label       string      `yaml:"label" json:"label"`
-	Type        string      `yaml:"type" json:"type"`
-	Description string      `yaml:"description" json:"description"`
-	Placeholder string      `yaml:"placeholder" json:"placeholder"`
-	Required    bool        `yaml:"required" json:"required"`
-	Default     interface{} `yaml:"default" json:"default"`
-	Options     []Option    `yaml:"options,omitempty" json:"options,omitempty"`
-	Min         float64     `yaml:"min,omitempty" json:"min,omitempty"`
-	Max         float64     `yaml:"max,omitempty" json:"max,omitempty"`
-	Step        float64     `yaml:"step,omitempty" json:"step,omitempty"`
-	Rows        int         `yaml:"rows,omitempty" json:"rows,omitempty"`
-	ShowAlpha   bool        `yaml:"showAlpha,omitempty" json:"showAlpha,omitempty"`
-	ShowIf      string      `yaml:"show_if,omitempty" json:"show_if,omitempty"`
+	Name         string      `yaml:"name" json:"name"`
+	Label        string      `yaml:"label" json:"label"`
+	Type         string      `yaml:"type" json:"type"`
+	Description  string      `yaml:"description" json:"description"`
+	Placeholder  string      `yaml:"placeholder" json:"placeholder"`
+	Required     bool        `yaml:"required" json:"required"`
+	Default      interface{} `yaml:"default" json:"default"`
+	Options      []Option    `yaml:"options,omitempty" json:"options,omitempty"`
+	Min          float64     `yaml:"min,omitempty" json:"min,omitempty"`
+	Max          float64     `yaml:"max,omitempty" json:"max,omitempty"`
+	Step         float64     `yaml:"step,omitempty" json:"step,omitempty"`
+	Rows         int         `yaml:"rows,omitempty" json:"rows,omitempty"`
+	ShowAlpha    bool        `yaml:"showAlpha,omitempty" json:"showAlpha,omitempty"`
+	ShowIf       string      `yaml:"show_if,omitempty" json:"show_if,omitempty"`
+	Fields       []Field     `yaml:"fields,omitempty" json:"fields,omitempty"` // repeater 字段的子字段定义
+	ItemTitle    string      `yaml:"itemTitle,omitempty" json:"itemTitle,omitempty"` // repeater 条目标题字段
+	ActiveText   string      `yaml:"activeText,omitempty" json:"activeText,omitempty"` // switch 开启文本
+	InactiveText string      `yaml:"inactiveText,omitempty" json:"inactiveText,omitempty"` // switch 关闭文本
 }
 
 // Option 选项结构
@@ -697,6 +701,16 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 				if i == len(keys)-1 {
 					// 最后一层，返回值
 					if val, ok := current[key]; ok {
+						// 如果值是字符串，尝试解析为 JSON（支持 repeater 类型字段）
+						if strVal, ok := val.(string); ok {
+							// 尝试解析 JSON 数组或对象
+							var parsed interface{}
+							if err := json.Unmarshal([]byte(strVal), &parsed); err == nil {
+								return parsed
+							}
+							// 解析失败，返回原字符串
+							return val
+						}
 						return val
 					}
 					return defaultValue
@@ -918,6 +932,14 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 				log.Printf("[WARN] divide100: unsupported type %T, value: %v", v, v)
 				return 0.25
 			}
+		},
+
+		// split函数 - 分割字符串为切片
+		"split": func(s, sep string) []string {
+			if s == "" {
+				return []string{}
+			}
+			return strings.Split(s, sep)
 		},
 
 		// iterate函数 - 生成数字序列（用于分页）

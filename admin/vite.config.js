@@ -35,6 +35,11 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
+      // FontAwesome 静态文件代理到后端
+      '/fontawesome': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     },
     allowedHosts: true,
   },

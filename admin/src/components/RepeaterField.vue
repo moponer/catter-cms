@@ -7,26 +7,28 @@
       </el-button>
     </div>
 
-    <el-empty v-if="!items.length" description="暂无数据，点击添加" />
+    <el-empty v-if="!items || items.length === 0" description="暂无数据，点击添加" />
 
     <draggable v-model="items" item-key="_id" handle=".drag-handle" class="repeater-list">
       <template #item="{ element, index }">
         <div class="repeater-item">
-          <div class="item-header">
-            <el-icon class="drag-handle"><Rank /></el-icon>
+          <div class="item-header" @click="toggleExpand(index)">
+            <el-icon class="drag-handle" @click.stop><Rank /></el-icon>
             <span class="item-title">{{ getItemTitle(element, index) }}</span>
-            <el-button type="danger" link @click="removeItem(index)">
+            <el-icon class="expand-icon" :class="{ expanded: expandedItems.includes(index) }">
+              <ArrowRight />
+            </el-icon>
+            <el-button type="danger" link @click.stop="removeItem(index)">
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
-          <div class="item-fields">
+          <div class="item-fields" v-show="expandedItems.includes(index)">
             <FieldRenderer
-              v-for="field in resolvedFields"
-              :key="field.name"
-              v-model="element[field.name]"
-              :type="field.type"
-              :label="field.label"
-              :config="field"
+              v-for="f in resolvedFields"
+              :key="f.name"
+              :field="f"
+              :value="element[f.name]"
+              @update:modelValue="updateItemField(index, f.name, $event)"
             />
           </div>
         </div>
@@ -36,10 +38,11 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import draggable from 'vuedraggable'
-import { Plus, Delete, Rank } from '@element-plus/icons-vue'
+import { Plus, Delete, Rank, ArrowRight } from '@element-plus/icons-vue'
 import FieldRenderer from './FieldRenderer.vue'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   modelValue: {
@@ -70,23 +73,76 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// 确保每个项目都有唯一ID
-const items = computed({
-  get: () => {
-    const list = props.modelValue || []
-    return list.map((item, index) => {
+// 使用 ref 替代 computed，避免响应式初始化问题
+const items = ref([])
+
+// 防止循环更新的标志
+let isInternalUpdate = false
+
+// 解析 items 的函数
+const parseItems = (val) => {
+  let list = val
+
+  // 如果已经是数组，直接使用
+  if (Array.isArray(list)) {
+    return list.map((item) => {
       if (!item._id) {
         return { ...item, _id: generateId() }
       }
       return item
     })
-  },
-  set: (val) => {
-    // 移除内部 _id 字段
-    const cleanList = val.map(({ _id, ...rest }) => rest)
-    emit('update:modelValue', cleanList)
   }
+
+  // 如果是字符串，尝试 JSON 解析
+  if (typeof list === 'string' && list.trim()) {
+    try {
+      const parsed = JSON.parse(list)
+      if (Array.isArray(parsed)) {
+        list = parsed
+      } else {
+        list = []
+      }
+    } catch {
+      list = []
+    }
+  } else {
+    list = []
+  }
+
+  return list.map((item) => {
+    if (!item._id) {
+      return { ...item, _id: generateId() }
+    }
+    return item
+  })
+}
+
+// 在 onMounted 中初始化，避免 immediate watch 在 setup 阶段的响应式问题
+onMounted(() => {
+  items.value = parseItems(props.modelValue)
 })
+
+// 监听 props.modelValue 变化
+watch(() => props.modelValue, (newVal) => {
+  // 如果是内部更新触发的变化，跳过
+  if (isInternalUpdate) {
+    isInternalUpdate = false
+    return
+  }
+  items.value = parseItems(newVal)
+}, { deep: true })
+
+// 展开状态管理
+const expandedItems = ref([])
+
+const toggleExpand = (index) => {
+  const idx = expandedItems.value.indexOf(index)
+  if (idx >= 0) {
+    expandedItems.value.splice(idx, 1)
+  } else {
+    expandedItems.value.push(index)
+  }
+}
 
 // 解析字段配置
 const resolvedFields = computed(() => {
@@ -97,6 +153,20 @@ const resolvedFields = computed(() => {
     return field
   })
 })
+
+// 监听 items 长度变化，自动展开第一个项目
+watch(() => items.value.length, (newLen) => {
+  if (newLen > 0 && expandedItems.value.length === 0) {
+    expandedItems.value = [0]
+  }
+})
+
+// 监听 items 内部变化，emit 更新到父组件
+watch(items, (newItems) => {
+  const cleanList = newItems.map(({ _id, ...rest }) => rest)
+  isInternalUpdate = true
+  emit('update:modelValue', cleanList)
+}, { deep: true })
 
 const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
@@ -146,6 +216,16 @@ const getItemTitle = (item, index) => {
   }
 
   return `项目 ${index + 1}`
+}
+
+// 更新某个项目的字段
+const updateItemField = (index, fieldName, value) => {
+  const newItems = [...items.value]
+  newItems[index] = {
+    ...newItems[index],
+    [fieldName]: value
+  }
+  items.value = newItems
 }
 </script>
 
@@ -209,5 +289,20 @@ const getItemTitle = (item, index) => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+}
+
+.expand-icon {
+  transition: transform 0.2s;
+  cursor: pointer;
+  color: #909399;
+  margin-right: 8px;
+}
+
+.expand-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.item-header {
+  cursor: pointer;
 }
 </style>

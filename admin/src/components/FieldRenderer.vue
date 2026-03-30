@@ -1,13 +1,14 @@
 <template>
-  <div class="field-renderer" :class="[`field-${type}`]">
+  <div class="field-renderer" :class="[`field-${fieldType}`]">
+    <label v-if="fieldLabel && !fieldHideLabel" class="field-label">{{ fieldLabel }}</label>
     <div class="field-input-wrapper">
       <!-- Text / Email / URL / Password -->
       <el-input
-        v-if="['text', 'email', 'url', 'password'].includes(type)"
-        v-model="modelValue"
-        :type="type === 'password' ? 'password' : 'text'"
-        :placeholder="placeholder"
-        :disabled="disabled"
+        v-if="['text', 'email', 'url', 'password'].includes(fieldType)"
+        v-model="fieldValue"
+        :type="fieldType === 'password' ? 'password' : 'text'"
+        :placeholder="fieldPlaceholder"
+        :disabled="fieldDisabled"
         :clearable="clearable"
         size="default"
         class="field-input-full"
@@ -15,12 +16,12 @@
 
       <!-- Textarea -->
       <el-input
-        v-else-if="type === 'textarea'"
-        v-model="modelValue"
+        v-else-if="fieldType === 'textarea'"
+        v-model="fieldValue"
         type="textarea"
-        :rows="rows || 4"
-        :placeholder="placeholder"
-        :disabled="disabled"
+        :rows="fieldRows || 4"
+        :placeholder="fieldPlaceholder"
+        :disabled="fieldDisabled"
         :maxlength="maxlength"
         show-word-limit
         class="field-input-full"
@@ -28,22 +29,22 @@
 
       <!-- Number -->
       <el-input-number
-        v-else-if="type === 'number'"
-        v-model="modelValue"
-        :min="min"
-        :max="max"
-        :step="step || 1"
-        :disabled="disabled"
+        v-else-if="fieldType === 'number'"
+        v-model="fieldValue"
+        :min="fieldMin"
+        :max="fieldMax"
+        :step="fieldStep || 1"
+        :disabled="fieldDisabled"
         controls-position="right"
         class="field-number"
       />
 
       <!-- Select -->
       <el-select
-        v-else-if="type === 'select'"
-        v-model="modelValue"
-        :placeholder="placeholder || '请选择'"
-        :disabled="disabled"
+        v-else-if="fieldType === 'select'"
+        v-model="fieldValue"
+        :placeholder="fieldPlaceholder || '请选择'"
+        :disabled="fieldDisabled"
         :clearable="clearable !== false"
         :multiple="multiple"
         :filterable="filterable"
@@ -51,7 +52,7 @@
         class="field-input-full"
       >
         <el-option
-          v-for="opt in options"
+          v-for="opt in fieldOptions"
           :key="opt.value"
           :label="opt.label"
           :value="opt.value"
@@ -60,10 +61,10 @@
 
       <!-- Multi-Select / Checkbox -->
       <el-select
-        v-else-if="type === 'multi-select'"
-        v-model="modelValue"
-        :placeholder="placeholder || '请选择'"
-        :disabled="disabled"
+        v-else-if="fieldType === 'multi-select'"
+        v-model="fieldValue"
+        :placeholder="fieldPlaceholder || '请选择'"
+        :disabled="fieldDisabled"
         :clearable="clearable !== false"
         :multiple="true"
         :filterable="filterable"
@@ -71,7 +72,7 @@
         class="field-input-full"
       >
         <el-option
-          v-for="opt in options"
+          v-for="opt in fieldOptions"
           :key="opt.value"
           :label="opt.label"
           :value="opt.value"
@@ -80,13 +81,13 @@
 
       <!-- Radio -->
       <el-radio-group
-        v-else-if="type === 'radio'"
-        v-model="modelValue"
-        :disabled="disabled"
+        v-else-if="fieldType === 'radio'"
+        v-model="fieldValue"
+        :disabled="fieldDisabled"
         class="field-radio-group"
       >
         <el-radio
-          v-for="opt in options"
+          v-for="opt in fieldOptions"
           :key="opt.value"
           :value="opt.value"
         >
@@ -96,13 +97,13 @@
 
       <!-- Checkbox -->
       <el-checkbox-group
-        v-else-if="type === 'checkbox'"
-        v-model="modelValue"
-        :disabled="disabled"
+        v-else-if="fieldType === 'checkbox'"
+        v-model="fieldValue"
+        :disabled="fieldDisabled"
         class="field-checkbox-group"
       >
         <el-checkbox
-          v-for="opt in options"
+          v-for="opt in fieldOptions"
           :key="opt.value"
           :value="opt.value"
         >
@@ -112,64 +113,71 @@
 
       <!-- Switch -->
       <el-switch
-        v-else-if="type === 'switch'"
-        v-model="modelValue"
-        :disabled="disabled"
-        :active-text="activeText"
-        :inactive-text="inactiveText"
+        v-else-if="fieldType === 'switch'"
+        v-model="fieldValue"
+        :disabled="fieldDisabled"
+        :active-text="fieldActiveText"
+        :inactive-text="fieldInactiveText"
+      />
+
+      <!-- Icon (FontAwesome) -->
+      <IconPicker
+        v-else-if="fieldType === 'icon'"
+        v-model="fieldValue"
+        :placeholder="fieldPlaceholder"
       />
 
       <!-- Color -->
-      <div v-else-if="type === 'color'" class="color-picker-wrapper">
+      <div v-else-if="fieldType === 'color'" class="color-picker-wrapper">
         <el-input
-          v-model="modelValue"
-          :disabled="disabled"
+          v-model="fieldValue"
+          :disabled="fieldDisabled"
           placeholder="#ffffff"
           class="color-input-main"
         >
           <template #prefix>
-            <div class="color-swatch" :style="{ backgroundColor: modelValue || '#000000' }"></div>
+            <div class="color-swatch" :style="{ backgroundColor: fieldValue || '#000000' }"></div>
           </template>
         </el-input>
         <el-color-picker
-          v-model="modelValue"
-          :disabled="disabled"
+          v-model="fieldValue"
+          :disabled="fieldDisabled"
           :show-alpha="showAlpha !== false"
           :predefine="predefine"
           class="color-picker-btn"
         />
-        <span v-if="defaultValue" class="color-default-hint">默认: {{ defaultValue }}</span>
+        <span v-if="fieldDefault" class="color-default-hint">默认: {{ fieldDefault }}</span>
       </div>
 
       <!-- Image -->
       <ImageUploadField
-        v-else-if="type === 'image'"
-        v-model="modelValue"
-        :disabled="disabled"
+        v-else-if="fieldType === 'image'"
+        v-model="fieldValue"
+        :disabled="fieldDisabled"
       />
 
       <!-- Image List (Carousel) -->
       <ImageListUploadField
-        v-else-if="type === 'image-list'"
-        v-model="modelValue"
-        :disabled="disabled"
+        v-else-if="fieldType === 'image-list'"
+        v-model="fieldValue"
+        :disabled="fieldDisabled"
       />
 
       <!-- RichText -->
       <RichTextEditor
-        v-else-if="type === 'richtext'"
-        v-model="modelValue"
-        :disabled="disabled"
+        v-else-if="fieldType === 'richtext'"
+        v-model="fieldValue"
+        :disabled="fieldDisabled"
         :height="height || 300"
       />
 
       <!-- Date / DateTime / Time -->
       <el-date-picker
-        v-else-if="['date', 'datetime', 'time'].includes(type)"
-        v-model="modelValue"
-        :type="type === 'datetime' ? 'datetime' : type"
-        :placeholder="placeholder || (type === 'datetime' ? '选择日期时间' : type === 'date' ? '选择日期' : '选择时间')"
-        :disabled="disabled"
+        v-else-if="['date', 'datetime', 'time'].includes(fieldType)"
+        v-model="fieldValue"
+        :type="fieldType === 'datetime' ? 'datetime' : fieldType"
+        :placeholder="fieldPlaceholder || (fieldType === 'datetime' ? '选择日期时间' : fieldType === 'date' ? '选择日期' : '选择时间')"
+        :disabled="fieldDisabled"
         :clearable="clearable !== false"
         size="default"
         class="field-input-full"
@@ -177,58 +185,58 @@
 
       <!-- Date Range -->
       <el-date-picker
-        v-else-if="type === 'daterange'"
-        v-model="modelValue"
+        v-else-if="fieldType === 'daterange'"
+        v-model="fieldValue"
         type="daterange"
         range-separator="至"
         start-placeholder="开始日期"
         end-placeholder="结束日期"
-        :disabled="disabled"
+        :disabled="fieldDisabled"
         :clearable="clearable !== false"
         size="default"
         class="field-input-full"
       />
 
       <!-- Slider -->
-      <div v-else-if="type === 'slider'" class="field-slider-wrapper">
+      <div v-else-if="fieldType === 'slider'" class="field-slider-wrapper">
         <el-slider
-          v-model="modelValue"
-          :min="min"
-          :max="max"
-          :step="step || 1"
-          :disabled="disabled"
+          v-model="fieldValue"
+          :min="fieldMin"
+          :max="fieldMax"
+          :step="fieldStep || 1"
+          :disabled="fieldDisabled"
           :show-input="true"
           class="field-slider"
         />
       </div>
 
       <!-- Code -->
-      <div v-else-if="type === 'code'" class="field-code-wrapper">
+      <div v-else-if="fieldType === 'code'" class="field-code-wrapper">
         <el-input
-          v-model="modelValue"
+          v-model="fieldValue"
           type="textarea"
-          :rows="rows || 10"
-          :placeholder="placeholder || '// 输入代码...'"
-          :disabled="disabled"
+          :rows="fieldRows || 10"
+          :placeholder="fieldPlaceholder || '// 输入代码...'"
+          :disabled="fieldDisabled"
           class="field-code-input"
         />
       </div>
 
       <!-- Repeater (嵌套) -->
       <RepeaterField
-        v-else-if="type === 'repeater'"
-        v-model="modelValue"
+        v-else-if="fieldType === 'repeater'"
+        v-model="fieldValue"
         :label="null"
-        :fields="fields"
-        :min="min"
-        :max="max"
-        :item-title="itemTitle"
+        :fields="fieldFields"
+        :min="fieldMin"
+        :max="fieldMax"
+        :item-title="fieldItemTitle"
       />
 
       <!-- 未知类型 -->
       <el-alert
         v-else
-        :title="`不支持的字段类型: ${type}`"
+        :title="`不支持的字段类型: ${fieldType}`"
         type="warning"
         :closable="false"
       />
@@ -247,9 +255,15 @@ import RichTextEditor from './RichTextEditor.vue'
 import RepeaterField from './RepeaterField.vue'
 import ImageUploadField from './ImageUploadField.vue'
 import ImageListUploadField from './ImageListUploadField.vue'
+import IconPicker from './IconPicker.vue'
 
 const props = defineProps({
+  // 支持两种用法：
+  // 1. 传入 field 对象（推荐）
+  field: Object,
+  // 2. 直接传入各个属性（兼容旧代码）
   modelValue: [String, Number, Boolean, Array, Object, Date],
+  value: [String, Number, Boolean, Array, Object, Date], // 兼容 :value
   type: { type: String, default: 'text' },
   label: String,
   description: String,
@@ -291,30 +305,53 @@ const props = defineProps({
   itemTitle: String
 })
 
-const emit = defineEmits(['update:modelValue'])
-
-// 颜色类型的空值处理：确保始终返回有效颜色值
-const colorValue = computed(() => {
-  if (props.type === 'color') {
-    const val = props.modelValue
-    if (!val || typeof val !== 'string' || val.trim() === '') {
-      return '#000000'
-    }
-    // 确保以 # 开头
-    return val.startsWith('#') ? val : '#' + val
-  }
-  return props.modelValue
-})
-
-const modelValue = computed({
-  get: () => props.type === 'color' ? colorValue.value : props.modelValue,
+// 统一处理：优先使用 field 对象，否则使用单独的 props
+const fieldType = computed(() => props.field?.type || props.type || 'text')
+const fieldValue = computed({
+  get: () => {
+    // 父组件传入 :value="configValues[field.name]"
+    // 优先级：props.value (传入值) > props.modelValue > field.value > ''
+    if (props.value !== undefined) return props.value
+    if (props.modelValue !== undefined) return props.modelValue
+    if (props.field && 'value' in props.field) return props.field.value
+    return ''
+  },
   set: (val) => emit('update:modelValue', val)
 })
+
+// 从 field 对象提取其他属性
+const fieldLabel = computed(() => props.field?.label || props.label)
+const fieldHideLabel = computed(() => props.field?._hideLabel === true || props.field?._formItem === true)
+const fieldPlaceholder = computed(() => props.field?.placeholder || props.placeholder)
+const fieldRequired = computed(() => props.field?.required || props.required)
+const fieldDisabled = computed(() => props.field?.disabled || props.disabled)
+const fieldOptions = computed(() => props.field?.options || props.options || [])
+const fieldMin = computed(() => props.field?.min ?? props.min)
+const fieldMax = computed(() => props.field?.max ?? props.max)
+const fieldStep = computed(() => props.field?.step ?? props.step)
+const fieldRows = computed(() => props.field?.rows ?? props.rows)
+const fieldFields = computed(() => props.field?.fields || props.fields || [])
+const fieldItemTitle = computed(() => props.field?.itemTitle || props.itemTitle)
+const fieldDefault = computed(() => props.field?.default || props.defaultValue)
+const fieldActiveText = computed(() => props.field?.activeText || props.activeText)
+const fieldInactiveText = computed(() => props.field?.inactiveText || props.inactiveText)
+
+const emit = defineEmits(['update:modelValue'])
+
 </script>
 
 <style scoped>
 .field-renderer {
   width: 100%;
+}
+
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #606266;
+  margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 .field-input-wrapper {
