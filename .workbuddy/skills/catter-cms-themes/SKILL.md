@@ -11,7 +11,7 @@ description: This skill should be used whenever developing, creating, or modifyi
 
 ## 快速索引
 
-- **🔴 开发前必读** → [⚠️ 最常见错误 TOP 8](#⚠️-最常见错误-top-8-先读这里)（getConfig / dateFormat / API / 内联样式 / 硬编码导航 / **markdownHTML 误用** / **Page 字段错误** / **Emoji 禁止**）
+- **🔴 开发前必读** → [⚠️ 最常见错误 TOP 9](#⚠️-最常见错误-top-9-先读这里)（getConfig / dateFormat / API / 内联样式 / **asset_path 路径** / 硬编码导航 / **markdownHTML 误用** / **Page 字段错误** / **Emoji 禁止**）
 - **⚠️ 开发流程（必须从这里开始）** → [Development Workflow](#development-workflow-sdd-pattern)
 - **⚠️ Phase 1 Design Brief 格式** → [Phase 1 强制交付物格式](#phase-1-强制交付物格式)
 - **⛔ 文件写入安全规范（禁止 PowerShell）** → [文件写入安全规范](#️-文件写入安全规范强制违反会破坏主题)
@@ -37,7 +37,7 @@ description: This skill should be used whenever developing, creating, or modifyi
 >
 > ---
 
-## ⚠️ 最常见错误 TOP 8（先读这里）
+## ⚠️ 最常见错误 TOP 9（先读这里）
 
 > 以下 8 类错误在过去开发中频繁出现，每次开发主题前请务必确认已理解。
 >
@@ -156,7 +156,30 @@ description: This skill should be used whenever developing, creating, or modifyi
 >
 > **正确做法：** 所有颜色值必须来自 CSS 变量（`var(--text-primary)` 等），CSS 变量在 `<head>` 的 `:root` 中通过 `getConfig` 注入。
 >
-> ### 🔴 #7 Footer 导航链接硬编码
+> ### 🔴 #7 asset_path 路径重复（高频，2026-03-30 新增）
+>
+> **`asset_path` 函数**会在参数前自动添加 `/themes/{themeName}/` 前缀。如果传入的参数已经带了 `/themes/xxx/`，会导致路径重复。
+>
+> ```html
+> <!-- ❌ 致命错误：传入完整路径导致重复 -->
+> <link rel="stylesheet" href="{{ asset_path "/themes/catter-cms-official/assets/css/base.css" }}">
+> <!-- 生成：/themes/catter-cms-official//themes/catter-cms-official/assets/css/base.css -->
+>
+> <!-- ✅ 正确：只传相对路径 -->
+> <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+> <!-- 生成：/themes/catter-cms-official/assets/css/base.css -->
+>
+> <!-- ❌ 其他错误示例 -->
+> <link rel="stylesheet" href="{{ asset_path "/assets/css/base.css" }}">
+> <!-- 多了开头的 /，生成：/themes/xxx//assets/css/base.css -->
+>
+> <link rel="stylesheet" href="{{ asset_path "themes/assets/css/base.css" }}">
+> <!-- 少了 assets/，路径不完整 -->
+> ```
+>
+> **规则：`asset_path` 参数必须是相对路径，不能以 `/` 开头，不能包含 `/themes/`。**
+>
+> ### 🔴 #8 Footer 导航链接硬编码
 >
 > 禁止在模板中硬编码导航链接，必须使用系统菜单：
 >
@@ -168,7 +191,7 @@ description: This skill should be used whenever developing, creating, or modifyi
 >
 > 唯一例外：行业特定内容（如"危化品运输资质认证"）因其不适合放入 CMS 通用菜单，可以保留硬编码。
 >
-> ### 🔴 #8 禁止使用 Emoji 作为 UI 图标（2026-03-27 新增）
+> ### 🔴 #9 禁止使用 Emoji 作为 UI 图标（2026-03-27 新增）
 >
 > **主题模板中禁止使用 Emoji 字符（🚛📞📍✉️💰 等）替代图标。** 必须使用 FontAwesome 图标库。
 >
@@ -1123,8 +1146,10 @@ configDefinition:
 <link rel="stylesheet" href="{{ asset_path "assets/css/home.css" }}">
 
 <!-- ⚠️ 错误示例 -->
-<link href="/themes/fontawesome/css/all.min.css">             <!-- ❌ 路径错误 -->
-<link href="{{ asset_path "/themes/my-theme/assets/css/base.css" }}"> <!-- ❌ 路径重复 -->
+<link href="/themes/fontawesome/css/all.min.css">                                        <!-- ❌ 路径错误，FontAwesome 不在 themes 下 -->
+<link href="{{ asset_path "/themes/my-theme/assets/css/base.css" }}">                  <!-- ❌ 路径重复：传入 /themes/my-theme/... 会被 asset_path 再添加一次前缀 → /themes/my-theme//themes/my-theme/... -->
+<link href="{{ asset_path "themes/assets/css/base.css" }}">                           <!-- ❌ 少了 assets/，路径不完整 -->
+<link href="{{ asset_path "/assets/css/base.css" }}">                                  <!-- ❌ 多了开头的 /，会变成 /themes/xxx//assets/... -->
 ```
 
 ---
@@ -1323,7 +1348,9 @@ Write-Host $hex
 
 ### 资源路径
 - [ ] FontAwesome 路径：`/fontawesome/css/all.min.css`（固定路径，不要用 asset_path）
-- [ ] 主题 CSS/JS/图片：`{{ asset_path "assets/css/xxx.css" }}`（不含主题名前缀）
+- [ ] 主题 CSS/JS/图片：`{{ asset_path "assets/css/xxx.css" }}`（**正确：相对路径，不带 /themes/xxx/**）
+- [ ] **asset_path 参数不以 `/themes/` 开头**（否则会路径重复变成 `/themes/xxx//themes/xxx/...`）
+- [ ] **asset_path 参数不以 `/` 开头**（否则会多出一个斜杠）
 - [ ] 上传文件路径：`/uploads/xxx`（不用 asset_path）
 
 ---
