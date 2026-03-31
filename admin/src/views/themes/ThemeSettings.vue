@@ -6,7 +6,18 @@
       <!-- 主题信息卡片 -->
       <el-card class="theme-info-card" v-if="currentTheme">
         <div class="theme-header">
-          <el-avatar v-if="currentTheme.thumbnail" :size="80" :src="currentTheme.thumbnail" shape="square" />
+          <el-image
+            v-if="currentTheme.thumbnail"
+            class="theme-thumbnail"
+            :src="currentTheme.thumbnail"
+            :preview-src-list="[currentTheme.thumbnail]"
+            fit="cover"
+            preview-teleported
+          >
+            <template #error>
+              <div class="theme-thumbnail-placeholder"><i class="fa-solid fa-image"></i></div>
+            </template>
+          </el-image>
           <div class="theme-meta">
             <h2>{{ currentTheme.name }}</h2>
             <p class="theme-description">{{ currentTheme.description || '暂无描述' }}</p>
@@ -492,6 +503,27 @@ onMounted(() => {
     display: flex;
     align-items: flex-start;
     gap: 16px;
+  }
+
+  .theme-thumbnail {
+    width: 240px;
+    height: 160px;
+    border-radius: 8px;
+    border: 1px solid var(--el-border-color);
+    flex-shrink: 0;
+    cursor: zoom-in;
+    overflow: hidden;
+  }
+
+  .theme-thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--el-fill-color-light);
+    color: var(--el-text-color-placeholder);
+    font-size: 32px;
   }
   
   .theme-meta {

@@ -31,6 +31,25 @@
     <!-- 文章列表 -->
     <el-card class="table-card">
       <el-table :data="posts" v-loading="loading" style="width: 100%">
+        <el-table-column label="封面" width="80" align="center">
+          <template #default="{ row }">
+            <div class="cover-cell">
+              <el-image
+                v-if="row.cover"
+                :src="row.cover"
+                fit="cover"
+                class="cover-thumb"
+                :preview-src-list="[row.cover]"
+                :preview-teleported="true"
+              >
+                <template #error>
+                  <div class="cover-fallback"><el-icon><Picture /></el-icon></div>
+                </template>
+              </el-image>
+              <div v-else class="cover-empty"><el-icon><Picture /></el-icon></div>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="title" label="标题" min-width="200" />
         <el-table-column prop="author" label="作者" width="120">
           <template #default="{ row }">
@@ -82,7 +101,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Picture } from '@element-plus/icons-vue'
 import { get, del } from '@/utils/request'
 
 const router = useRouter()
@@ -200,5 +219,32 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--spacing-md);
+}
+
+/* 封面图 */
+.cover-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.cover-thumb {
+  width: 54px;
+  height: 36px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--el-border-color-lighter);
+}
+.cover-empty,
+.cover-fallback {
+  width: 54px;
+  height: 36px;
+  border-radius: 4px;
+  background: var(--el-fill-color-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-placeholder);
+  font-size: 16px;
+  border: 1px dashed var(--el-border-color-lighter);
 }
 </style>

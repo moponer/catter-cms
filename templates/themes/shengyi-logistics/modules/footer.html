@@ -50,8 +50,7 @@
     </div>
     <div class="footer-bottom">
         <div class="container">
-            Copyright © {{ .site.year }} {{ .site.title }} 版权所有
-            {{ if getConfig "icp" "" }} &nbsp;|&nbsp; <a href="https://beian.miit.gov.cn" target="_blank">{{ getConfig "icp" "" }}</a>{{ end }}
+            {{ getConfig "footerCopyright" "Copyright © 2026 盛意物流 版权所有" }}
         </div>
     </div>
 </footer>

@@ -20,6 +20,8 @@ const ScheduledTasks = () => import('@/views/scheduled-tasks/Index.vue')
 const Sitemap = () => import('@/views/sitemap/Index.vue')
 const MenuList = () => import('@/views/menus/MenuList.vue')
 const Cache = () => import('@/views/cache/Index.vue')
+const Profile = () => import('@/views/profile/Profile.vue')
+const ChangePassword = () => import('@/views/profile/ChangePassword.vue')
 
 const routes = [
   {
@@ -153,6 +155,18 @@ const routes = [
     name: 'Menus',
     component: MenuList,
     meta: { title: '菜单管理', requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    meta: { title: '个人中心', requiresAuth: true }
+  },
+  {
+    path: '/change-password',
+    name: 'ChangePassword',
+    component: ChangePassword,
+    meta: { title: '修改密码', requiresAuth: true }
   }
 ]
 

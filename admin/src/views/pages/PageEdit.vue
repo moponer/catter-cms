@@ -18,8 +18,8 @@
       <div class="main-content">
         <!-- 动态模板编辑区 -->
         <el-card class="editor-card">
-          <!-- 默认图文编辑器 -->
-          <div v-if="!currentTemplateConfig || currentTemplateConfig.type === 'page'" class="default-editor">
+          <!-- 默认图文编辑器（默认模板 或 没有 fields 的自定义模板） -->
+          <div v-if="showDefaultEditor" class="default-editor">
             <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
               <el-form-item prop="title">
                 <el-input
@@ -51,9 +51,10 @@
             </el-form>
           </div>
 
-          <!-- 相册卡片编辑器 -->
-          <div v-else-if="currentTemplateConfig.type === 'gallery'" class="gallery-editor">
+          <!-- 自定义模板编辑器（有 fields 配置的模板，动态渲染） -->
+          <div v-else class="custom-template-editor">
             <el-form :model="form" label-position="top">
+              <!-- 标题 & Slug 永远显示 -->
               <el-form-item prop="title">
                 <el-input
                   v-model="form.title"
@@ -62,38 +63,36 @@
                   size="large"
                 />
               </el-form-item>
-
               <el-form-item prop="slug">
                 <el-input
                   v-model="form.slug"
-                  placeholder="页面别名（URL路径，如 gallery-fleet）"
+                  :placeholder="`页面别名（URL路径，如 ${currentTemplateConfig.type}）`"
                   size="default"
                 >
                   <template #prepend>/</template>
                 </el-input>
               </el-form-item>
 
-              <!-- 相册专用字段 -->
+              <!-- 模板专属字段区 -->
               <div class="template-fields">
                 <h3 class="fields-title">
-                  <el-icon><component :is="getTemplateIcon(currentTemplateConfig.icon)" /></el-icon>
-                  {{ currentTemplateConfig.name }}设置
+                  <i :class="currentTemplateConfig.icon" style="margin-right: 6px;"></i>
+                  {{ currentTemplateConfig.name }}内容
                 </h3>
 
-                <!-- 图片列表字段 -->
-                <el-form-item 
-                  v-for="field in currentTemplateConfig.fields" 
+                <el-form-item
+                  v-for="field in currentTemplateConfig.fields"
                   :key="field.name"
                   :label="field.label"
                 >
-                  <!-- image-list 类型 -->
+                  <!-- image-list：图片上传 + 媒体库 -->
                   <ImageListUploadField
                     v-if="field.type === 'image-list'"
-                    v-model="form.templateDataObj.images"
+                    v-model="form.templateDataObj[field.name]"
                     :placeholder="field.placeholder || '点击上传图片'"
                   />
 
-                  <!-- select 类型 -->
+                  <!-- select：下拉选择 -->
                   <el-select
                     v-else-if="field.type === 'select'"
                     v-model="form.templateDataObj[field.name]"
@@ -108,112 +107,37 @@
                     />
                   </el-select>
 
-                  <!-- switch 类型 -->
+                  <!-- switch：开关 -->
                   <el-switch
                     v-else-if="field.type === 'switch'"
                     v-model="form.templateDataObj[field.name]"
                   />
 
-                  <!-- textarea 类型 -->
+                  <!-- textarea：多行文本 -->
                   <el-input
                     v-else-if="field.type === 'textarea'"
                     v-model="form.templateDataObj[field.name]"
                     type="textarea"
-                    :rows="3"
-                    :placeholder="field.placeholder"
+                    :rows="4"
+                    :placeholder="field.placeholder || field.label"
                   />
 
-                  <!-- 默认文本输入 -->
+                  <!-- richtext：富文本编辑器 -->
+                  <TiptapEditor
+                    v-else-if="field.type === 'richtext'"
+                    v-model="form.templateDataObj[field.name]"
+                    :placeholder="field.placeholder || field.label"
+                    :height="400"
+                  />
+
+                  <!-- 默认：单行文本 -->
                   <el-input
                     v-else
                     v-model="form.templateDataObj[field.name]"
-                    :placeholder="field.placeholder"
+                    :placeholder="field.placeholder || field.label"
                   />
                 </el-form-item>
               </div>
-            </el-form>
-          </div>
-
-          <!-- 联系表单编辑器 -->
-          <div v-else-if="currentTemplateConfig.type === 'contact'" class="contact-editor">
-            <el-form :model="form" label-position="top">
-              <el-form-item prop="title">
-                <el-input
-                  v-model="form.title"
-                  placeholder="请输入页面标题"
-                  class="title-input"
-                  size="large"
-                />
-              </el-form-item>
-
-              <el-form-item prop="slug">
-                <el-input
-                  v-model="form.slug"
-                  placeholder="页面别名（URL路径，如 contact）"
-                  size="default"
-                >
-                  <template #prepend>/</template>
-                </el-input>
-              </el-form-item>
-
-              <!-- 联系表单专用字段 -->
-              <div class="template-fields">
-                <h3 class="fields-title">
-                  <el-icon><component :is="getTemplateIcon(currentTemplateConfig.icon)" /></el-icon>
-                  {{ currentTemplateConfig.name }}设置
-                </h3>
-
-                <el-form-item
-                  v-for="field in currentTemplateConfig.fields"
-                  :key="field.name"
-                  :label="field.label"
-                >
-                  <el-switch
-                    v-if="field.type === 'switch'"
-                    v-model="form.templateDataObj[field.name]"
-                  />
-                  <el-input
-                    v-else
-                    v-model="form.templateDataObj[field.name]"
-                    type="textarea"
-                    :rows="3"
-                    :placeholder="field.placeholder"
-                  />
-                </el-form-item>
-              </div>
-            </el-form>
-          </div>
-
-          <!-- 其他自定义模板（降级为默认编辑器） -->
-          <div v-else class="default-editor">
-            <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-              <el-form-item prop="title">
-                <el-input
-                  v-model="form.title"
-                  placeholder="请输入页面标题"
-                  class="title-input"
-                  size="large"
-                />
-              </el-form-item>
-
-              <el-form-item prop="slug">
-                <el-input
-                  v-model="form.slug"
-                  placeholder="页面别名（URL路径）"
-                  size="default"
-                >
-                  <template #prepend>/</template>
-                </el-input>
-              </el-form-item>
-
-              <el-form-item prop="content">
-                <TiptapEditor
-                  ref="editorRef"
-                  v-model="form.content"
-                  placeholder="请输入页面内容..."
-                  :height="500"
-                />
-              </el-form-item>
             </el-form>
           </div>
         </el-card>
@@ -360,10 +284,7 @@ const form = reactive({
   meta_title: '',
   meta_description: '',
   template_data: '',
-  templateDataObj: {
-    images: [],
-    columns: '3'
-  }
+  templateDataObj: {}
 })
 
 const rules = {
@@ -375,7 +296,15 @@ const rules = {
 // 当前模板配置
 const currentTemplateConfig = computed(() => {
   if (!form.template || form.template === 'default') return null
-  return pageTemplates.value.find(t => t.type === form.template)
+  return pageTemplates.value.find(t => t.type === form.template) || null
+})
+
+// 是否显示默认图文编辑器
+// 条件：默认模板 或 当前模板没有 fields（如联系我们）
+const showDefaultEditor = computed(() => {
+  if (!currentTemplateConfig.value) return true
+  const fields = currentTemplateConfig.value.fields
+  return !fields || fields.length === 0
 })
 
 // 加载页面模板列表
@@ -399,7 +328,7 @@ const handleTemplateChange = (newTemplate) => {
     const defaults = {}
     tpl.fields.forEach(field => {
       if (field.type === 'image-list') {
-        defaults.images = []
+        defaults[field.name] = ''  // ImageListUploadField 接受 JSON 字符串
       } else if (field.type === 'select' || field.type === 'radio') {
         defaults[field.name] = field.default || (field.options && field.options[0]?.value) || ''
       } else if (field.type === 'switch') {
@@ -410,8 +339,8 @@ const handleTemplateChange = (newTemplate) => {
     })
     Object.assign(form.templateDataObj, defaults)
   } else {
-    // 默认值
-    form.templateDataObj = { images: [], columns: '3' }
+    // 无 fields 的模板（如联系我们），重置为空对象
+    form.templateDataObj = {}
   }
 }
 
@@ -422,10 +351,25 @@ const serializeTemplateData = () => {
     const data = {}
     Object.keys(form.templateDataObj).forEach(key => {
       const val = form.templateDataObj[key]
-      // 跳过空数组
-      if (Array.isArray(val) && val.length === 0) return
+      // 跳过 null/undefined
+      if (val === null || val === undefined) return
+      // image-list 字段的值是 JSON 字符串（由 ImageListUploadField 产出），解析成数组再存
+      if (typeof val === 'string' && val.startsWith('[')) {
+        try {
+          const arr = JSON.parse(val)
+          if (Array.isArray(arr) && arr.length > 0) {
+            data[key] = arr
+          }
+          // 空数组直接跳过
+        } catch {
+          // 解析失败，跳过
+        }
+        return
+      }
       // 跳过空字符串
       if (val === '') return
+      // 跳过空数组
+      if (Array.isArray(val) && val.length === 0) return
       data[key] = val
     })
     form.template_data = Object.keys(data).length > 0 ? JSON.stringify(data) : ''
@@ -435,32 +379,28 @@ const serializeTemplateData = () => {
 }
 
 // 反序列化 template_data 字符串为对象
+// image-list 字段在 DB 中存的是数组，但 ImageListUploadField 需要 JSON 字符串
 const deserializeTemplateData = (jsonStr) => {
   if (!jsonStr) {
-    form.templateDataObj = { images: [], columns: '3' }
+    form.templateDataObj = {}
     return
   }
   try {
     const obj = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr
-    form.templateDataObj = {
-      images: obj.images || [],
-      columns: obj.columns || '3',
-      ...obj
-    }
+    const result = {}
+    Object.keys(obj).forEach(key => {
+      const val = obj[key]
+      // 数组类型（image-list），转成 JSON 字符串供 ImageListUploadField 使用
+      if (Array.isArray(val)) {
+        result[key] = JSON.stringify(val)
+      } else {
+        result[key] = val
+      }
+    })
+    form.templateDataObj = result
   } catch (e) {
-    form.templateDataObj = { images: [], columns: '3' }
+    form.templateDataObj = {}
   }
-}
-
-// 获取模板图标组件
-const getTemplateIcon = (iconName) => {
-  const iconMap = {
-    'document': 'Document',
-    'images': 'Picture',
-    'mail': 'Message',
-    'contact': 'ChatDotRound'
-  }
-  return iconMap[iconName] || 'Document'
 }
 
 // 加载页面列表（用于父页面选择）

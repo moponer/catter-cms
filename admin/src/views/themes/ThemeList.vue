@@ -22,10 +22,15 @@
       >
         <!-- 缩略图 -->
         <div class="theme-thumbnail">
-          <img
+          <el-image
             v-if="theme.thumbnail"
             :src="theme.thumbnail"
             :alt="theme.name"
+            :preview-src-list="[theme.thumbnail]"
+            fit="contain"
+            preview-teleported
+            class="theme-thumbnail-img"
+            @click.stop
           />
           <div v-else class="thumbnail-placeholder">
             <el-icon :size="40"><Monitor /></el-icon>
@@ -295,16 +300,19 @@ onMounted(() => {
 
 .theme-thumbnail {
   position: relative;
-  height: 180px;
+  height: 220px;
   overflow: hidden;
   border-radius: 4px 4px 0 0;
-  background: #f5f7fa;
+  background: #1a1f2e;
 }
 
-.theme-thumbnail img {
+.theme-thumbnail img,
+.theme-thumbnail-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  cursor: zoom-in;
 }
 
 .thumbnail-placeholder {

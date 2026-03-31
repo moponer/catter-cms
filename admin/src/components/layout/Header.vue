@@ -41,13 +41,22 @@
       <!-- 用户菜单 -->
       <el-dropdown trigger="click" @command="handleCommand">
         <div class="user-info">
-          <el-avatar :size="32" :src="userAvatar">
+          <el-avatar :size="32" :src="userAvatar" class="header-avatar">
             {{ userName?.charAt(0)?.toUpperCase() }}
           </el-avatar>
           <span class="user-name">{{ userName }}</span>
           <el-icon><ArrowDown /></el-icon>
         </div>
         <template #dropdown>
+          <div class="user-dropdown-header">
+            <el-avatar :size="44" :src="userAvatar" class="dropdown-avatar">
+              {{ userName?.charAt(0)?.toUpperCase() }}
+            </el-avatar>
+            <div class="dropdown-user-info">
+              <div class="dropdown-name">{{ userName }}</div>
+              <div class="dropdown-email">{{ userEmail }}</div>
+            </div>
+          </div>
           <el-dropdown-menu>
             <el-dropdown-item command="profile">
               <el-icon><User /></el-icon>
@@ -99,8 +108,9 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const searchKeyword = ref('')
-const userName = ref('管理员')
-const userAvatar = ref('')
+const userName = computed(() => userStore.currentUser?.name || '管理员')
+const userAvatar = computed(() => userStore.currentUser?.avatar || '')
+const userEmail = computed(() => userStore.currentUser?.email || '')
 const cacheClearing = ref(false)
 
 // 清缓存
@@ -139,7 +149,7 @@ const handleCommand = (command) => {
       router.push('/profile')
       break
     case 'password':
-      router.push('/password')
+      router.push('/change-password')
       break
     case 'logout':
       handleLogout()
@@ -163,10 +173,6 @@ const handleLogout = async () => {
 
 onMounted(async () => {
   await userStore.getCurrentUser()
-  if (userStore.currentUser) {
-    userName.value = userStore.currentUser.name || '管理员'
-    userAvatar.value = userStore.currentUser.avatar || ''
-  }
 })
 </script>
 
@@ -236,6 +242,38 @@ onMounted(async () => {
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
   font-weight: 500;
+}
+
+/* 下拉菜单头部 */
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  min-width: 200px;
+}
+.dropdown-avatar {
+  flex-shrink: 0;
+}
+.dropdown-user-info {
+  overflow: hidden;
+}
+.dropdown-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dropdown-email {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
 }
 
 /* 响应式 */

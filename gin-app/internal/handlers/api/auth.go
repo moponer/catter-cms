@@ -102,3 +102,109 @@ func MeHandler(c *gin.Context) {
 
 	SuccessResponse(c, user)
 }
+
+// UpdateProfileRequest 更新个人资料请求
+type UpdateProfileRequest struct {
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Avatar string `json:"avatar"`
+	Bio    string `json:"bio"`
+}
+
+// UpdateProfileHandler 更新当前用户个人资料
+func UpdateProfileHandler(c *gin.Context) {
+	currentUser, exists := c.Get("current_user")
+	if !exists || currentUser == nil {
+		Unauthorized(c, "未登录")
+		return
+	}
+	cu := currentUser.(*models.User)
+
+	var req UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	// 验证名称
+	if req.Name == "" {
+		BadRequest(c, "昵称不能为空")
+		return
+	}
+
+	// 如果修改了邮箱，检查是否已存在
+	if req.Email != "" && req.Email != cu.Email {
+		var count int64
+		models.DB.Model(&models.User{}).Where("email = ? AND id != ?", req.Email, cu.ID).Count(&count)
+		if count > 0 {
+			BadRequest(c, "邮箱已被使用")
+			return
+		}
+	}
+
+	updates := map[string]interface{}{
+		"name":   req.Name,
+		"avatar": req.Avatar,
+		"bio":    req.Bio,
+	}
+	if req.Email != "" {
+		updates["email"] = req.Email
+	}
+
+	if err := models.DB.Model(cu).Updates(updates).Error; err != nil {
+		InternalError(c, "更新失败")
+		return
+	}
+
+	// 重新查询最新数据
+	var updatedUser models.User
+	models.DB.First(&updatedUser, cu.ID)
+	SuccessWithMessage(c, "个人资料更新成功", updatedUser)
+}
+
+// ChangePasswordRequest 修改密码请求
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
+}
+
+// ChangePasswordHandler 修改当前用户密码
+func ChangePasswordHandler(c *gin.Context) {
+	currentUser, exists := c.Get("current_user")
+	if !exists || currentUser == nil {
+		Unauthorized(c, "未登录")
+		return
+	}
+	cu := currentUser.(*models.User)
+
+	var req ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "请求参数错误，新密码至少6位")
+		return
+	}
+
+	// 验证旧密码
+	if !cu.CheckPassword(req.OldPassword) {
+		BadRequest(c, "当前密码不正确")
+		return
+	}
+
+	// 新旧密码不能相同
+	if req.OldPassword == req.NewPassword {
+		BadRequest(c, "新密码不能与当前密码相同")
+		return
+	}
+
+	// 设置新密码
+	if err := cu.SetPassword(req.NewPassword); err != nil {
+		InternalError(c, "密码加密失败")
+		return
+	}
+
+	if err := models.DB.Model(cu).Update("password_hash", cu.PasswordHash).Error; err != nil {
+		InternalError(c, "密码更新失败")
+		return
+	}
+
+	SuccessWithMessage(c, "密码修改成功", nil)
+}

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -39,7 +40,7 @@ func getSiteData() map[string]interface{} {
 		"url":         models.GetSettingAsString("site_url"),
 		"logo":        models.GetSettingAsString("logo"),
 		"favicon":     models.GetSettingAsString("favicon"),
-		"year":        2026,
+		"year":        time.Now().Year(),
 	}
 }
 
@@ -177,6 +178,8 @@ func main() {
 		protected.Use(middleware.APIAuth())
 		{
 			protected.GET("/auth/me", api.MeHandler)
+			protected.PUT("/auth/profile", api.UpdateProfileHandler)
+			protected.PUT("/auth/password", api.ChangePasswordHandler)
 
 			// 仪表盘 API
 			protected.GET("/dashboard/stats", api.GetDashboardStats)

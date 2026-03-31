@@ -38,21 +38,28 @@
         <!-- 图片网格 - 从 .td.images 获取 -->
         <div class="gallery-grid" id="galleryGrid" data-columns="{{ .td.columns }}">
             {{ if .td.images }}
-                {{ range .td.images }}
+                {{ range $img := .td.images }}
                 <div class="gallery-item">
+                    <!-- 图片区 -->
                     <div class="gallery-item-inner">
-                        <img src="{{ .url }}" alt="{{ .title }}" loading="lazy">
+                        <img src="{{ $img.url }}" alt="{{ $img.title }}" loading="lazy">
+                        <!-- 相机角标 -->
+                        <span class="gallery-item-index"><i class="fa-solid fa-camera"></i></span>
+                        <!-- 放大遮罩 -->
                         <div class="gallery-item-overlay">
-                            <h3 class="gallery-item-title">{{ .title }}</h3>
-                            {{ if .description }}
-                            <p class="gallery-item-desc">{{ .description }}</p>
-                            {{ end }}
-                            <button class="gallery-item-view" data-src="{{ .url }}" data-title="{{ .title }}">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <button class="gallery-item-view" data-src="{{ $img.url }}" data-title="{{ $img.title }}">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                                     <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                                 </svg>
                             </button>
                         </div>
+                    </div>
+                    <!-- 底部名称条 -->
+                    <div class="gallery-item-caption">
+                        <span class="gallery-item-caption-icon">
+                            <i class="fa-solid fa-image"></i>
+                        </span>
+                        <h3 class="gallery-item-title">{{ if $img.title }}{{ $img.title }}{{ else }}未命名图片{{ end }}</h3>
                     </div>
                 </div>
                 {{ end }}

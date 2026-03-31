@@ -11,7 +11,68 @@
           <el-icon><Delete /></el-icon>
           删除选中 ({{ selectedIds.length }})
         </el-button>
+        <!-- 压缩选项 toggle -->
+        <el-popover
+          placement="bottom-end"
+          :width="280"
+          trigger="click"
+        >
+          <template #reference>
+            <el-button :type="compressEnabled ? 'warning' : 'default'" plain>
+              <el-icon><Setting /></el-icon>
+              压缩{{ compressEnabled ? '已开' : '已关' }}
+            </el-button>
+          </template>
+          <div class="compress-settings">
+            <div class="compress-title">图片压缩设置</div>
+            <el-form label-width="90px" size="small">
+              <el-form-item label="自动压缩">
+                <el-switch v-model="compressEnabled" />
+              </el-form-item>
+              <template v-if="compressEnabled">
+                <el-form-item label="触发阈值">
+                  <el-slider
+                    v-model="compressThresholdMB"
+                    :min="0.1"
+                    :max="10"
+                    :step="0.1"
+                    :format-tooltip="v => v + ' MB'"
+                    show-input
+                    :show-input-controls="false"
+                    size="small"
+                    style="width:140px"
+                  />
+                </el-form-item>
+                <el-form-item label="压缩质量">
+                  <el-slider
+                    v-model="compressQuality"
+                    :min="0.1"
+                    :max="1"
+                    :step="0.05"
+                    :format-tooltip="v => Math.round(v*100) + '%'"
+                    show-input
+                    :show-input-controls="false"
+                    size="small"
+                    style="width:140px"
+                  />
+                </el-form-item>
+                <el-form-item label="最大边长">
+                  <el-input-number
+                    v-model="compressMaxSize"
+                    :min="400"
+                    :max="4096"
+                    :step="100"
+                    size="small"
+                    style="width:140px"
+                  />
+                  <span style="margin-left:6px;color:var(--el-text-color-secondary);font-size:12px">px</span>
+                </el-form-item>
+              </template>
+            </el-form>
+          </div>
+        </el-popover>
         <el-upload
+          ref="uploadRef"
           :show-file-list="false"
           :before-upload="handleUpload"
           accept="image/*,video/*,.pdf,.doc,.docx"
@@ -120,6 +181,43 @@
       </div>
     </el-card>
 
+    <!-- 批量上传进度浮层 -->
+    <transition name="upload-progress-fade">
+      <div v-if="uploadQueue.length > 0" class="upload-progress-panel">
+        <div class="upload-progress-header">
+          <span class="upload-progress-title">
+            <el-icon><Upload /></el-icon>
+            上传队列 ({{ uploadDoneCount }}/{{ uploadQueue.length }})
+          </span>
+          <el-button type="primary" link size="small" @click="clearDoneQueue">
+            清除已完成
+          </el-button>
+        </div>
+        <div class="upload-progress-list">
+          <div
+            v-for="task in uploadQueue"
+            :key="task.id"
+            class="upload-task-item"
+            :class="task.status"
+          >
+            <div class="upload-task-icon">
+              <el-icon v-if="task.status === 'done'" color="#67c23a"><CircleCheck /></el-icon>
+              <el-icon v-else-if="task.status === 'error'" color="#f56c6c"><CircleClose /></el-icon>
+              <el-icon v-else class="rotating"><Loading /></el-icon>
+            </div>
+            <div class="upload-task-info">
+              <div class="upload-task-name">{{ task.name }}</div>
+              <div class="upload-task-meta">
+                {{ task.originalSize }}
+                <template v-if="task.compressed"> → {{ task.compressedSize }} <span class="compress-badge">已压缩</span></template>
+                <span v-if="task.status === 'error'" class="error-tip">{{ task.error }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <!-- 预览弹窗 -->
     <el-dialog
       v-model="previewVisible"
@@ -191,9 +289,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Upload, Document, Delete, VideoPlay, ZoomIn, Select, CopyDocument } from '@element-plus/icons-vue'
+import { Upload, Document, Delete, VideoPlay, ZoomIn, Select, CopyDocument, Setting, CircleCheck, CircleClose, Loading } from '@element-plus/icons-vue'
 import { get, post, del } from '@/utils/request'
 
 const loading = ref(false)
@@ -207,6 +305,75 @@ const selectedIds = ref([])
 const previewVisible = ref(false)
 const previewItem = ref(null)
 
+// ====== 压缩配置 ======
+const compressEnabled = ref(true)
+const compressThresholdMB = ref(1)   // 超过此大小才压缩
+const compressQuality = ref(0.82)    // JPEG 质量
+const compressMaxSize = ref(1920)    // 最大边长(px)
+
+// ====== 上传队列 ======
+const uploadQueue = ref([])
+let taskIdCounter = 0
+
+const uploadDoneCount = computed(() =>
+  uploadQueue.value.filter(t => t.status === 'done' || t.status === 'error').length
+)
+
+const clearDoneQueue = () => {
+  uploadQueue.value = uploadQueue.value.filter(t => t.status === 'uploading')
+}
+
+// ====== 图片压缩 ======
+const compressImage = (file) => {
+  return new Promise((resolve) => {
+    const thresholdBytes = compressThresholdMB.value * 1024 * 1024
+    // 非图片或未启用压缩或未超阈值 → 直接返回原文件
+    if (!compressEnabled.value || !file.type.startsWith('image/') || file.size < thresholdBytes) {
+      resolve({ file, compressed: false })
+      return
+    }
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      let { width, height } = img
+      const max = compressMaxSize.value
+      if (width > max || height > max) {
+        if (width > height) {
+          height = Math.round((height * max) / width)
+          width = max
+        } else {
+          width = Math.round((width * max) / height)
+          height = max
+        }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        (blob) => {
+          if (!blob || blob.size >= file.size) {
+            // 压缩后反而变大，放弃压缩
+            resolve({ file, compressed: false })
+            return
+          }
+          const compressedFile = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() })
+          resolve({ file: compressedFile, compressed: true })
+        },
+        'image/jpeg',
+        compressQuality.value
+      )
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      resolve({ file, compressed: false })
+    }
+    img.src = url
+  })
+}
+
 const loadMedia = async () => {
   loading.value = true
   try {
@@ -214,8 +381,8 @@ const loadMedia = async () => {
       page: currentPage.value,
       page_size: pageSize.value,
     }
-    if (keyword.value) params.search = keyword.value       // 后端用 search
-    if (filterType.value) params.file_type = filterType.value  // 后端用 file_type
+    if (keyword.value) params.search = keyword.value
+    if (filterType.value) params.file_type = filterType.value
     
     const res = await get('/api/media', params)
     mediaList.value = res.data?.list || res.list || []
@@ -228,17 +395,37 @@ const loadMedia = async () => {
 }
 
 const handleUpload = async (file) => {
-  const formData = new FormData()
-  formData.append('file', file)
+  const taskId = ++taskIdCounter
+  const task = {
+    id: taskId,
+    name: file.name,
+    originalSize: formatSize(file.size),
+    compressedSize: '',
+    compressed: false,
+    status: 'uploading',
+    error: ''
+  }
+  uploadQueue.value.unshift(task)
 
   try {
+    // 尝试压缩
+    const { file: uploadFile, compressed } = await compressImage(file)
+    task.compressed = compressed
+    if (compressed) {
+      task.compressedSize = formatSize(uploadFile.size)
+    }
+
+    const formData = new FormData()
+    formData.append('file', uploadFile)
+
     await post('/api/media/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-    ElMessage.success('上传成功')
+    task.status = 'done'
     loadMedia()
   } catch (error) {
-    ElMessage.error('上传失败')
+    task.status = 'error'
+    task.error = error?.message || '上传失败'
   }
   return false
 }
@@ -532,6 +719,136 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--spacing-md);
+}
+
+/* ====== 压缩设置 Popover 内容 ====== */
+.compress-settings {
+  padding: 4px 0;
+}
+.compress-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  margin-bottom: 12px;
+}
+.compress-settings .el-form-item {
+  margin-bottom: 10px;
+}
+
+/* ====== 上传进度浮层 ====== */
+.upload-progress-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 340px;
+  max-height: 400px;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 2000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  flex-shrink: 0;
+}
+
+.upload-progress-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.upload-progress-list {
+  overflow-y: auto;
+  max-height: 320px;
+  padding: 8px 0;
+}
+
+.upload-task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 16px;
+  transition: background 0.15s;
+}
+
+.upload-task-item:hover {
+  background: var(--el-fill-color-light);
+}
+
+.upload-task-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 16px;
+}
+
+.upload-task-icon .rotating {
+  animation: spin 1s linear infinite;
+  color: var(--el-color-primary);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.upload-task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-task-name {
+  font-size: 13px;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-task-meta {
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.compress-badge {
+  background: var(--el-color-warning-light-8);
+  color: var(--el-color-warning);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.error-tip {
+  color: var(--el-color-danger);
+}
+
+/* 进度面板动画 */
+.upload-progress-fade-enter-active,
+.upload-progress-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.upload-progress-fade-enter-from,
+.upload-progress-fade-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
 }
 
 /* ====== 预览弹窗 ====== */

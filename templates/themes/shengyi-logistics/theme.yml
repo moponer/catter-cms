@@ -24,10 +24,11 @@ configDefinition:
         label: "联系邮箱"
         type: "text"
         default: "contact@shengyi-logistics.com"
-      - name: "icp"
-        label: "ICP备案号"
+      - name: "footerCopyright"
+        label: "底部版权信息"
         type: "text"
-        default: "沪ICP备2024000001号"
+        default: "Copyright © 2026 盛意物流 版权所有 | 沪ICP备2024000001号"
+        placeholder: "完整版权信息，如：Copyright © 2026 公司名 版权所有 | 沪ICP备xxxxx号"
       - name: "footerDesc"
         label: "页脚简介"
         type: "textarea"
@@ -364,3 +365,34 @@ configDefinition:
         type: "code"
         language: "html"
         default: ""
+
+# =============================================
+# 页面模板定义
+# 用户在管理后台创建页面时可选择以下模板
+# =============================================
+pageTemplates:
+  - type: "gallery"
+    name: "图片相册"
+    icon: "fa-solid fa-images"
+    description: "适用于图片展示页面，支持灯箱浏览"
+    fields:
+      - name: "columns"
+        label: "列数"
+        type: "select"
+        default: "3"
+        options:
+          - value: "2"
+            label: "2列"
+          - value: "3"
+            label: "3列"
+          - value: "4"
+            label: "4列"
+      - name: "images"
+        label: "图片列表"
+        type: "image-list"
+        placeholder: "点击上传或从媒体库选择图片"
+
+  - type: "contact"
+    name: "联系我们"
+    icon: "fa-solid fa-envelope"
+    description: "联系信息展示页面，包含电话/邮箱/地址/在线留言"

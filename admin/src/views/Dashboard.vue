@@ -1,98 +1,147 @@
 <template>
   <div class="dashboard-page">
-    <div class="page-header">
-      <h1>仪表盘</h1>
+
+    <!-- 欢迎横幅 -->
+    <div class="welcome-banner">
+      <div class="welcome-left">
+        <div class="welcome-title">欢迎回来 👋</div>
+        <div class="welcome-sub">今天是 {{ todayStr }}，祝工作顺利</div>
+      </div>
+      <div class="welcome-right">
+        <div class="banner-stat">
+          <span class="bs-num">{{ stats.published_posts }}</span>
+          <span class="bs-label">已发布</span>
+        </div>
+        <div class="banner-divider"></div>
+        <div class="banner-stat">
+          <span class="bs-num">{{ stats.draft_posts }}</span>
+          <span class="bs-label">草稿</span>
+        </div>
+      </div>
     </div>
 
     <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stats-row">
+    <el-row :gutter="16" class="stats-row">
       <el-col :xs="12" :sm="6">
-        <el-card class="stat-card">
-          <div class="stat-icon articles">
+        <div class="stat-card">
+          <div class="stat-icon-wrap color-primary">
             <el-icon><Document /></el-icon>
           </div>
-          <div class="stat-content">
+          <div class="stat-body">
             <div class="stat-value">{{ stats.total_posts }}</div>
             <div class="stat-label">文章总数</div>
           </div>
-        </el-card>
+        </div>
       </el-col>
       <el-col :xs="12" :sm="6">
-        <el-card class="stat-card">
-          <div class="stat-icon users">
+        <div class="stat-card">
+          <div class="stat-icon-wrap color-success">
             <el-icon><User /></el-icon>
           </div>
-          <div class="stat-content">
+          <div class="stat-body">
             <div class="stat-value">{{ stats.total_users }}</div>
             <div class="stat-label">用户总数</div>
           </div>
-        </el-card>
+        </div>
       </el-col>
       <el-col :xs="12" :sm="6">
-        <el-card class="stat-card">
-          <div class="stat-icon categories">
+        <div class="stat-card">
+          <div class="stat-icon-wrap color-warning">
             <el-icon><Folder /></el-icon>
           </div>
-          <div class="stat-content">
+          <div class="stat-body">
             <div class="stat-value">{{ stats.total_categories }}</div>
             <div class="stat-label">分类总数</div>
           </div>
-        </el-card>
+        </div>
       </el-col>
       <el-col :xs="12" :sm="6">
-        <el-card class="stat-card">
-          <div class="stat-icon media">
+        <div class="stat-card">
+          <div class="stat-icon-wrap color-danger">
             <el-icon><Picture /></el-icon>
           </div>
-          <div class="stat-content">
+          <div class="stat-body">
             <div class="stat-value">{{ stats.total_media }}</div>
             <div class="stat-label">媒体文件</div>
           </div>
-        </el-card>
+        </div>
       </el-col>
     </el-row>
 
-    <!-- 快捷操作和系统介绍 - 使用14:10比例与底部对齐 -->
-    <el-row :gutter="20" class="section-row">
-      <el-col :xs="24" :lg="14">
-        <el-card class="quick-actions-card">
+    <!-- 主内容区 -->
+    <el-row :gutter="16" class="main-row">
+
+      <!-- 左侧：快捷操作 + 最近文章 -->
+      <el-col :xs="24" :lg="15">
+
+        <!-- 快捷操作 -->
+        <el-card class="section-card quick-card" shadow="never">
           <template #header>
-            <div class="card-header">
-              <span>快捷操作</span>
-            </div>
+            <span class="card-title">快捷操作</span>
           </template>
-          <el-row :gutter="16">
-            <el-col :xs="12" :sm="8" :md="6" v-for="action in quickActions" :key="action.path">
-              <div class="quick-action" @click="$router.push(action.path)">
-                <div class="quick-action-icon" :class="action.iconClass">
-                  <el-icon>
-                    <component :is="action.icon" />
-                  </el-icon>
-                </div>
-                <div class="quick-action-label">{{ action.label }}</div>
+          <div class="quick-grid">
+            <div
+              class="quick-item"
+              v-for="action in quickActions"
+              :key="action.path"
+              @click="$router.push(action.path)"
+            >
+              <div class="qi-icon" :class="action.iconClass">
+                <el-icon><component :is="action.icon" /></el-icon>
               </div>
-            </el-col>
-          </el-row>
+              <span class="qi-label">{{ action.label }}</span>
+              <el-icon class="qi-arrow"><ArrowRight /></el-icon>
+            </div>
+          </div>
         </el-card>
-      </el-col>
-      <el-col :xs="24" :lg="10">
-        <el-card class="system-intro-card">
+
+        <!-- 最近文章 -->
+        <el-card class="section-card" shadow="never" style="margin-top:16px">
           <template #header>
-            <div class="card-header">
-              <span>系统介绍</span>
+            <div class="card-header-flex">
+              <span class="card-title">最近文章</span>
+              <el-button type="primary" link @click="$router.push('/posts')">查看全部</el-button>
             </div>
           </template>
-          <div class="intro-content">
-            <div class="intro-logo">
-              <el-avatar :size="64" class="logo-avatar">C</el-avatar>
-              <h3>Catter CMS</h3>
-              <p class="version">v{{ systemInfo.version || '2.0.0' }}</p>
+          <el-table :data="recentPosts" style="width:100%" v-loading="loading.posts" :show-header="true">
+            <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip>
+              <template #default="{ row }">
+                <el-link type="primary" @click="$router.push(`/posts/edit/${row.id}`)">{{ row.title }}</el-link>
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="86">
+              <template #default="{ row }">
+                <el-tag :type="row.status === 'published' ? 'success' : 'info'" size="small">
+                  {{ row.status === 'published' ? '已发布' : '草稿' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="created_at" label="创建时间" width="155">
+              <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+
+      </el-col>
+
+      <!-- 右侧：系统信息 + 系统监控 -->
+      <el-col :xs="24" :lg="9">
+
+        <!-- 系统信息 -->
+        <el-card class="section-card" shadow="never">
+          <template #header>
+            <span class="card-title">系统信息</span>
+          </template>
+          <div class="sys-info-block">
+            <div class="sys-logo">
+              <div class="sys-logo-icon">C</div>
+              <div class="sys-logo-text">
+                <div class="sys-name">Catter CMS</div>
+                <div class="sys-version">v{{ systemInfo.version || '2.0.0' }}</div>
+              </div>
             </div>
-            <p class="intro-text">
-              Catter CMS 是一个现代化的内容管理系统，基于 Go + Vue 构建。
-              提供文章管理、页面管理、媒体管理、主题管理等核心功能。
-            </p>
-            <div class="intro-links">
+            <p class="sys-desc">基于 Go + Vue 3 构建的现代化内容管理系统，提供文章、页面、媒体、主题等核心管理功能。</p>
+            <div class="sys-links">
               <el-link type="primary" href="https://github.com" target="_blank">
                 <el-icon><Link /></el-icon> GitHub
               </el-link>
@@ -102,209 +151,102 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
 
-    <!-- 最近文章和系统监控 - 使用14:10比例 -->
-    <el-row :gutter="20" class="section-row">
-      <el-col :xs="24" :lg="14">
-        <el-card class="recent-posts-card">
+        <!-- 系统监控 -->
+        <el-card class="section-card" shadow="never" style="margin-top:16px" v-loading="loading.system">
           <template #header>
-            <div class="card-header">
-              <span>最近文章</span>
-              <el-button type="primary" link @click="$router.push('/posts')">
-                查看全部
-              </el-button>
-            </div>
-          </template>
-          <el-table :data="recentPosts" style="width: 100%" v-loading="loading.posts">
-            <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip>
-              <template #default="{ row }">
-                <el-link type="primary" @click="$router.push(`/posts/edit/${row.id}`)">
-                  {{ row.title }}
-                </el-link>
-              </template>
-            </el-table-column>
-            <el-table-column prop="status" label="状态" width="90">
-              <template #default="{ row }">
-                <el-tag :type="row.status === 'published' ? 'success' : 'info'" size="small">
-                  {{ row.status === 'published' ? '已发布' : '草稿' }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="created_at" label="创建时间" width="160">
-              <template #default="{ row }">
-                {{ formatDate(row.created_at) }}
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-card>
-      </el-col>
-      <el-col :xs="24" :lg="10">
-        <el-card class="system-monitor-card">
-          <template #header>
-            <div class="card-header">
-              <span>系统监控</span>
+            <div class="card-header-flex">
+              <span class="card-title">系统监控</span>
               <el-tag size="small" :type="systemInfo.database?.status === 'connected' ? 'success' : 'danger'">
                 {{ systemInfo.database?.status === 'connected' ? '运行中' : '异常' }}
               </el-tag>
             </div>
           </template>
-          <div class="monitor-content" v-loading="loading.system">
-            <!-- 运行时间 -->
-            <div class="monitor-item">
-              <div class="monitor-label">
-                <el-icon><Timer /></el-icon>
-                <span>运行时间</span>
-              </div>
-              <div class="monitor-value">{{ systemInfo.uptime || '-' }}</div>
+          <div class="monitor-list">
+            <div class="monitor-row">
+              <div class="mr-label"><el-icon><Timer /></el-icon> 运行时间</div>
+              <div class="mr-value">{{ systemInfo.uptime || '-' }}</div>
             </div>
-
-            <!-- 服务器信息 -->
-            <div class="monitor-item">
-              <div class="monitor-label">
-                <el-icon><Monitor /></el-icon>
-                <span>服务器</span>
-              </div>
-              <div class="monitor-value">
-                {{ systemInfo.server?.os }} {{ systemInfo.server?.arch }}
-              </div>
+            <div class="monitor-row">
+              <div class="mr-label"><el-icon><Monitor /></el-icon> 服务器</div>
+              <div class="mr-value">{{ systemInfo.server?.os }} {{ systemInfo.server?.arch }}</div>
             </div>
-
-            <!-- 数据库 -->
-            <div class="monitor-item">
-              <div class="monitor-label">
-                <el-icon><Coin /></el-icon>
-                <span>数据库</span>
-              </div>
-              <div class="monitor-value">
-                {{ systemInfo.database?.type }} {{ systemInfo.database?.version }}
-              </div>
+            <div class="monitor-row">
+              <div class="mr-label"><el-icon><Coin /></el-icon> 数据库</div>
+              <div class="mr-value">{{ systemInfo.database?.type }} {{ systemInfo.database?.version }}</div>
             </div>
-
-            <!-- CPU -->
-            <div class="monitor-item">
-              <div class="monitor-label">
-                <el-icon><Cpu /></el-icon>
-                <span>CPU 核心</span>
-              </div>
-              <div class="monitor-value">{{ systemInfo.cpu?.cores || '-' }} 核</div>
+            <div class="monitor-row">
+              <div class="mr-label"><el-icon><Cpu /></el-icon> CPU 核心</div>
+              <div class="mr-value">{{ systemInfo.cpu?.cores || '-' }} 核</div>
             </div>
-
-            <!-- Goroutines -->
-            <div class="monitor-item">
-              <div class="monitor-label">
-                <el-icon><Connection /></el-icon>
-                <span>Goroutines</span>
-              </div>
-              <div class="monitor-value">{{ systemInfo.cpu?.goroutines || '-' }}</div>
+            <div class="monitor-row">
+              <div class="mr-label"><el-icon><Connection /></el-icon> Goroutines</div>
+              <div class="mr-value">{{ systemInfo.cpu?.goroutines || '-' }}</div>
             </div>
-
-            <!-- 内存使用 -->
-            <div class="monitor-item memory-item">
-              <div class="monitor-label">
-                <el-icon><Histogram /></el-icon>
-                <span>内存使用</span>
-              </div>
-              <div class="monitor-value">
-                {{ formatBytes(systemInfo.memory?.used) }} / {{ formatBytes(systemInfo.memory?.total) }}
-              </div>
+            <div class="monitor-row memory-row">
+              <div class="mr-label"><el-icon><Histogram /></el-icon> 内存使用</div>
+              <div class="mr-value">{{ formatBytes(systemInfo.memory?.used) }} / {{ formatBytes(systemInfo.memory?.total) }}</div>
             </div>
-            <el-progress 
-              :percentage="Math.round(systemInfo.memory?.used_percent || 0)" 
+            <el-progress
+              :percentage="Math.round(systemInfo.memory?.used_percent || 0)"
               :status="getMemoryStatus(systemInfo.memory?.used_percent)"
+              :stroke-width="6"
+              style="margin-bottom:12px"
             />
-
-            <!-- CMS版本 -->
-            <div class="monitor-item version-item">
-              <div class="monitor-label">
-                <el-icon><InfoFilled /></el-icon>
-                <span>Catter CMS</span>
-              </div>
-              <div class="monitor-value version">v{{ systemInfo.version || '2.0.0' }}</div>
-            </div>
           </div>
         </el-card>
+
       </el-col>
     </el-row>
+
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import {
-  Document,
-  User,
-  Folder,
-  Picture,
-  Edit,
-  DocumentAdd,
-  Upload,
-  FolderAdd,
-  UserFilled,
-  Setting,
-  Link,
-  Timer,
-  Monitor,
-  Coin,
-  Cpu,
-  Connection,
-  Histogram,
-  InfoFilled,
-  Collection,
-  PriceTag,
-  ChatDotRound,
-  Brush
+  Document, User, Folder, Picture,
+  Edit, DocumentAdd, Upload, FolderAdd,
+  Setting, Link, Timer, Monitor, Coin, Cpu,
+  Connection, Histogram, PriceTag, ChatDotRound,
+  Brush, ArrowRight
 } from '@element-plus/icons-vue'
 import { get } from '@/utils/request'
 
 const stats = reactive({
-  total_posts: 0,
-  published_posts: 0,
-  draft_posts: 0,
-  total_users: 0,
-  total_categories: 0,
-  total_tags: 0,
-  total_media: 0
+  total_posts: 0, published_posts: 0, draft_posts: 0,
+  total_users: 0, total_categories: 0, total_tags: 0, total_media: 0
 })
-
 const recentPosts = ref([])
 const systemInfo = ref({})
+const loading = reactive({ posts: false, system: false })
 
-const loading = reactive({
-  posts: false,
-  system: false
+// 今日日期
+const todayStr = computed(() => {
+  return new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
 })
 
-// 快捷操作配置 - 使用纯色图标替代渐变色
+// 快捷操作
 const quickActions = [
-  { label: '新建文章', icon: 'Edit', iconClass: 'articles', path: '/posts/create' },
-  { label: '新建页面', icon: 'DocumentAdd', iconClass: 'pages', path: '/pages/create' },
-  { label: '上传媒体', icon: 'Upload', iconClass: 'media', path: '/media' },
-  { label: '添加分类', icon: 'FolderAdd', iconClass: 'categories', path: '/categories' },
-  { label: '添加标签', icon: 'PriceTag', iconClass: 'tags', path: '/tags' },
-  { label: '评论管理', icon: 'ChatDotRound', iconClass: 'comments', path: '/comments' },
-  { label: '主题管理', icon: 'Brush', iconClass: 'themes', path: '/themes' },
-  { label: '系统设置', icon: 'Setting', iconClass: 'settings', path: '/settings' }
+  { label: '新建文章',  icon: 'Edit',         iconClass: 'ic-primary',  path: '/posts/create' },
+  { label: '新建页面',  icon: 'DocumentAdd',  iconClass: 'ic-success',  path: '/pages/create' },
+  { label: '上传媒体',  icon: 'Upload',       iconClass: 'ic-warning',  path: '/media' },
+  { label: '添加分类',  icon: 'FolderAdd',    iconClass: 'ic-danger',   path: '/categories' },
+  { label: '添加标签',  icon: 'PriceTag',     iconClass: 'ic-info',     path: '/tags' },
+  { label: '评论管理',  icon: 'ChatDotRound', iconClass: 'ic-warning2', path: '/comments' },
+  { label: '主题管理',  icon: 'Brush',        iconClass: 'ic-purple',   path: '/themes' },
+  { label: '系统设置',  icon: 'Setting',      iconClass: 'ic-neutral',  path: '/settings' }
 ]
 
 const loadDashboardData = async () => {
   try {
-    // 加载统计数据
     const statsRes = await get('/api/dashboard/stats')
-    const statsData = statsRes.data || statsRes
-    Object.assign(stats, statsData)
-
-    // 加载最近文章
+    Object.assign(stats, statsRes.data || statsRes)
     loading.posts = true
     const postsRes = await get('/api/dashboard/recent-posts')
-    const postsData = postsRes.data || postsRes
-    recentPosts.value = postsData || []
-  } catch (error) {
-    // 错误已在 request 拦截器中处理
-  } finally {
-    loading.posts = false
-  }
+    recentPosts.value = (postsRes.data || postsRes) || []
+  } catch {}
+  finally { loading.posts = false }
 }
 
 const loadSystemInfo = async () => {
@@ -312,337 +254,345 @@ const loadSystemInfo = async () => {
     loading.system = true
     const res = await get('/api/admin/system/info')
     systemInfo.value = res.data || res || {}
-  } catch (error) {
-    // 错误已在 request 拦截器中处理
-  } finally {
-    loading.system = false
-  }
+  } catch {}
+  finally { loading.system = false }
 }
 
-// 格式化日期
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+const formatDate = (d) => {
+  if (!d) return '-'
+  return new Date(d).toLocaleString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
 }
 
-// 格式化字节
 const formatBytes = (bytes) => {
   if (!bytes) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
+  const k = 1024, sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-// 获取内存状态
-const getMemoryStatus = (percent) => {
-  if (!percent) return ''
-  if (percent > 90) return 'exception'
-  if (percent > 70) return 'warning'
+const getMemoryStatus = (p) => {
+  if (!p) return ''
+  if (p > 90) return 'exception'
+  if (p > 70) return 'warning'
   return 'success'
 }
 
-onMounted(() => {
-  loadDashboardData()
-  loadSystemInfo()
-})
+onMounted(() => { loadDashboardData(); loadSystemInfo() })
 </script>
 
 <style scoped>
 .dashboard-page {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+/* ===== 欢迎横幅 ===== */
+.welcome-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background-color: var(--el-color-primary);
+  border-radius: 10px;
+  color: #fff;
+}
+
+.welcome-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.welcome-sub {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.welcome-right {
+  display: flex;
+  align-items: center;
   gap: 20px;
 }
 
-.page-header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin: 0;
+.banner-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* 统计卡片 */
+.bs-num {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bs-label {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.banner-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255,255,255,0.3);
+}
+
+/* ===== 统计卡片 ===== */
 .stats-row {
-  margin-bottom: 10px;
+  margin: 0 !important;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  margin-bottom: 0;
+  transition: box-shadow 0.2s;
 }
 
-.stat-card :deep(.el-card__body) {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  width: 100%;
+.stat-card:hover {
+  box-shadow: var(--el-box-shadow-light);
 }
 
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.stat-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 24px;
-  margin-right: 12px;
+  font-size: 22px;
   flex-shrink: 0;
 }
 
-/* 统计图标 - 使用纯色替代渐变色 */
-.stat-icon.articles {
-  background-color: #409eff;
-}
+.color-primary { background: var(--el-color-primary-light-9); color: var(--el-color-primary); }
+.color-success { background: var(--el-color-success-light-9); color: var(--el-color-success); }
+.color-warning { background: var(--el-color-warning-light-9); color: var(--el-color-warning); }
+.color-danger  { background: var(--el-color-danger-light-9);  color: var(--el-color-danger);  }
 
-.stat-icon.users {
-  background-color: #67c23a;
-}
-
-.stat-icon.categories {
-  background-color: #e6a23c;
-}
-
-.stat-icon.media {
-  background-color: #f56c6c;
-}
-
-.stat-content {
-  flex: 1;
-}
+.stat-body { flex: 1; min-width: 0; }
 
 .stat-value {
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 26px;
+  font-weight: 700;
   color: var(--el-text-color-primary);
   line-height: 1.2;
 }
 
 .stat-label {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
-/* 分栏布局 - 统一使用14:10比例 */
-.section-row {
+/* ===== 主内容区 ===== */
+.main-row {
   margin: 0 !important;
+  align-items: flex-start;
 }
 
-.section-row .el-col {
-  margin-bottom: 20px;
+.main-row .el-col {
+  margin-bottom: 0;
 }
 
-/* 快捷操作卡片 */
-.quick-actions-card,
-.system-intro-card,
-.recent-posts-card,
-.system-monitor-card {
-  height: 100%;
+.section-card {
+  border-radius: 10px;
+  border: 1px solid var(--el-border-color-lighter) !important;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-}
-
-.quick-action {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px 8px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.3s;
-  margin-bottom: 12px;
-}
-
-.quick-action:hover {
-  background-color: var(--el-fill-color-light);
-  transform: translateY(-2px);
-}
-
-.quick-action-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 24px;
-  margin-bottom: 8px;
-  transition: all 0.3s;
-}
-
-/* 快捷操作图标 - 使用纯色替代渐变色 */
-.quick-action-icon.articles {
-  background-color: #409eff;
-}
-
-.quick-action-icon.pages {
-  background-color: #67c23a;
-}
-
-.quick-action-icon.media {
-  background-color: #e6a23c;
-}
-
-.quick-action-icon.categories {
-  background-color: #f56c6c;
-}
-
-.quick-action-icon.tags {
-  background-color: #909399;
-}
-
-.quick-action-icon.comments {
-  background-color: #b88230;
-}
-
-.quick-action-icon.themes {
-  background-color: #8e44ad;
-}
-
-.quick-action-icon.settings {
-  background-color: #606266;
-}
-
-.quick-action-label {
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-  font-weight: 500;
-  text-align: center;
-}
-
-/* 系统介绍卡片 */
-.intro-content {
-  text-align: center;
-}
-
-.intro-logo {
-  margin-bottom: 16px;
-}
-
-.logo-avatar {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  font-size: 28px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.intro-logo h3 {
-  margin: 8px 0 4px;
-  font-size: 18px;
-  color: var(--el-text-color-primary);
-}
-
-.version {
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-  margin: 0;
-}
-
-.intro-text {
-  color: var(--el-text-color-regular);
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 16px;
-}
-
-.intro-links {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-}
-
-.intro-links .el-link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* 系统监控卡片 */
-.monitor-content {
-  padding: 8px 0;
-}
-
-.monitor-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
+.section-card :deep(.el-card__header) {
+  padding: 14px 18px;
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
-.monitor-item:last-child {
-  border-bottom: none;
+.section-card :deep(.el-card__body) {
+  padding: 16px 18px;
 }
 
-.monitor-label {
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.card-header-flex {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--el-text-color-regular);
-  font-size: 14px;
+  justify-content: space-between;
 }
 
-.monitor-label .el-icon {
+/* ===== 快捷操作 ===== */
+.quick-card :deep(.el-card__body) {
+  padding: 8px 10px;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+}
+
+.quick-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.quick-item:hover {
+  background: var(--el-fill-color-light);
+}
+
+.qi-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* 快捷操作图标颜色 — 全用 El token */
+.ic-primary  { background: var(--el-color-primary-light-9);  color: var(--el-color-primary);  }
+.ic-success  { background: var(--el-color-success-light-9);  color: var(--el-color-success);  }
+.ic-warning  { background: var(--el-color-warning-light-9);  color: var(--el-color-warning);  }
+.ic-danger   { background: var(--el-color-danger-light-9);   color: var(--el-color-danger);   }
+.ic-info     { background: var(--el-color-info-light-9);     color: var(--el-color-info);     }
+.ic-warning2 { background: var(--el-color-warning-light-8);  color: var(--el-color-warning);  }
+.ic-purple   { background: #f3e8ff; color: #7c3aed; }
+.ic-neutral  { background: var(--el-fill-color);             color: var(--el-text-color-regular); }
+
+.qi-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+
+.qi-arrow {
+  font-size: 12px;
+  color: var(--el-text-color-placeholder);
+}
+
+/* ===== 系统信息 ===== */
+.sys-info-block { padding: 4px 0; }
+
+.sys-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sys-logo-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 1px solid var(--el-color-primary-light-7);
+}
+
+.sys-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.sys-version {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 2px;
+}
+
+.sys-desc {
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+  line-height: 1.65;
+  margin: 0 0 14px;
+}
+
+.sys-links {
+  display: flex;
+  gap: 16px;
+}
+
+.sys-links .el-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+/* ===== 系统监控 ===== */
+.monitor-list { padding: 4px 0; }
+
+.monitor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+  font-size: 13px;
+}
+
+.monitor-row:last-of-type { border-bottom: none; }
+
+.memory-row { margin-bottom: 4px; }
+
+.mr-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--el-text-color-regular);
+}
+
+.mr-label .el-icon {
+  font-size: 15px;
   color: var(--el-text-color-secondary);
 }
 
-.monitor-value {
-  font-size: 14px;
-  color: var(--el-text-color-primary);
+.mr-value {
+  font-size: 13px;
   font-weight: 500;
+  color: var(--el-text-color-primary);
 }
 
-.monitor-value.version {
-  color: var(--el-color-primary);
+/* ===== 响应式 ===== */
+@media (max-width: 992px) {
+  .main-row .el-col + .el-col {
+    margin-top: 16px;
+  }
 }
 
-.memory-item {
-  margin-bottom: 8px;
-}
-
-.version-item {
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--el-border-color-lighter);
-}
-
-/* 响应式调整 */
 @media (max-width: 768px) {
-  .stat-card :deep(.el-card__body) {
+  .welcome-banner {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
+    gap: 14px;
   }
-
-  .stat-icon {
-    margin-right: 0;
-    margin-bottom: 8px;
+  .quick-grid {
+    grid-template-columns: 1fr;
   }
-
-  .quick-action {
-    padding: 12px 4px;
-  }
-
-  .quick-action-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
+  .stats-row .el-col {
+    margin-bottom: 12px;
   }
 }
 </style>
