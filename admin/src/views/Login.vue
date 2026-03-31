@@ -8,6 +8,16 @@
       <div class="shape shape-4"></div>
       <div class="shape shape-5"></div>
     </div>
+    <!-- 粒子效果 -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
 
     <!-- 左侧装饰区域 -->
     <div class="login-left">
@@ -201,10 +211,10 @@ onMounted(() => {
   display: flex;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(135deg, #0f1923 0%, #1a2f4a 50%, #0d2137 100%);
 }
 
-/* 背景动画形状 */
+/* 背景动画形状 - 统一的蓝色调 */
 .bg-shapes {
   position: absolute;
   inset: 0;
@@ -215,68 +225,119 @@ onMounted(() => {
 .shape {
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.3;
-  animation: float 20s ease-in-out infinite;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: float 25s ease-in-out infinite;
 }
 
 .shape-1 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  top: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.6) 0%, rgba(59, 130, 246, 0.3) 70%);
+  top: -150px;
   left: -100px;
   animation-delay: 0s;
+  animation-duration: 28s;
 }
 
 .shape-2 {
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(135deg, #f093fb, #f5576c);
-  top: 50%;
-  right: -50px;
-  animation-delay: -5s;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.5) 0%, rgba(59, 130, 246, 0.2) 70%);
+  top: 60%;
+  right: -100px;
+  animation-delay: -8s;
+  animation-duration: 32s;
 }
 
 .shape-3 {
-  width: 250px;
-  height: 250px;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  bottom: -50px;
-  left: 30%;
-  animation-delay: -10s;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.5) 0%, rgba(6, 182, 212, 0.2) 70%);
+  bottom: -100px;
+  left: 25%;
+  animation-delay: -15s;
+  animation-duration: 26s;
 }
 
 .shape-4 {
-  width: 200px;
-  height: 200px;
-  background: linear-gradient(135deg, #43e97b, #38f9d7);
-  top: 20%;
-  left: 60%;
-  animation-delay: -15s;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, rgba(59, 130, 246, 0.15) 70%);
+  top: 15%;
+  right: 25%;
+  animation-delay: -12s;
+  animation-duration: 30s;
 }
 
 .shape-5 {
-  width: 350px;
-  height: 350px;
-  background: linear-gradient(135deg, #fa709a, #fee140);
-  bottom: 10%;
-  right: 20%;
-  animation-delay: -7s;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.45) 0%, rgba(34, 211, 238, 0.15) 70%);
+  bottom: 20%;
+  right: 15%;
+  animation-delay: -5s;
+  animation-duration: 24s;
 }
+
+/* 光晕粒子效果 */
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(34, 211, 238, 0.6);
+  border-radius: 50%;
+  animation: particle-float 15s linear infinite;
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 18s; }
+.particle:nth-child(2) { left: 20%; animation-delay: -3s; animation-duration: 15s; }
+.particle:nth-child(3) { left: 35%; animation-delay: -6s; animation-duration: 20s; }
+.particle:nth-child(4) { left: 50%; animation-delay: -9s; animation-duration: 16s; }
+.particle:nth-child(5) { left: 65%; animation-delay: -12s; animation-duration: 22s; }
+.particle:nth-child(6) { left: 80%; animation-delay: -2s; animation-duration: 17s; }
+.particle:nth-child(7) { left: 90%; animation-delay: -7s; animation-duration: 19s; }
 
 @keyframes float {
   0%, 100% {
-    transform: translate(0, 0) rotate(0deg);
+    transform: translate(0, 0) scale(1);
   }
-  25% {
-    transform: translate(30px, -30px) rotate(90deg);
+  20% {
+    transform: translate(40px, -50px) scale(1.05);
   }
-  50% {
-    transform: translate(-20px, 20px) rotate(180deg);
+  40% {
+    transform: translate(-30px, 30px) scale(0.95);
   }
-  75% {
-    transform: translate(20px, 30px) rotate(270deg);
+  60% {
+    transform: translate(50px, 40px) scale(1.02);
+  }
+  80% {
+    transform: translate(-20px, -30px) scale(1.08);
+  }
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(90vh) scale(1);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-10vh) scale(0.5);
+    opacity: 0;
   }
 }
 
@@ -303,7 +364,8 @@ onMounted(() => {
   height: 100px;
   margin: 0 auto 30px;
   color: #fff;
-  animation: pulse 3s ease-in-out infinite;
+  animation: icon-float 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(34, 211, 238, 0.5));
 }
 
 .brand-icon svg {
@@ -311,14 +373,14 @@ onMounted(() => {
   height: 100%;
 }
 
-@keyframes pulse {
+@keyframes icon-float {
   0%, 100% {
-    transform: scale(1);
-    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 30px rgba(34, 211, 238, 0.5));
   }
   50% {
-    transform: scale(1.05);
-    opacity: 0.9;
+    transform: translateY(-8px) scale(1.03);
+    filter: drop-shadow(0 0 50px rgba(34, 211, 238, 0.7));
   }
 }
 
@@ -328,7 +390,18 @@ onMounted(() => {
   color: #fff;
   margin: 0 0 12px;
   letter-spacing: -1px;
-  text-shadow: 0 4px 30px rgba(102, 126, 234, 0.4);
+  text-shadow: 0 0 40px rgba(34, 211, 238, 0.3);
+  background: linear-gradient(135deg, #fff 0%, rgba(34, 211, 238, 0.9) 50%, #fff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
 
 .brand-subtitle {
@@ -348,24 +421,26 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 14px;
   padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 30px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(34, 211, 238, 0.2);
   transition: all 0.3s ease;
 }
 
 .feature-item:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
+  background: rgba(34, 211, 238, 0.15);
+  border-color: rgba(34, 211, 238, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(34, 211, 238, 0.2);
 }
 
 .feature-item i {
   font-size: 16px;
-  color: #4facfe;
+  color: #22d3ee;
 }
 
 /* 代码背景装饰 */
@@ -445,17 +520,19 @@ onMounted(() => {
 
 .custom-input :deep(.el-input__wrapper) {
   border-radius: 12px;
-  box-shadow: 0 0 0 1px #e5e7eb;
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.2);
   padding: 4px 15px;
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .custom-input :deep(.el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px #667eea;
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.5);
 }
 
 .custom-input :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2), 0 0 0 1px #667eea;
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.15), 0 0 0 1px #22d3ee;
+  background: #fff;
 }
 
 .custom-input :deep(.el-input__inner) {
@@ -499,25 +576,43 @@ onMounted(() => {
   height: 50px;
   font-size: 16px;
   font-weight: 600;
-  border-radius: 8px;
-  background: #1e3a5f;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .login-btn:hover {
-  transform: translateY(-1px);
-  background: #152a45;
-  box-shadow: 0 4px 16px rgba(30, 58, 95, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.45);
+  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+}
+
+.login-btn:hover::before {
+  left: 100%;
 }
 
 .login-btn:active {
   transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.35);
 }
 
 .login-btn i {
