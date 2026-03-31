@@ -1,1 +1,0 @@
-# Theme System Research Findings
