@@ -33,9 +33,9 @@
       <el-table :data="pages" v-loading="loading" style="width: 100%">
         <el-table-column prop="title" label="标题" min-width="200" />
         <el-table-column prop="slug" label="别名" width="150" />
-        <el-table-column prop="template" label="模板" width="100">
+        <el-table-column prop="template" label="模板" width="120">
           <template #default="{ row }">
-            <el-tag size="small">{{ row.template || 'default' }}</el-tag>
+            <el-tag size="small">{{ getTemplateText(row.template) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="author" label="作者" width="120">
@@ -171,6 +171,19 @@ const getStatusText = (status) => {
     archived: '已归档'
   }
   return texts[status] || status
+}
+
+// 模板名称中文映射
+const getTemplateText = (template) => {
+  const templates = {
+    default: '默认模板',
+    gallery: '图片灯箱',
+    fleet: '车队展示',
+    contact: '联系我们',
+    about: '关于我们',
+    service: '服务项目'
+  }
+  return templates[template] || template || '默认模板'
 }
 
 // 格式化日期
