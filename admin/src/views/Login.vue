@@ -576,43 +576,25 @@ onMounted(() => {
   height: 50px;
   font-size: 16px;
   font-weight: 600;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  border-radius: 10px;
+  background: #374151;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.35);
-  position: relative;
-  overflow: hidden;
-}
-
-.login-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(55, 65, 81, 0.2);
 }
 
 .login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.45);
-  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
-}
-
-.login-btn:hover::before {
-  left: 100%;
+  background: #1F2937;
+  box-shadow: 0 4px 12px rgba(55, 65, 81, 0.25);
 }
 
 .login-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.35);
+  background: #111827;
+  box-shadow: 0 1px 4px rgba(55, 65, 81, 0.2);
 }
 
 .login-btn i {

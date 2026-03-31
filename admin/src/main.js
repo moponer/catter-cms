@@ -5,7 +5,6 @@ import { createPinia } from 'pinia'
 
 // 导入全局样式
 import './styles/global.css'
-import './styles/element-theme.css'
 
 // 导入 Element Plus
 import ElementPlus from 'element-plus'

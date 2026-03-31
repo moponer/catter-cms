@@ -4,7 +4,7 @@
     <Sidebar :collapsed="sidebarCollapsed" @toggle="toggleSidebar" />
     
     <!-- 主内容区 -->
-    <div class="main-container" :style="{ marginLeft: sidebarCollapsed ? '64px' : '240px' }">
+    <div class="main-container" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
       <!-- 头部 -->
       <Header 
         :collapsed="sidebarCollapsed" 
@@ -39,7 +39,7 @@ const toggleSidebar = () => {
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background-color: var(--color-bg-page);
+  background-color: var(--admin-bg-page);
 }
 
 .main-container {
@@ -47,12 +47,17 @@ const toggleSidebar = () => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: margin-left var(--transition-normal);
+  margin-left: var(--admin-sidebar-width);
+  transition: margin-left var(--admin-transition-normal), background-color var(--admin-transition-normal);
+}
+
+.main-container.sidebar-collapsed {
+  margin-left: var(--admin-sidebar-collapsed-width);
 }
 
 .main-content {
   flex: 1;
-  padding: var(--spacing-lg);
+  padding: var(--admin-spacing-lg);
   overflow-y: auto;
 }
 

@@ -1,11 +1,12 @@
 <template>
   <header class="header">
     <div class="header-left">
-      <!-- 折叠按钮（移动端） -->
+      <!-- 折叠按钮 -->
       <button class="toggle-btn" @click="$emit('toggle-sidebar')">
-        <el-icon><Expand v-if="collapsed" /><Fold v-else /></el-icon>
+        <el-icon v-if="collapsed"><Expand /></el-icon>
+        <el-icon v-else><Fold /></el-icon>
       </button>
-      
+
       <!-- 面包屑 -->
       <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
@@ -16,23 +17,31 @@
     </div>
 
     <div class="header-right">
+      <!-- 主题切换 - VS Code 风格 -->
+      <el-tooltip :content="currentTheme.id === 'dark' ? '切换到浅色模式' : '切换到深色模式'" placement="bottom">
+        <button class="theme-toggle" @click="toggleTheme">
+          <el-icon size="18">
+            <Moon v-if="currentTheme.id === 'dark'" />
+            <Sunny v-else />
+          </el-icon>
+        </button>
+      </el-tooltip>
+
       <!-- 清缓存 -->
-      <el-tooltip content="清理全站缓存，使主题模板修改立即生效" placement="bottom">
+      <el-tooltip content="清理缓存" placement="bottom">
         <el-button
           :icon="Refresh"
           :loading="cacheClearing"
-          class="clear-cache-btn"
+          class="icon-btn"
           @click="handleClearCache"
-        >
-          清缓存
-        </el-button>
+        />
       </el-tooltip>
 
       <!-- 搜索 -->
       <el-input
         v-model="searchKeyword"
         placeholder="搜索..."
-        prefix-icon="Search"
+        :prefix-icon="Search"
         class="search-input"
         clearable
         @keyup.enter="handleSearch"
@@ -41,22 +50,13 @@
       <!-- 用户菜单 -->
       <el-dropdown trigger="click" @command="handleCommand">
         <div class="user-info">
-          <el-avatar :size="32" :src="userAvatar" class="header-avatar">
+          <el-avatar :size="32" class="header-avatar">
             {{ userName?.charAt(0)?.toUpperCase() }}
           </el-avatar>
           <span class="user-name">{{ userName }}</span>
           <el-icon><ArrowDown /></el-icon>
         </div>
         <template #dropdown>
-          <div class="user-dropdown-header">
-            <el-avatar :size="44" :src="userAvatar" class="dropdown-avatar">
-              {{ userName?.charAt(0)?.toUpperCase() }}
-            </el-avatar>
-            <div class="dropdown-user-info">
-              <div class="dropdown-name">{{ userName }}</div>
-              <div class="dropdown-email">{{ userEmail }}</div>
-            </div>
-          </div>
           <el-dropdown-menu>
             <el-dropdown-item command="profile">
               <el-icon><User /></el-icon>
@@ -88,13 +88,17 @@ import {
   User,
   Key,
   SwitchButton,
-  Refresh
+  Refresh,
+  Search,
+  Sunny,
+  Moon
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store'
 import { logout } from '@/utils/auth'
 import { clearAllCache } from '@/api/theme'
+import { useAdminTheme } from '@/composables/useAdminTheme'
 
-const props = defineProps({
+defineProps({
   collapsed: {
     type: Boolean,
     default: false
@@ -107,18 +111,25 @@ const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
+// 主题系统
+const { currentTheme, setTheme, themes } = useAdminTheme()
+
 const searchKeyword = ref('')
 const userName = computed(() => userStore.currentUser?.name || '管理员')
-const userAvatar = computed(() => userStore.currentUser?.avatar || '')
-const userEmail = computed(() => userStore.currentUser?.email || '')
 const cacheClearing = ref(false)
+
+// 切换主题
+const toggleTheme = () => {
+  const newTheme = currentTheme.value.id === 'dark' ? 'light' : 'dark'
+  setTheme(newTheme)
+}
 
 // 清缓存
 const handleClearCache = async () => {
   cacheClearing.value = true
   try {
     await clearAllCache()
-    ElMessage.success('缓存已清理，页面将使用最新模板')
+    ElMessage.success('缓存已清理')
   } catch (err) {
     ElMessage.error('清缓存失败：' + (err?.message || '未知错误'))
   } finally {
@@ -178,13 +189,13 @@ onMounted(async () => {
 
 <style scoped>
 .header {
-  height: var(--header-height);
-  background-color: var(--color-bg-header);
-  border-bottom: 1px solid var(--color-border);
+  height: var(--admin-header-height);
+  background-color: var(--admin-header-bg);
+  border-bottom: 1px solid var(--admin-header-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--admin-spacing-lg);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -193,87 +204,97 @@ onMounted(async () => {
 .header-left {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--admin-spacing-md);
 }
 
 .toggle-btn {
   display: none;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--admin-radius-sm);
   cursor: pointer;
-  color: var(--color-text-secondary);
-  transition: all var(--transition-fast);
+  color: var(--admin-text-secondary);
+  transition: all var(--admin-transition-fast);
 }
 
 .toggle-btn:hover {
-  background-color: var(--color-bg-hover);
-  color: var(--color-primary);
+  background-color: var(--admin-bg-hover);
+  color: var(--admin-text-primary);
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--admin-spacing-md);
 }
 
+/* 主题切换按钮 */
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--admin-radius-sm);
+  cursor: pointer;
+  color: var(--admin-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--admin-transition-fast);
+}
+
+.theme-toggle:hover {
+  background-color: var(--admin-bg-hover);
+  color: var(--admin-text-primary);
+}
+
+/* 图标按钮 */
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--admin-text-secondary);
+}
+
+.icon-btn:hover {
+  background-color: var(--admin-bg-hover);
+  color: var(--admin-text-primary);
+}
+
+/* 搜索框 */
 .search-input {
-  width: 240px;
+  width: 200px;
 }
 
 /* 用户信息 */
 .user-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--admin-spacing-sm);
   cursor: pointer;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-md);
-  transition: background-color var(--transition-fast);
+  padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
+  border-radius: var(--admin-radius-sm);
+  transition: background-color var(--admin-transition-fast);
 }
 
 .user-info:hover {
-  background-color: var(--color-bg-hover);
+  background-color: var(--admin-bg-hover);
 }
 
 .user-name {
-  font-size: var(--font-size-base);
-  color: var(--color-text-primary);
+  font-size: var(--admin-font-size-base);
+  color: var(--admin-text-primary);
   font-weight: 500;
 }
 
-/* 下拉菜单头部 */
-.user-dropdown-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  min-width: 200px;
-}
-.dropdown-avatar {
-  flex-shrink: 0;
-}
-.dropdown-user-info {
-  overflow: hidden;
-}
-.dropdown-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.dropdown-email {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-top: 2px;
+.header-avatar {
+  background: var(--admin-primary);
+  color: white;
+  font-weight: 500;
 }
 
 /* 响应式 */
@@ -289,10 +310,6 @@ onMounted(async () => {
   }
 
   .user-name {
-    display: none;
-  }
-
-  .clear-cache-btn span:not(.el-icon) {
     display: none;
   }
 }

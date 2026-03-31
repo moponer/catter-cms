@@ -1,83 +1,225 @@
 /* ========================================
-   Catter CMS 管理后台 - CSS 变量定义
+   Catter CMS 管理后台 - CSS 变量系统
+   两套主题：Dark Pro / Light Minimal
+   设计原则：简约、高级、专业、干净
+   配色：纯深灰系，无彩色
    ======================================== */
 
+/* ========================================
+   共享变量（所有主题通用）
+   ======================================== */
 :root {
-  /* ========== 主色调 ========== */
-  --color-primary: #3B82F6;
-  --color-primary-light: #60A5FA;
-  --color-primary-dark: #2563EB;
-  
-  /* ========== 背景色 ========== */
-  --color-bg-page: #F8FAFC;
-  --color-bg-card: #FFFFFF;
-  --color-bg-sidebar: #1E293B;
-  --color-bg-header: #FFFFFF;
-  --color-bg-hover: #F1F5F9;
-  
-  /* ========== 文字颜色 ========== */
-  --color-text-primary: #1E293B;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
-  --color-text-inverse: #FFFFFF;
-  
-  /* ========== 功能色 ========== */
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-info: #06B6D4;
-  
-  /* ========== 边框 ========== */
-  --color-border: #E2E8F0;
-  --color-border-light: #F1F5F9;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  
-  /* ========== 阴影 ========== */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  
-  /* ========== 间距 ========== */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  
-  /* ========== 布局尺寸 ========== */
-  --sidebar-width: 240px;
-  --sidebar-collapsed-width: 64px;
-  --header-height: 64px;
-  
-  /* ========== 字体 ========== */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-size-xs: 12px;
-  --font-size-sm: 13px;
-  --font-size-base: 14px;
-  --font-size-lg: 16px;
-  --font-size-xl: 20px;
-  --font-size-2xl: 24px;
-  
-  /* ========== 过渡动画 ========== */
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
-  --transition-slow: 350ms ease;
+  /* 圆角 - 统一使用 8px */
+  --admin-radius-sm: 6px;
+  --admin-radius-md: 8px;
+  --admin-radius-lg: 12px;
+
+  /* 间距 */
+  --admin-spacing-xs: 4px;
+  --admin-spacing-sm: 8px;
+  --admin-spacing-md: 16px;
+  --admin-spacing-lg: 24px;
+  --admin-spacing-xl: 32px;
+
+  /* 布局尺寸 */
+  --admin-sidebar-width: 240px;
+  --admin-sidebar-collapsed-width: 64px;
+  --admin-header-height: 56px;
+
+  /* 字体 */
+  --admin-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --admin-font-size-xs: 11px;
+  --admin-font-size-sm: 12px;
+  --admin-font-size-base: 14px;
+  --admin-font-size-lg: 16px;
+  --admin-font-size-xl: 18px;
+
+  /* 过渡 */
+  --admin-transition-fast: 150ms ease;
+  --admin-transition-normal: 200ms ease;
+  --admin-transition-slow: 300ms ease;
 }
 
-/* ========== 深色主题变量（可选） ========== */
-[data-theme='dark'] {
-  --color-bg-page: #0F172A;
-  --color-bg-card: #1E293B;
-  --color-bg-sidebar: #0F172A;
-  --color-bg-header: #1E293B;
-  --color-bg-hover: #334155;
-  
-  --color-text-primary: #F1F5F9;
-  --color-text-secondary: #CBD5E1;
-  --color-text-muted: #64748B;
-  
-  --color-border: #334155;
-  --color-border-light: #1E293B;
+/* ========================================
+   主题一：Dark Pro - 浅色专业风格
+   侧边栏深灰，内容区浅灰白
+   ======================================== */
+:root,
+:root[data-admin-theme="dark"] {
+  /* 主色调 - 深灰 */
+  --admin-primary: #374151;
+  --admin-primary-hover: #1F2937;
+  --admin-primary-active: #111827;
+  --admin-primary-rgb: 55, 65, 81;
+
+  /* 背景色 - 干净的浅灰白 */
+  --admin-bg-page: #F9FAFB;
+  --admin-bg-surface: #FFFFFF;
+  --admin-bg-elevated: #FFFFFF;
+  --admin-bg-hover: #F3F4F6;
+  --admin-bg-active: rgba(55, 65, 81, 0.06);
+
+  /* 侧边栏 - 深灰 */
+  --admin-sidebar-bg: #1F2937;
+  --admin-sidebar-border: #111827;
+
+  /* 头部 - 白色 */
+  --admin-header-bg: #FFFFFF;
+  --admin-header-border: #E5E7EB;
+
+  /* 文字颜色 - 清晰层次 */
+  --admin-text-primary: #111827;
+  --admin-text-secondary: #6B7280;
+  --admin-text-muted: #9CA3AF;
+  --admin-text-inverse: #FFFFFF;
+
+  /* 功能色 - 仅用于状态指示 */
+  --admin-success: #059669;
+  --admin-warning: #D97706;
+  --admin-danger: #DC2626;
+  --admin-info: #6B7280;
+
+  /* 边框 */
+  --admin-border: #E5E7EB;
+  --admin-border-light: #F3F4F6;
+
+  /* 阴影 - 柔和干净 */
+  --admin-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --admin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --admin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  /* Logo */
+  --admin-logo-bg: #1F2937;
+  --admin-logo-text: #FFFFFF;
+
+  /* 滚动条 */
+  --admin-scrollbar-bg: #E5E7EB;
+  --admin-scrollbar-thumb: #D1D5DB;
+  --admin-scrollbar-thumb-hover: #9CA3AF;
+
+  /* 菜单 - 深灰侧边栏配浅色文字 */
+  --admin-menu-text: rgba(255, 255, 255, 0.7);
+  --admin-menu-text-active: #FFFFFF;
+  --admin-menu-bg-hover: rgba(255, 255, 255, 0.06);
+  --admin-menu-bg-active: rgba(255, 255, 255, 0.1);
+  --admin-menu-indicator: #FFFFFF;
+
+  /* 对比度设置 */
+  color-scheme: light;
+}
+
+/* ========================================
+   主题二：Light Minimal - 温暖奶白
+   侧边栏奶白，内容区温暖米白
+   ======================================== */
+:root[data-admin-theme="light"] {
+  /* 主色调 - 绿色 */
+  --admin-primary: #059669;
+  --admin-primary-hover: #047857;
+  --admin-primary-active: #065F46;
+  --admin-primary-rgb: 5, 150, 105;
+
+  /* 背景色 - 温暖米白 */
+  --admin-bg-page: #FAFAF9;
+  --admin-bg-surface: #FFFFFF;
+  --admin-bg-elevated: #FFFFFF;
+  --admin-bg-hover: #F5F5F4;
+  --admin-bg-active: rgba(5, 150, 105, 0.06);
+
+  /* 侧边栏 - 略深米白 */
+  --admin-sidebar-bg: #F5F5F4;
+  --admin-sidebar-border: #E7E5E4;
+
+  /* 头部 - 白色 */
+  --admin-header-bg: #FFFFFF;
+  --admin-header-border: #E7E5E4;
+
+  /* 文字颜色 */
+  --admin-text-primary: #1C1917;
+  --admin-text-secondary: #57534E;
+  --admin-text-muted: #A8A29E;
+  --admin-text-inverse: #FFFFFF;
+
+  /* 功能色 */
+  --admin-success: #059669;
+  --admin-warning: #D97706;
+  --admin-danger: #DC2626;
+  --admin-info: #6B7280;
+
+  /* 边框 */
+  --admin-border: #E7E5E4;
+  --admin-border-light: #F5F5F4;
+
+  /* 阴影 */
+  --admin-shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04);
+  --admin-shadow-md: 0 4px 12px rgba(28, 25, 23, 0.06);
+  --admin-shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.08);
+
+  /* Logo */
+  --admin-logo-bg: #1F2937;
+  --admin-logo-text: #FFFFFF;
+
+  /* 滚动条 */
+  --admin-scrollbar-bg: #E7E5E4;
+  --admin-scrollbar-thumb: #D6D3D1;
+  --admin-scrollbar-thumb-hover: #A8A29E;
+
+  /* 菜单 - 略深米白侧边栏配深色文字 */
+  --admin-menu-text: #57534E;
+  --admin-menu-text-active: #1C1917;
+  --admin-menu-bg-hover: #E7E5E4;
+  --admin-menu-bg-active: #D6D3D1;
+  --admin-menu-indicator: #059669;
+
+  /* 欢迎横幅 - 浅绿配白字 */
+  --admin-welcome-bg: #059669;
+
+  /* 对比度设置 */
+  color-scheme: light;
+}
+
+/* ========================================
+   Element Plus 组件变量覆盖
+   ======================================== */
+
+/* 按钮 */
+:root {
+  --el-color-primary: var(--admin-primary);
+  --el-color-primary-light-3: var(--admin-primary);
+  --el-color-primary-light-5: var(--admin-primary);
+  --el-color-primary-light-7: var(--admin-primary);
+  --el-color-primary-light-8: var(--admin-primary);
+  --el-color-primary-light-9: var(--admin-primary);
+  --el-color-primary-dark-2: var(--admin-primary-active);
+
+  /* 文字 */
+  --el-text-color-primary: var(--admin-text-primary);
+  --el-text-color-regular: var(--admin-text-secondary);
+  --el-text-color-secondary: var(--admin-text-muted);
+  --el-text-color-placeholder: var(--admin-text-muted);
+
+  /* 边框 */
+  --el-border-color: var(--admin-border);
+  --el-border-color-light: var(--admin-border-light);
+  --el-border-color-lighter: var(--admin-border-light);
+
+  /* 背景 */
+  --el-bg-color: var(--admin-bg-surface);
+  --el-bg-color-page: var(--admin-bg-page);
+  --el-fill-color-blank: var(--admin-bg-surface);
+
+  /* 阴影 */
+  --el-box-shadow: var(--admin-shadow-sm);
+  --el-box-shadow-light: var(--admin-shadow-sm);
+}
+
+/* ========================================
+   过渡动画
+   ======================================== */
+:root [data-admin-theme],
+:root {
+  transition:
+    background-color var(--admin-transition-normal),
+    border-color var(--admin-transition-normal),
+    color var(--admin-transition-fast);
 }

@@ -293,7 +293,7 @@ onMounted(() => { loadDashboardData(); loadSystemInfo() })
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  background-color: var(--el-color-primary);
+  background-color: var(--admin-welcome-bg, #374151);
   border-radius: 10px;
   color: #fff;
 }
@@ -463,15 +463,15 @@ onMounted(() => { loadDashboardData(); loadSystemInfo() })
   flex-shrink: 0;
 }
 
-/* 快捷操作图标颜色 — 全用 El token */
-.ic-primary  { background: var(--el-color-primary-light-9);  color: var(--el-color-primary);  }
-.ic-success  { background: var(--el-color-success-light-9);  color: var(--el-color-success);  }
-.ic-warning  { background: var(--el-color-warning-light-9);  color: var(--el-color-warning);  }
-.ic-danger   { background: var(--el-color-danger-light-9);   color: var(--el-color-danger);   }
-.ic-info     { background: var(--el-color-info-light-9);     color: var(--el-color-info);     }
-.ic-warning2 { background: var(--el-color-warning-light-8);  color: var(--el-color-warning);  }
-.ic-purple   { background: #f3e8ff; color: #7c3aed; }
-.ic-neutral  { background: var(--el-fill-color);             color: var(--el-text-color-regular); }
+/* 快捷操作图标颜色 — 明确的灰色系 */
+.ic-primary  { background: #F3F4F6;  color: #374151;  }
+.ic-success  { background: #DCFCE7;  color: #16A34A;  }
+.ic-warning  { background: #FEF3C7;  color: #D97706;  }
+.ic-danger   { background: #FEE2E2; color: #DC2626;  }
+.ic-info     { background: #F3F4F6;   color: #6B7280;  }
+.ic-warning2 { background: #FEF3C7;   color: #D97706;  }
+.ic-purple   { background: #F3F4F6;   color: #374151;  }
+.ic-neutral  { background: #F3F4F6;  color: #374151;  }
 
 .qi-label {
   flex: 1;
@@ -499,15 +499,15 @@ onMounted(() => { loadDashboardData(); loadSystemInfo() })
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
+  background: #F3F4F6;
+  color: #374151;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
   font-weight: 700;
   flex-shrink: 0;
-  border: 1px solid var(--el-color-primary-light-7);
+  border: 1px solid #E5E7EB;
 }
 
 .sys-name {
