@@ -32,10 +32,15 @@ type Claims struct {
 // 如果用户未认证，重定向到登录页面
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 从Cookie获取session token
-		tokenString, err := c.Cookie("session_token")
-		if err != nil || tokenString == "" {
-			// 尝试从Header获取
+		tokenString := ""
+
+		// 1. 优先从 Cookie 获取（httpOnly，安全）
+		if cookie, err := c.Cookie("catter_token"); err == nil && cookie != "" {
+			tokenString = cookie
+		}
+
+		// 2. 兼容 Header 获取
+		if tokenString == "" {
 			authHeader := c.GetHeader("Authorization")
 			if authHeader != "" {
 				tokenString = strings.TrimPrefix(authHeader, "Bearer ")
@@ -105,23 +110,27 @@ func RequireRole(roles ...string) gin.HandlerFunc {
 
 // APIAuth API认证中间件
 // 用于验证API请求的JWT令牌
+// 优先从 Cookie 读取（httpOnly，更安全），兼容 Header 读取
 func APIAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 获取Authorization头
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "未授权",
-			})
-			c.Abort()
-			return
+		tokenString := ""
+
+		// 1. 优先从 Cookie 获取（httpOnly，安全）
+		if cookie, err := c.Cookie("catter_token"); err == nil && cookie != "" {
+			tokenString = cookie
 		}
 
-		// 解析Bearer token
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		if tokenString == "" || tokenString == authHeader {
+		// 2. 兼容 Header 获取（Bearer token）
+		if tokenString == "" {
+			authHeader := c.GetHeader("Authorization")
+			if authHeader != "" {
+				tokenString = strings.TrimPrefix(authHeader, "Bearer ")
+			}
+		}
+
+		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "无效的授权令牌格式",
+				"error": "未授权",
 			})
 			c.Abort()
 			return
@@ -153,12 +162,12 @@ func OptionalAuth() gin.HandlerFunc {
 		// 尝试从多个来源获取token
 		tokenString := ""
 
-		// 1. 从Cookie获取
-		if cookie, err := c.Cookie("session_token"); err == nil && cookie != "" {
+		// 1. 从 Cookie 获取（httpOnly，安全）
+		if cookie, err := c.Cookie("catter_token"); err == nil && cookie != "" {
 			tokenString = cookie
 		}
 
-		// 2. 从Header获取
+		// 2. 从 Header 获取（兼容）
 		if tokenString == "" {
 			authHeader := c.GetHeader("Authorization")
 			if authHeader != "" {

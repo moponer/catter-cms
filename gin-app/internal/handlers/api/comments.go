@@ -1,6 +1,7 @@
 package api
 
 import (
+	"html"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -269,10 +270,10 @@ func CreateComment(c *gin.Context) {
 		PostID:      req.PostID,
 		ParentID:    req.ParentID,
 		UserID:      userID,
-		AuthorName:  req.AuthorName,
-		AuthorEmail: req.AuthorEmail,
-		AuthorURL:   req.AuthorURL,
-		Content:     req.Content,
+		AuthorName:  html.EscapeString(req.AuthorName),
+		AuthorEmail: html.EscapeString(req.AuthorEmail),
+		AuthorURL:   html.EscapeString(req.AuthorURL),
+		Content:     html.EscapeString(req.Content),
 		Status:      "pending", // 新评论需要审核
 		IPAddress:   c.ClientIP(),
 		UserAgent:   c.Request.UserAgent(),
@@ -283,5 +284,6 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	SuccessWithMessage(c, "评论提交成功，等待审核", comment)
+	// 注意：不返回完整的 comment 对象以防止评论轰炸攻击
+	SuccessWithMessage(c, "评论提交成功，等待审核", nil)
 }

@@ -28,9 +28,10 @@ func ListUsers(c *gin.Context) {
 		query = query.Where("role = ?", role)
 	}
 
-	// 搜索
+	// 搜索（转义 LIKE 通配符防止注入）
 	if search := c.Query("search"); search != "" {
-		query = query.Where("name LIKE ? OR email LIKE ?", "%"+search+"%", "%"+search+"%")
+		escapedSearch := escapeLikeWildcards(search)
+		query = query.Where("name LIKE ? OR email LIKE ?", "%"+escapedSearch+"%", "%"+escapedSearch+"%")
 	}
 
 	// 获取总数

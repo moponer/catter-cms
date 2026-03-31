@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"catter-cms-gin/internal/models"
+	"catter-cms-gin/internal/services"
 )
 
 // PostRequest 文章请求结构
@@ -41,9 +42,10 @@ func ListPosts(c *gin.Context) {
 		pageSize = 10
 	}
 
-	// 关键词搜索
+	// 关键词搜索（转义 LIKE 通配符防止注入）
 	if keyword := c.Query("keyword"); keyword != "" {
-		query = query.Where("title LIKE ? OR content LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+		escapedKeyword := escapeLikeWildcards(keyword)
+		query = query.Where("title LIKE ? OR content LIKE ?", "%"+escapedKeyword+"%", "%"+escapedKeyword+"%")
 	}
 
 	// 状态筛选
@@ -123,7 +125,7 @@ func CreatePost(c *gin.Context) {
 
 	// 生成 slug
 	if req.Slug == "" {
-		req.Slug = generateSlug(req.Title)
+		req.Slug = services.GenerateSlug(req.Title)
 	}
 
 	// 检查 slug 唯一性
@@ -155,30 +157,8 @@ func CreatePost(c *gin.Context) {
 		return
 	}
 
-	// 关联标签（支持 tag_names 和 tag_ids）
-	var postTags []models.Tag
-	if len(req.TagNames) > 0 {
-		// 使用标签名称，自动创建不存在的标签
-		for _, name := range req.TagNames {
-			var tag models.Tag
-			result := models.DB.Where("name = ?", name).First(&tag)
-			if result.Error != nil {
-				// 标签不存在，创建新标签
-				tag = models.Tag{
-					Name: name,
-					Slug: generateSlug(name),
-				}
-				models.DB.Create(&tag)
-			}
-			postTags = append(postTags, tag)
-		}
-	} else if len(req.TagIDs) > 0 {
-		// 使用标签 ID
-		models.DB.Find(&postTags, req.TagIDs)
-	}
-	if len(postTags) > 0 {
-		models.DB.Model(&post).Association("Tags").Append(&postTags)
-	}
+	// 同步标签
+	services.SyncPostTags(&post, req.TagNames, req.TagIDs)
 
 	// 重新加载关联
 	models.DB.Preload("Category").Preload("Author").Preload("Tags").First(&post, post.ID)
@@ -239,28 +219,9 @@ func UpdatePost(c *gin.Context) {
 		return
 	}
 
-	// 更新标签关联（支持 tag_names 和 tag_ids）
+	// 同步标签
 	if req.TagNames != nil || req.TagIDs != nil {
-		var postTags []models.Tag
-		if len(req.TagNames) > 0 {
-			// 使用标签名称，自动创建不存在的标签
-			for _, name := range req.TagNames {
-				var tag models.Tag
-				result := models.DB.Where("name = ?", name).First(&tag)
-				if result.Error != nil {
-					// 标签不存在，创建新标签
-					tag = models.Tag{
-						Name: name,
-						Slug: generateSlug(name),
-					}
-					models.DB.Create(&tag)
-				}
-				postTags = append(postTags, tag)
-			}
-		} else if len(req.TagIDs) > 0 {
-			models.DB.Find(&postTags, req.TagIDs)
-		}
-		models.DB.Model(&post).Association("Tags").Replace(&postTags)
+		services.SyncPostTags(&post, req.TagNames, req.TagIDs)
 	}
 
 	// 重新加载关联
@@ -388,24 +349,4 @@ func BatchUpdateStatus(c *gin.Context) {
 	SuccessWithMessage(c, "批量更新成功", gin.H{"updated_count": len(ids)})
 }
 
-// generateSlug 生成 URL 友好的 slug
-func generateSlug(title string) string {
-	slug := ""
-	hasAlphaNum := false
 
-	for _, r := range title {
-		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
-			slug += string(r)
-			hasAlphaNum = true
-		} else if r == ' ' || r == '-' {
-			slug += "-"
-		}
-	}
-
-	// 如果标题全是中文或其他非拉丁字符，使用时间戳
-	if !hasAlphaNum || slug == "" {
-		slug = "post-" + time.Now().Format("20060102150405")
-	}
-
-	return slug
-}

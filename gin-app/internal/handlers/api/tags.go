@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"catter-cms-gin/internal/models"
+	"catter-cms-gin/internal/services"
 )
 
 // TagRequest 标签请求结构
@@ -72,7 +73,7 @@ func CreateTag(c *gin.Context) {
 
 	// 生成 slug
 	if req.Slug == "" {
-		req.Slug = generateSlug(req.Name)
+		req.Slug = services.GenerateSlug(req.Name)
 	}
 
 	// 检查名称是否已存在

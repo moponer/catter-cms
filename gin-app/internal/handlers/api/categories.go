@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"catter-cms-gin/internal/models"
+	"catter-cms-gin/internal/services"
 )
 
 // CategoryRequest 分类请求结构
@@ -104,7 +105,7 @@ func CreateCategory(c *gin.Context) {
 
 	// 生成 slug
 	if req.Slug == "" {
-		req.Slug = generateSlug(req.Name)
+		req.Slug = services.GenerateSlug(req.Name)
 	}
 
 	// 检查 slug 是否已存在

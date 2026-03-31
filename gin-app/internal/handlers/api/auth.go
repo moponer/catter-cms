@@ -10,6 +10,13 @@ import (
 	"catter-cms-gin/internal/models"
 )
 
+const (
+	// CookieName Token Cookie 名称
+	CookieName = "catter_token"
+	// CookieMaxAge Cookie 有效期（秒），与 JWT 过期时间同步
+	CookieMaxAge = 7 * 24 * 60 * 60 // 7 天
+)
+
 // Claims JWT 声明结构
 type Claims struct {
 	UserID uint   `json:"user_id"`
@@ -58,7 +65,19 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// 返回响应
+	// 设置 httpOnly Cookie（安全措施：防止 XSS 窃取 token）
+	// Cookie 会自动随请求发送，无需前端手动处理
+	c.SetCookie(
+		CookieName,     // name
+		token,          // value
+		CookieMaxAge,   // maxAge（秒）
+		"/",            // path
+		"",             // domain（空表示当前域名）
+		false,          // secure（开发环境设为 false，生产环境应为 true）
+		true,           // httpOnly（核心安全措施：JavaScript 无法访问）
+	)
+
+	// 返回响应（包含 token 用于前端存储，Cookie 作为主要认证方式）
 	SuccessWithMessage(c, "登录成功", LoginResponse{
 		Token: token,
 		User:  *user,

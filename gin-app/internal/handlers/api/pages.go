@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"catter-cms-gin/internal/models"
+	"catter-cms-gin/internal/services"
 )
 
 // PageRequest 页面请求结构
@@ -92,7 +93,7 @@ func CreatePage(c *gin.Context) {
 
 	// 生成 slug
 	if req.Slug == "" {
-		req.Slug = generateSlug(req.Title)
+		req.Slug = services.GenerateSlug(req.Title)
 	}
 
 	// 检查 slug 是否已存在
