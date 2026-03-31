@@ -58,3 +58,6 @@ gin-app/static/
 # Test data folders
 data-*/
 *-reference-data/
+
+# 测试/部署目录（模拟生产环境）
+deploy/
