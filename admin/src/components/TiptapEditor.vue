@@ -149,6 +149,7 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import { ElMessage } from 'element-plus'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
+import ResizeImage from 'tiptap-extension-resize-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TextAlign from '@tiptap/extension-text-align'
@@ -206,7 +207,7 @@ const editor = useEditor({
       link: false,
       underline: false
     }),
-    Image.configure({
+    ResizeImage.configure({
       inline: true,
       allowBase64: false,
       HTMLAttributes: {
@@ -486,6 +487,59 @@ defineExpose({
   height: auto;
   border-radius: 8px;
   margin: 0.5em 0;
+}
+
+/* 图片选中状态样式 */
+.editor-content :deep(.ProseMirror img.ProseMirror-selectednode) {
+  outline: 3px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+
+/* 图片容器样式 */
+.editor-content :deep(.ProseMirror .image-view) {
+  display: inline-block;
+  position: relative;
+  margin: 0.5em 0;
+}
+
+.editor-content :deep(.ProseMirror .image-view img) {
+  display: block;
+  cursor: pointer;
+}
+
+/* 缩放手柄样式 */
+.editor-content :deep(.ProseMirror .image-view .resize-handle) {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border: 2px solid var(--el-color-primary);
+  border-radius: 2px;
+  z-index: 10;
+}
+
+.editor-content :deep(.ProseMirror .image-view .resize-handle-top-left) {
+  top: -6px;
+  left: -6px;
+  cursor: nwse-resize;
+}
+
+.editor-content :deep(.ProseMirror .image-view .resize-handle-top-right) {
+  top: -6px;
+  right: -6px;
+  cursor: nesw-resize;
+}
+
+.editor-content :deep(.ProseMirror .image-view .resize-handle-bottom-left) {
+  bottom: -6px;
+  left: -6px;
+  cursor: nesw-resize;
+}
+
+.editor-content :deep(.ProseMirror .image-view .resize-handle-bottom-right) {
+  bottom: -6px;
+  right: -6px;
+  cursor: nwse-resize;
 }
 
 .editor-content :deep(.ProseMirror a) {

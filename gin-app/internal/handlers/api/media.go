@@ -2,12 +2,16 @@ package api
 
 import (
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/gin-gonic/gin"
 
 	"catter-cms-gin/config"
@@ -190,6 +194,133 @@ func DeleteMedia(c *gin.Context) {
 	}
 
 	SuccessWithMessage(c, "媒体删除成功", nil)
+}
+
+// UploadCover 上传封面图（自动压缩缩放）
+// 封面图会自动缩放到 1200px 宽度，保持比例，质量压缩到 85%
+func UploadCover(c *gin.Context) {
+	// 获取当前用户
+	user, exists := c.Get("current_user")
+	if !exists || user == nil {
+		Unauthorized(c, "未登录")
+		return
+	}
+	currentUser := user.(*models.User)
+
+	// 获取上传配置
+	cfg := config.Get()
+	uploadPath := cfg.Upload.Path
+	maxSize := cfg.Upload.MaxSize
+
+	// 确保上传目录存在
+	if err := os.MkdirAll(uploadPath, 0755); err != nil {
+		InternalError(c, "创建上传目录失败")
+		return
+	}
+
+	// 获取文件
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		BadRequest(c, "请选择要上传的文件")
+		return
+	}
+	defer file.Close()
+
+	// 检查文件大小
+	if maxSize > 0 && header.Size > maxSize {
+		BadRequest(c, fmt.Sprintf("文件大小不能超过 %d MB", maxSize/1024/1024))
+		return
+	}
+
+	// 检查文件扩展名
+	ext := filepath.Ext(header.Filename)
+	allowedImageExts := []string{".jpg", ".jpeg", ".png", ".webp"}
+	isAllowed := false
+	for _, e := range allowedImageExts {
+		if e == ext {
+			isAllowed = true
+			break
+		}
+	}
+	if !isAllowed {
+		BadRequest(c, "封面图仅支持 jpg、png、webp 格式")
+		return
+	}
+
+	// 解码图片
+	var img image.Image
+	switch ext {
+	case ".jpg", ".jpeg":
+		img, err = jpeg.Decode(file)
+	case ".png":
+		img, err = png.Decode(file)
+	case ".webp":
+		// webp 需要额外库支持，这里简化处理
+		img, _, err = image.Decode(file)
+	default:
+		img, _, err = image.Decode(file)
+	}
+	if err != nil {
+		BadRequest(c, "图片格式无效，请上传有效的图片文件")
+		return
+	}
+
+	// 缩放图片：宽度最大 1200px，保持比例
+	maxWidth := 1200
+	if img.Bounds().Dx() > maxWidth {
+		img = imaging.Resize(img, maxWidth, 0, imaging.Lanczos)
+	}
+
+	// 生成唯一文件名（统一保存为 jpg 格式以获得更好的压缩）
+	filename := fmt.Sprintf("cover_%d_%d.jpg", time.Now().Unix(), header.Size)
+	filePath := filepath.Join(uploadPath, filename)
+
+	// 创建输出文件
+	out, err := os.Create(filePath)
+	if err != nil {
+		InternalError(c, "保存文件失败")
+		return
+	}
+	defer out.Close()
+
+	// 以 85% 质量编码为 JPEG
+	if err := jpeg.Encode(out, img, &jpeg.Options{Quality: 85}); err != nil {
+		InternalError(c, "图片压缩失败")
+		return
+	}
+
+	// 获取压缩后的文件大小
+	fileInfo, _ := os.Stat(filePath)
+	compressedSize := fileInfo.Size()
+
+	// 生成 URL
+	url := "/uploads/" + filename
+
+	// 创建媒体记录
+	media := models.Media{
+		Filename:   header.Filename,
+		Path:       filePath,
+		URL:        url,
+		FileSize:   compressedSize,
+		FileType:   "image",
+		UploadedBy: currentUser.ID,
+	}
+
+	if err := models.DB.Create(&media).Error; err != nil {
+		InternalError(c, "保存媒体记录失败")
+		return
+	}
+
+	SuccessWithMessage(c, "封面图上传成功", gin.H{
+		"id":              media.ID,
+		"filename":        media.Filename,
+		"url":             media.URL,
+		"file_size":       media.FileSize,
+		"original_size":   header.Size,
+		"compressed_size": compressedSize,
+		"width":           img.Bounds().Dx(),
+		"height":          img.Bounds().Dy(),
+	})
 }
 
 // splitAndTrim 分割并去除空格

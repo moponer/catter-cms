@@ -101,10 +101,10 @@
               />
             </el-form-item>
 
-            <el-form-item label="特色图片">
+            <el-form-item label="封面图">
               <div class="featured-image">
                 <div v-if="form.featured_image" class="image-preview">
-                  <img :src="form.featured_image" alt="特色图片" />
+                  <img :src="form.featured_image" alt="封面图" />
                   <el-button type="danger" size="small" @click="form.featured_image = ''">
                     移除
                   </el-button>
@@ -112,10 +112,13 @@
                 <el-upload
                   v-else
                   :show-file-list="false"
-                  :before-upload="handleImageUpload"
-                  accept="image/*"
+                  :before-upload="handleCoverUpload"
+                  accept="image/jpeg,image/png,image/webp"
                 >
-                  <el-button type="primary" plain>上传图片</el-button>
+                  <el-button type="primary" plain>上传封面图</el-button>
+                  <template #tip>
+                    <div class="upload-tip">支持 JPG/PNG/WebP，自动压缩到 1200px 宽度</div>
+                  </template>
                 </el-upload>
               </div>
             </el-form-item>
@@ -277,19 +280,30 @@ const savePost = async () => {
   }
 }
 
-// 上传特色图片
-const handleImageUpload = async (file) => {
+// 上传封面图（自动压缩）
+const handleCoverUpload = async (file) => {
+  // 验证文件类型
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+  if (!validTypes.includes(file.type)) {
+    ElMessage.error('封面图仅支持 JPG、PNG、WebP 格式')
+    return false
+  }
+
   const formData = new FormData()
   formData.append('file', file)
 
   try {
-    const res = await post('/api/media/upload', formData, {
+    const res = await post('/api/media/upload-cover', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-    form.featured_image = res.data?.path || res.path
-    ElMessage.success('图片上传成功')
+    // 后端返回 {data: {url: "/uploads/xxx.jpg", width, height, ...}}
+    form.featured_image = res.data?.url || res.url || ''
+    const info = res.data?.compressed_size 
+      ? `（压缩后 ${(res.data.compressed_size / 1024).toFixed(1)}KB，${res.data.width}×${res.data.height}px）`
+      : ''
+    ElMessage.success(`封面图上传成功${info}`)
   } catch (error) {
-    ElMessage.error('图片上传失败')
+    ElMessage.error('封面图上传失败：' + (error.message || '未知错误'))
   }
   return false
 }
@@ -388,6 +402,13 @@ onMounted(() => {
   max-height: 150px;
   border-radius: 4px;
   margin-bottom: 10px;
+}
+
+.upload-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 6px;
+  line-height: 1.4;
 }
 
 .tag-hint {

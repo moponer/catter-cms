@@ -210,6 +210,7 @@ func main() {
 			protected.GET("/media", api.ListMedia)
 			protected.GET("/media/:id", api.GetMedia)
 			protected.POST("/media/upload", api.UploadMedia)
+			protected.POST("/media/upload-cover", api.UploadCover) // 封面图上传（自动压缩）
 			protected.DELETE("/media/:id", api.DeleteMedia)
 
 			// 主题 API
@@ -342,19 +343,6 @@ func main() {
 		// SPA 中间件会在请求的文件不存在时返回 index.html
 		r.Use(middleware.SPAMiddleware(adminDistPath, "/admin"))
 		r.Static("/admin", adminDistPath)
-
-		// NoRoute 处理 - SPA fallback
-		r.NoRoute(func(c *gin.Context) {
-			path := c.Request.URL.Path
-			// 管理后台路由
-			if strings.HasPrefix(path, "/admin") || path == "/login" {
-				c.Header("Content-Type", "text/html; charset=utf-8")
-				c.File(adminDistPath + "/index.html")
-				return
-			}
-			// 其他路径返回 404（主题优先）
-			render404(c)
-		})
 	} else {
 		log.Printf("Warning: Admin dist not found at %s, admin UI won't be available", adminDistPath)
 	}
@@ -404,6 +392,21 @@ func main() {
 	r.GET("/tag/:slug", tagHandler)
 	r.GET("/archives", archivesHandler)
 	r.GET("/search", searchHandler)
+
+	// ========================================
+	// NoRoute 处理 - 必须在所有路由和静态文件服务之后注册
+	// ========================================
+	r.NoRoute(func(c *gin.Context) {
+		path := c.Request.URL.Path
+		// 管理后台路由
+		if strings.HasPrefix(path, "/admin") || path == "/login" {
+			c.Header("Content-Type", "text/html; charset=utf-8")
+			c.File(cfg.GetAdminDistPath() + "/index.html")
+			return
+		}
+		// 其他路径返回 404（主题优先）
+		render404(c)
+	})
 
 	// ========================================
 	// 启动服务器
