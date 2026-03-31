@@ -35,7 +35,7 @@
         <el-table-column prop="slug" label="别名" width="150" />
         <el-table-column prop="template" label="模板" width="120">
           <template #default="{ row }">
-            <el-tag size="small">{{ getTemplateText(row.template) }}</el-tag>
+            <el-tag size="small">{{ getTemplateName(row.template) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="author" label="作者" width="120">
@@ -98,6 +98,7 @@ const pages = ref([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
+const templateMap = ref({}) // 主题模板映射 (type -> name)
 
 const searchForm = reactive({
   keyword: '',
@@ -119,6 +120,24 @@ const loadPages = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 加载主题模板映射
+const loadTemplateMap = async () => {
+  try {
+    const res = await get('/api/themes/current/templates')
+    if (res.code === 0 && res.data?.templateMap) {
+      templateMap.value = res.data.templateMap
+    }
+  } catch (error) {
+    console.error('加载模板映射失败:', error)
+  }
+}
+
+// 获取模板显示名称
+const getTemplateName = (type) => {
+  if (!type) return '默认模板'
+  return templateMap.value[type]?.name || type
 }
 
 const handleCreate = () => {
@@ -173,19 +192,6 @@ const getStatusText = (status) => {
   return texts[status] || status
 }
 
-// 模板名称中文映射
-const getTemplateText = (template) => {
-  const templates = {
-    default: '默认模板',
-    gallery: '图片灯箱',
-    fleet: '车队展示',
-    contact: '联系我们',
-    about: '关于我们',
-    service: '服务项目'
-  }
-  return templates[template] || template || '默认模板'
-}
-
 // 格式化日期
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
@@ -200,6 +206,7 @@ const formatDate = (dateStr) => {
 }
 
 onMounted(() => {
+  loadTemplateMap()
   loadPages()
 })
 </script>
