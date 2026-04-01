@@ -312,6 +312,8 @@ func main() {
 		aiGroup.GET("/posts", api.AIListPosts)
 		aiGroup.GET("/posts/:id", api.AIGetPost)
 		aiGroup.POST("/posts", middleware.RequireAIPermission("write"), api.AICreatePost)
+		aiGroup.PUT("/posts/:id", middleware.RequireAIPermission("write"), api.AIUpdatePost)
+		aiGroup.DELETE("/posts/:id", middleware.RequireAIPermission("admin"), api.AIDeletePost)
 
 		// 页面
 		aiGroup.GET("/pages", api.AIListPages)

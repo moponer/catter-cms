@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yuin/goldmark"
 
 	"catter-cms-gin/internal/models"
 )
@@ -517,6 +519,7 @@ func AICreatePost(c *gin.Context) {
 		Status     string   `json:"status"`
 		CategoryID *uint    `json:"category_id"`
 		TagNames   []string `json:"tag_names"`
+		ContentType string  `json:"content_type"` // "html" 或 "markdown"，默认 "html"
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		BadRequest(c, "请求参数错误")
@@ -531,9 +534,15 @@ func AICreatePost(c *gin.Context) {
 	aiToken, _ := c.Get("ai_token")
 	token := aiToken.(*models.AIToken)
 
+	// 处理内容格式转换
+	content := req.Content
+	if req.ContentType == "markdown" {
+		content = markdownToHTML(req.Content)
+	}
+
 	post := models.Post{
 		Title:      req.Title,
-		Content:    req.Content,
+		Content:    content,
 		Excerpt:    req.Excerpt,
 		Cover:      req.Cover,
 		Status:     req.Status,
@@ -560,6 +569,111 @@ func AICreatePost(c *gin.Context) {
 
 	models.DB.Preload("Category").Preload("Author").Preload("Tags").First(&post, post.ID)
 	SuccessWithMessage(c, "文章创建成功", post)
+}
+
+// AIUpdatePost AI 更新文章
+func AIUpdatePost(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		BadRequest(c, "无效的文章ID")
+		return
+	}
+
+	var post models.Post
+	if err := models.DB.First(&post, id).Error; err != nil {
+		NotFound(c, "文章不存在")
+		return
+	}
+
+	var req struct {
+		Title      string   `json:"title"`
+		Slug       string   `json:"slug"`
+		Content    string   `json:"content"`
+		Excerpt    string   `json:"excerpt"`
+		Cover      string   `json:"cover"`
+		Status     string   `json:"status"`
+		CategoryID *uint    `json:"category_id"`
+		TagNames   []string `json:"tag_names"`
+		ContentType string  `json:"content_type"` // "html" 或 "markdown"
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	// 处理内容格式转换
+	content := req.Content
+	if req.ContentType == "markdown" {
+		content = markdownToHTML(req.Content)
+	}
+
+	updates := map[string]interface{}{
+		"title":       req.Title,
+		"slug":        req.Slug,
+		"content":     content,
+		"excerpt":     req.Excerpt,
+		"cover":       req.Cover,
+		"status":      req.Status,
+		"category_id": req.CategoryID,
+	}
+
+	// 如果状态为 published 且没有发布时间，设置发布时间
+	if req.Status == "published" && post.PublishedAt == nil {
+		now := time.Now()
+		updates["published_at"] = &now
+	}
+
+	if err := models.DB.Model(&post).Updates(updates).Error; err != nil {
+		InternalError(c, "更新文章失败")
+		return
+	}
+
+	// 同步标签
+	if req.TagNames != nil {
+		syncSimpleTags(&post, req.TagNames)
+	}
+
+	models.DB.Preload("Category").Preload("Author").Preload("Tags").First(&post, post.ID)
+	SuccessWithMessage(c, "文章更新成功", post)
+}
+
+// markdownToHTML 将 Markdown 转换为 HTML
+func markdownToHTML(content string) string {
+	if content == "" {
+		return ""
+	}
+	// 检测是否已经是 HTML 内容
+	trimmed := strings.TrimSpace(content)
+	if strings.HasPrefix(trimmed, "<") {
+		return content
+	}
+	var buf bytes.Buffer
+	if err := goldmark.Convert([]byte(content), &buf); err != nil {
+		return content
+	}
+	return buf.String()
+}
+
+// AIDeletePost AI 删除文章
+func AIDeletePost(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		BadRequest(c, "无效的文章ID")
+		return
+	}
+
+	var post models.Post
+	if err := models.DB.First(&post, id).Error; err != nil {
+		NotFound(c, "文章不存在")
+		return
+	}
+
+	if err := models.DB.Delete(&post).Error; err != nil {
+		InternalError(c, "删除文章失败")
+		return
+	}
+
+	SuccessWithMessage(c, "文章删除成功", nil)
 }
 
 // AIListPages AI 页面列表

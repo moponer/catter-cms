@@ -98,7 +98,8 @@ Authorization: Bearer {CATTER_CMS_KEY}
 {
   "title": "标题",
   "slug": "url别名",
-  "content": "HTML内容",
+  "content": "文章内容（见下方格式说明）",
+  "content_type": "markdown",
   "excerpt": "摘要",
   "cover": "封面图URL",
   "status": "draft",
@@ -107,7 +108,77 @@ Authorization: Bearer {CATTER_CMS_KEY}
 }
 ```
 
-`status` 可选值：`draft`（草稿）、`published`（已发布）、`archived`（已归档）
+**`content_type` 参数：**
+- `"html"`（默认）：内容已经是 HTML 格式，直接存储
+- `"markdown"`：**推荐**。AI 生成 Markdown，后端自动转换为 HTML 存储
+
+**`status` 可选值：** `draft`（草稿）、`published`（已发布）、`archived`（已归档）
+
+### 文章内容格式规范
+
+**推荐：使用 Markdown 格式（设置 `content_type: "markdown"`）**
+
+AI 生成文章时应使用标准 Markdown 语法，确保前台正确渲染：
+
+```markdown
+# 文章标题（一级标题，自动从 title 字段获取，可选）
+
+这是文章开头的介绍文字...
+
+## 二级标题
+
+正文内容，支持**粗体**、*斜体*、~~删除线~~
+
+### 列表
+
+- 列表项一
+- 列表项二
+- 列表项三
+
+### 有序列表
+
+1. 第一步
+2. 第二步
+3. 第三步
+
+### 引用
+
+> 这是一段引用文字
+
+### 代码块
+
+```javascript
+const greeting = "Hello, World!";
+console.log(greeting);
+```
+
+### 图片
+
+![图片描述](https://example.com/image.jpg)
+
+### 链接
+
+[链接文字](https://example.com)
+
+### 表格
+
+| 列1 | 列2 | 列3 |
+|-----|-----|-----|
+| A   | B   | C   |
+| D   | E   | F   |
+```
+
+**图片使用规范：**
+- 使用图床或绝对 URL（如 `https://example.com/image.jpg`）
+- 不要使用相对路径
+- 建议先通过 `POST /api/v1/media` 上传图片获取 URL
+- 每个 `![]()` 图片语法不要超过 200 字符
+
+**排版要点：**
+- 标题层级清晰，不要跳级（一级 → 二级 → 三级）
+- 段落之间留空行
+- 列表项不要过长（每项建议 100 字以内）
+- 重要内容可用加粗强调，但不要整段加粗
 
 ### 页面
 
