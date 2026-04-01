@@ -59,6 +59,11 @@
           <template #title>系统设置</template>
         </el-menu-item>
 
+        <el-menu-item index="/ai-settings">
+          <el-icon><Connection /></el-icon>
+          <template #title>AI 集成</template>
+        </el-menu-item>
+
         <el-menu-item index="/scheduled-tasks">
           <el-icon><Timer /></el-icon>
           <template #title>定时任务</template>
@@ -117,17 +122,14 @@ const activeMenu = computed(() => route.path)
 
 <style scoped>
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
   width: var(--admin-sidebar-width);
   background-color: var(--admin-sidebar-bg);
   display: flex;
   flex-direction: column;
-  transition: width var(--admin-transition-normal);
+  flex-shrink: 0;
   z-index: 1000;
   overflow: hidden;
+  transition: width var(--admin-transition-normal);
 }
 
 .sidebar.collapsed {

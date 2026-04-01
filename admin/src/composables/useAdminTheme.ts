@@ -41,8 +41,10 @@ const isTransitioning = ref(false)
 // 应用主题到 DOM
 const applyTheme = (themeId: string) => {
   isTransitioning.value = true
-
   const html = document.documentElement
+
+  // 临时添加过渡 class
+  html.classList.add('theme-transitioning')
 
   // 移除旧主题
   html.removeAttribute('data-admin-theme')
@@ -55,10 +57,11 @@ const applyTheme = (themeId: string) => {
   // 触发主题变化事件
   window.dispatchEvent(new CustomEvent('theme-change', { detail: { themeId } }))
 
-  // 移除过渡状态
+  // 过渡结束后移除 class 和状态
   setTimeout(() => {
+    html.classList.remove('theme-transitioning')
     isTransitioning.value = false
-  }, 200)
+  }, 300)
 }
 
 // 主题切换 Hook

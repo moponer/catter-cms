@@ -279,6 +279,13 @@ func main() {
 			protected.PUT("/menus/:id/items/:itemId", api.UpdateMenuItem)
 			protected.DELETE("/menus/:id/items/:itemId", api.DeleteMenuItem)
 			protected.POST("/menus/:id/items/reorder", api.ReorderMenuItems)
+
+			// AI Key 管理
+			protected.GET("/ai/keys", api.ListAIKeys)
+			protected.POST("/ai/keys", api.CreateAIKey)
+			protected.DELETE("/ai/keys/:id", api.DeleteAIKey)
+			protected.GET("/ai/keys/:id/logs", api.GetAIKeyLogs)
+			protected.GET("/ai/setup-commands", api.GetAISetupCommands)
 		}
 	}
 
@@ -288,6 +295,43 @@ func main() {
 
 	// 搜索 API（公开）
 	r.GET("/api/search", api.GlobalSearch)
+
+	// ========================================
+	// AI 集成 API
+	// ========================================
+
+	// AI Skill 和 Schema（公开，无需认证）
+	r.GET("/api/ai/skill", api.GetAISkill)
+	r.GET("/api/ai/schema", api.GetAISchema)
+
+	// AI v1 API（使用 AI Key 认证）
+	aiGroup := r.Group("/api/v1")
+	aiGroup.Use(middleware.AIAuth())
+	{
+		// 文章
+		aiGroup.GET("/posts", api.AIListPosts)
+		aiGroup.GET("/posts/:id", api.AIGetPost)
+		aiGroup.POST("/posts", middleware.RequireAIPermission("write"), api.AICreatePost)
+
+		// 页面
+		aiGroup.GET("/pages", api.AIListPages)
+		aiGroup.GET("/pages/:id", api.AIGetPage)
+
+		// 分类
+		aiGroup.GET("/categories", api.AIListCategories)
+
+		// 标签
+		aiGroup.GET("/tags", api.AIListTags)
+
+		// 媒体
+		aiGroup.GET("/media", api.AIListMedia)
+
+		// 评论
+		aiGroup.GET("/comments", api.AIListComments)
+
+		// 设置
+		aiGroup.GET("/settings", api.AIGetSettings)
+	}
 
 	// Sitemap（公开）
 	r.GET("/sitemap.xml", api.SitemapHandler)

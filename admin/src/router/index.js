@@ -15,6 +15,7 @@ const PageEdit = () => import('@/views/pages/PageEdit.vue')
 const ThemeList = () => import('@/views/themes/ThemeList.vue')
 const ThemeSettings = () => import('@/views/themes/ThemeSettings.vue')
 const SiteSettings = () => import('@/views/settings/SiteSettings.vue')
+const AiSettings = () => import('@/views/settings/AiSettings.vue')
 const Comments = () => import('@/views/comments/Index.vue')
 const ScheduledTasks = () => import('@/views/scheduled-tasks/Index.vue')
 const Sitemap = () => import('@/views/sitemap/Index.vue')
@@ -125,6 +126,12 @@ const routes = [
     name: 'Settings',
     component: SiteSettings,
     meta: { title: '系统设置', requiresAuth: true }
+  },
+  {
+    path: '/ai-settings',
+    name: 'AiSettings',
+    component: AiSettings,
+    meta: { title: 'AI 集成', requiresAuth: true }
   },
   {
     path: '/comments',

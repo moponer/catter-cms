@@ -47,12 +47,7 @@ const toggleSidebar = () => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  margin-left: var(--admin-sidebar-width);
-  transition: margin-left var(--admin-transition-normal), background-color var(--admin-transition-normal);
-}
-
-.main-container.sidebar-collapsed {
-  margin-left: var(--admin-sidebar-collapsed-width);
+  min-width: 0;
 }
 
 .main-content {

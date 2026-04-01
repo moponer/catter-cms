@@ -24,7 +24,5 @@ Copy-Item -Recurse -Force "$projectRoot/admin/dist" "$deployDir/admin"
 Copy-Item -Force "$projectRoot/config.yaml" $deployDir
 Copy-Item -Recurse -Force "$projectRoot/templates/themes/*" "$deployDir/templates/themes/"
 Copy-Item -Recurse -Force "$projectRoot/templates/fontawesome/*" "$deployDir/templates/fontawesome/"
-if (Test-Path "$projectRoot/catter.db") { Copy-Item -Force "$projectRoot/catter.db" $deployDir }
-
 Set-Location $projectRoot
 Write-Host "Build complete: $deployDir"

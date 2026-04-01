@@ -43,5 +43,7 @@ func AutoMigrate() error {
 		&MenuItem{},
 		&ScheduledTask{},
 		&ScheduledTaskExecution{},
+		&AIToken{},
+		&AIAuditLog{},
 	)
 }
