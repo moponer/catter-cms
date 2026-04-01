@@ -123,6 +123,7 @@ const activeMenu = computed(() => route.path)
 <style scoped>
 .sidebar {
   width: var(--admin-sidebar-width);
+  height: 100vh;
   background-color: var(--admin-sidebar-bg);
   display: flex;
   flex-direction: column;
@@ -181,6 +182,7 @@ const activeMenu = computed(() => route.path)
   overflow-y: auto;
   overflow-x: hidden;
   padding: var(--admin-spacing-sm);
+  min-height: 0;
 }
 
 /* 菜单 */

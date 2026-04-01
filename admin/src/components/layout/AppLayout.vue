@@ -56,6 +56,7 @@ const toggleSidebar = () => {
   padding: var(--admin-spacing-lg);
   padding-bottom: 0;
   overflow-y: auto;
+  min-height: 0;
   box-sizing: border-box;
 }
 
