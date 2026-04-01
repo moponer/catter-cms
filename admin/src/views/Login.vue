@@ -463,22 +463,22 @@ onMounted(() => {
 
 /* 右侧登录区域 */
 .login-right {
-  width: 620px;
+  width: 520px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 40px 60px 40px 40px;
+  padding: 40px 50px 40px 30px;
   position: relative;
   z-index: 1;
 }
 
 .login-card {
   width: 100%;
-  max-width: 400px;
-  padding: 50px 45px;
+  max-width: 340px;
+  padding: 36px 32px;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24px;
-  box-shadow: 
+  border-radius: 20px;
+  box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
@@ -490,8 +490,8 @@ onMounted(() => {
 }
 
 .login-header h2 {
-  margin: 0 0 10px;
-  font-size: 28px;
+  margin: 0 0 8px;
+  font-size: 22px;
   font-weight: 600;
   color: #1a1a2e;
 }
@@ -499,7 +499,7 @@ onMounted(() => {
 .login-header p {
   margin: 0;
   color: #6b7280;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .login-form {
@@ -536,8 +536,8 @@ onMounted(() => {
 }
 
 .custom-input :deep(.el-input__inner) {
-  height: 44px;
-  line-height: 44px;
+  height: 38px;
+  line-height: 38px;
 }
 
 .input-icon {
@@ -546,7 +546,7 @@ onMounted(() => {
 }
 
 .remember-row {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .remember-row :deep(.el-form-item__content) {
@@ -573,8 +573,8 @@ onMounted(() => {
 
 .login-btn {
   width: 100%;
-  height: 50px;
-  font-size: 16px;
+  height: 42px;
+  font-size: 14px;
   font-weight: 600;
   border-radius: 10px;
   background: #374151;
@@ -582,7 +582,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(55, 65, 81, 0.2);
 }
@@ -607,9 +607,9 @@ onMounted(() => {
 }
 
 .login-footer {
-  margin-top: 30px;
+  margin-top: 20px;
   text-align: center;
-  padding-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid #f3f4f6;
 }
 

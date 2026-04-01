@@ -65,7 +65,7 @@
                 <span class="step-number">2</span>
                 <span class="step-title">添加 AI Skill</span>
               </div>
-              <p class="step-desc">复制以下提示词，粘贴到 AI 客户端的系统规则中（如 Cursor 的 .cursorrules、WorkBuddy 的规则文件）。AI 会自动读取 Skill 文档并学会操作 CMS：</p>
+              <p class="step-desc">复制以下提示词，粘贴到 AI 客户端的系统规则中或发送给AI，AI 会自动读取 Skill 文档并学会操作 CMS：</p>
 
               <div class="code-block-wrapper">
                 <div class="code-block multiline">

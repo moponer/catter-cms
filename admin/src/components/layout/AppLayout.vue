@@ -38,7 +38,8 @@ const toggleSidebar = () => {
 <style scoped>
 .app-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background-color: var(--admin-bg-page);
 }
 
@@ -46,14 +47,16 @@ const toggleSidebar = () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  overflow: hidden;
   min-width: 0;
 }
 
 .main-content {
   flex: 1;
   padding: var(--admin-spacing-lg);
+  padding-bottom: 0;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 /* 页面过渡动画 */

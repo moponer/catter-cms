@@ -417,7 +417,28 @@ func GetAISetupCommands(c *gin.Context) {
 			"mac":     fmt.Sprintf("echo 'export CATTER_CMS_URL=\"%s\"' >> ~/.zshrc && echo 'export CATTER_CMS_KEY=\"%s\"' >> ~/.zshrc && source ~/.zshrc", cmsURL, activeKey.Token),
 			"linux":   fmt.Sprintf("echo 'export CATTER_CMS_URL=\"%s\"' >> ~/.bashrc && echo 'export CATTER_CMS_KEY=\"%s\"' >> ~/.bashrc && source ~/.bashrc", cmsURL, activeKey.Token),
 		},
-		"skill_prompt": fmt.Sprintf("Catter CMS 集成：当用户要求管理网站内容（文章、页面、分类、标签、媒体、评论、设置）时，请读取以下 Skill 文档并按照其中的规范操作。CMS 地址和 API Key 已配置在环境变量 CATTER_CMS_URL 和 CATTER_CMS_KEY 中，所有 API 请求需携带 Authorization: Bearer $CATTER_CMS_KEY 头。Skill 文档地址：%s/api/ai/skill", cmsURL),
+		"skill_prompt": fmt.Sprintf(`Catter CMS 集成：当用户要求管理网站内容（文章、页面、分类、标签、媒体、评论、设置）时，请按以下步骤操作：
+
+【环境配置】
+- CMS 地址：[Environment]::GetEnvironmentVariable("CATTER_CMS_URL", "User")
+- API Key：[Environment]::GetEnvironmentVariable("CATTER_CMS_KEY", "User")
+
+【首次使用 - 安装 Skill】
+1. 检查记忆中是否已有 "Catter CMS Skill 已安装"
+2. 如未安装，调用 save_memory 保存以下信息：
+   "Catter CMS Skill 已安装。API认证：请求头 Authorization: Bearer {CATTER_CMS_KEY}。操作原则：先读后写、删除确认、默认草稿。"
+3. 告知用户安装完成
+
+【执行操作】
+1. 使用 run_shell_command 通过 PowerShell Socket 发起 API 请求
+2. 请求地址：{CATTER_CMS_URL}/api/v1/{endpoint}
+3. 请求头：Authorization: Bearer {CATTER_CMS_KEY}
+4. 参考 Skill 文档：{CATTER_CMS_URL}/api/ai/skill（可选，获取完整 API 规范）
+
+【操作原则】
+- 先读后写：创建/更新前先 GET 查看现有数据
+- 删除确认：删除前向用户展示内容并确认
+- 默认草稿：创建文章 status 默认为 draft`, cmsURL),
 	})
 }
 
