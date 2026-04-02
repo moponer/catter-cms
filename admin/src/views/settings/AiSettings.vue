@@ -6,7 +6,7 @@
 
     <el-tabs v-model="activeTab">
       <!-- 快速设置 -->
-      <el-tab-pane label="快速设置" name="setup">
+      <el-tab-pane label="CMS 集成" name="setup">
         <el-card>
           <template #header>
             <div class="card-header">
@@ -93,6 +93,86 @@
               <div v-if="setupData.expires_at && !isNeverExpires(setupData.expires_at)" class="expire-info">
                 <el-icon><Warning /></el-icon>
                 <span>密钥有效期至：{{ formatDate(setupData.expires_at) }}</span>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </el-tab-pane>
+
+      <!-- 主题开发 Skill -->
+      <el-tab-pane label="主题开发" name="theme-dev">
+        <el-card>
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">主题开发 AI Skill</span>
+              <el-button type="primary" plain size="small" @click="loadThemeSkillPrompt" :loading="loadingThemeSkill">
+                刷新
+              </el-button>
+            </div>
+          </template>
+
+          <div class="theme-skill-intro">
+            <p>将以下提示词发送给 AI 编程助手（如 WorkBuddy、Cursor、Claude 等），AI 会自动获取完整的主题开发规范并学会开发 Catter CMS 主题。</p>
+            <p class="hint">开发或优化主题时，AI 会自动调用该 Skill，确保符合 Catter CMS 的模板语法、配置系统和设计规范。</p>
+          </div>
+
+          <div class="setup-step">
+            <div class="step-header">
+              <span class="step-number">1</span>
+              <span class="step-title">复制主题开发提示词</span>
+            </div>
+            <p class="step-desc">点击下方按钮复制完整提示词，然后粘贴到 AI 助手的对话中：</p>
+
+            <div class="code-block-wrapper">
+              <div class="code-block multiline">
+                <pre>{{ themeSkillPrompt }}</pre>
+                <button class="copy-btn" @click="copyCode(themeSkillPrompt)">
+                  <el-icon><DocumentCopy /></el-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="setup-step">
+            <div class="step-header">
+              <span class="step-number">2</span>
+              <span class="step-title">开始开发主题</span>
+            </div>
+            <p class="step-desc">安装完成后，告诉 AI 你的需求，例如：</p>
+            <ul class="example-list">
+              <li>"帮我开发一个新的博客主题，风格要简洁清新"</li>
+              <li>"优化现有主题的移动端适配"</li>
+              <li>"给主题增加一个轮播图模块"</li>
+              <li>"修复主题配置表单的显示问题"</li>
+            </ul>
+          </div>
+
+          <div class="skill-features">
+            <h3>Skill 包含的开发规范</h3>
+            <div class="feature-grid">
+              <div class="feature-item">
+                <el-icon><Document /></el-icon>
+                <span>模板语法规范</span>
+              </div>
+              <div class="feature-item">
+                <el-icon><Setting /></el-icon>
+                <span>主题配置系统</span>
+              </div>
+              <div class="feature-item">
+                <el-icon><Brush /></el-icon>
+                <span>CSS 设计规范</span>
+              </div>
+              <div class="feature-item">
+                <el-icon><DataAnalysis /></el-icon>
+                <span>模板数据参考</span>
+              </div>
+              <div class="feature-item">
+                <el-icon><Lightning /></el-icon>
+                <span>快速入门教程</span>
+              </div>
+              <div class="feature-item">
+                <el-icon><CircleCheck /></el-icon>
+                <span>常见错误排查</span>
               </div>
             </div>
           </div>
@@ -274,7 +354,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { get, post, del } from '@/utils/request'
-import { Connection, Warning } from '@element-plus/icons-vue'
+import { Connection, Warning, Document, Setting, Brush, DataAnalysis, Lightning, CircleCheck } from '@element-plus/icons-vue'
 
 const activeTab = ref('setup')
 const activeCodeTab = ref('windows')
@@ -320,6 +400,10 @@ const logPage = ref(1)
 const logPageSize = 20
 const logTotal = ref(0)
 
+// 主题开发 Skill
+const loadingThemeSkill = ref(false)
+const themeSkillPrompt = ref('')
+
 // 加载设置命令
 const loadSetupCommands = async () => {
   loadingSetup.value = true
@@ -331,6 +415,20 @@ const loadSetupCommands = async () => {
     // ignore
   } finally {
     loadingSetup.value = false
+  }
+}
+
+// 加载主题开发 Skill 提示词
+const loadThemeSkillPrompt = async () => {
+  loadingThemeSkill.value = true
+  try {
+    const res = await get('/api/ai/themes-skill')
+    // API 返回的是纯文本，直接赋值
+    themeSkillPrompt.value = typeof res === 'string' ? res : JSON.stringify(res, null, 2)
+  } catch (error) {
+    ElMessage.error('加载主题开发 Skill 失败')
+  } finally {
+    loadingThemeSkill.value = false
   }
 }
 
@@ -483,6 +581,7 @@ const handleCloseDialog = () => {
 onMounted(() => {
   loadSetupCommands()
   loadKeys()
+  loadThemeSkillPrompt()
 })
 </script>
 
@@ -713,6 +812,71 @@ onMounted(() => {
 }
 
 /* 快速设置面板宽度限制 */
+
+/* 主题开发 Skill 页面 */
+.theme-skill-intro {
+  margin-bottom: 20px;
+  color: var(--admin-text-secondary);
+  line-height: 1.6;
+}
+
+.theme-skill-intro .hint {
+  font-size: var(--admin-font-size-sm);
+  color: var(--admin-text-muted);
+  margin-top: 8px;
+}
+
+.example-list {
+  margin: 12px 0 0 20px;
+  color: var(--admin-text-secondary);
+  font-size: var(--admin-font-size-sm);
+  line-height: 1.8;
+}
+
+.example-list li {
+  margin-bottom: 4px;
+}
+
+.skill-features {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: var(--admin-bg-hover);
+  border-radius: var(--admin-radius-sm);
+}
+
+.skill-features h3 {
+  margin: 0 0 16px 0;
+  font-size: var(--admin-font-size-base);
+  color: var(--admin-text-primary);
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--admin-bg-surface);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-secondary);
+  font-size: var(--admin-font-size-sm);
+  transition: all var(--admin-transition-fast);
+}
+
+.feature-item:hover {
+  color: var(--admin-primary);
+  background-color: var(--admin-bg-hover);
+}
+
+.feature-item .el-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
 
 /* 分页 */
 .pagination-wrapper {

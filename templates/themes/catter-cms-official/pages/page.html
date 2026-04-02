@@ -3,64 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .site.title }} - {{ .pageTitle }}</title>
-    <meta name="description" content="{{ .page.MetaDescription }}">
+    <title>{{ if .page.MetaTitle }}{{ .page.MetaTitle }} - {{ end }}{{ .site.title }}</title>
+    <meta name="description" content="{{ if .page.MetaDescription }}{{ .page.MetaDescription }}{{ else }}{{ .page.Excerpt }}{{ end }}">
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
-    <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
+    {{ if getConfig "customCss" "" }}
+    <style>{{ getConfig "customCss" "" | safe }}</style>
+    {{ end }}
 </head>
 <body>
-    <header>
+    <!-- 头部导航 -->
+    <header class="header">
         <div class="header-container">
             <a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
-            <nav>
-                <a href="/page/features">功能</a>
-                <a href="/page/pricing">定价</a>
-                <a href="/page/docs">文档</a>
-                <a href="/article">博客</a>
-                <a href="/page/about">关于</a>
+            {{ if .headerMenu }}
+            <nav class="nav">
+                {{ range .headerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
             </nav>
-            <a href="/page/contact" class="cta-btn">联系我们</a>
+            {{ end }}
         </div>
     </header>
 
-    <div class="page-header">
+    <!-- 单页内容 -->
+    <main class="page-detail">
         <h1>{{ .page.Title }}</h1>
         {{ if .page.Excerpt }}
-        <p>{{ .page.Excerpt }}</p>
+        <p style="color: var(--text-secondary); margin-bottom: var(--spacing-xl); font-size: 1.1rem;">{{ .page.Excerpt }}</p>
         {{ end }}
-    </div>
-
-    <div class="page-content">
-        {{ markdownHTML .page.Content }}
-    </div>
-
-    <footer>
-        <div class="footer-container">
-            <div>
-                <h4>{{ .site.title }} CMS</h4>
-                <p>现代化的开源内容管理系统</p>
-            </div>
-            <div>
-                <h4>产品</h4>
-                <a href="/page/features">功能介绍</a>
-                <a href="/page/pricing">定价方案</a>
-                <a href="/article">博客更新</a>
-            </div>
-            <div>
-                <h4>资源</h4>
-                <a href="/page/docs">开发文档</a>
-                <a href="/article">技术博客</a>
-            </div>
-            <div>
-                <h4>关于</h4>
-                <a href="/page/about">关于我们</a>
-                <a href="/page/contact">联系我们</a>
-            </div>
+        <div class="content">
+            {{ markdownHTML .page.Content }}
         </div>
-        <div class="footer-bottom">
-            <p>&copy; {{ .site.year }} {{ .site.title }}. All rights reserved.</p>
+    </main>
+
+    <!-- 页脚 -->
+    {{ if getConfig "footerEnabled" true }}
+    <footer class="footer">
+        <div class="footer-container">
+            {{ if .footerMenu }}
+            <nav class="footer-nav">
+                {{ range .footerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            {{ end }}
+            <div class="footer-bottom">
+                <p>{{ getConfig "footerCopyright" "" }}</p>
+                {{ if getConfig "footerICP" "" }}
+                <p class="footer-icp">{{ getConfig "footerICP" "" }}</p>
+                {{ end }}
+            </div>
         </div>
     </footer>
+    {{ end }}
+
+    {{ if getConfig "customJs" "" }}
+    <script>{{ getConfig "customJs" "" | safe }}</script>
+    {{ end }}
 </body>
 </html>

@@ -96,14 +96,14 @@
         </el-card>
 
         <!-- 最近文章 -->
-        <el-card class="section-card" shadow="never" style="margin-top:16px">
+        <el-card class="section-card" shadow="never" style="margin-top:16px" v-loading="loading.posts">
           <template #header>
             <div class="card-header-flex">
               <span class="card-title">最近文章</span>
               <el-button type="primary" link @click="$router.push('/posts')">查看全部</el-button>
             </div>
           </template>
-          <el-table :data="recentPosts" style="width:100%" v-loading="loading.posts" :show-header="true">
+          <el-table :data="recentPosts" style="width:100%" :show-header="true">
             <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip>
               <template #default="{ row }">
                 <el-link type="primary" @click="$router.push(`/posts/edit/${row.id}`)">{{ row.title }}</el-link>
@@ -124,30 +124,48 @@
 
       </el-col>
 
-      <!-- 右侧：系统信息 + 系统监控 -->
+      <!-- 右侧：用户信息 + 系统监控 -->
       <el-col :xs="24" :lg="9">
 
-        <!-- 系统信息 -->
-        <el-card class="section-card" shadow="never">
-          <template #header>
-            <span class="card-title">系统信息</span>
-          </template>
-          <div class="sys-info-block">
-            <div class="sys-logo">
-              <div class="sys-logo-icon">C</div>
-              <div class="sys-logo-text">
-                <div class="sys-name">Catter CMS</div>
-                <div class="sys-version">v{{ systemInfo.version || '2.0.0' }}</div>
-              </div>
+        <!-- 用户信息卡片 -->
+        <el-card class="section-card user-card" shadow="never" body-style="padding:0">
+          <!-- 顶部色条 -->
+          <div class="user-card-banner"></div>
+          <!-- 头像 -->
+          <div class="user-avatar-wrap">
+            <div class="user-avatar-btn">
+              <el-avatar :size="70" :src="currentUser.avatar" class="user-avatar">
+                <span class="avatar-fallback">{{ currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U' }}</span>
+              </el-avatar>
             </div>
-            <p class="sys-desc">基于 Go + Vue 3 构建的现代化内容管理系统，提供文章、页面、媒体、主题等核心管理功能。</p>
-            <div class="sys-links">
-              <el-link type="primary" href="https://github.com" target="_blank">
-                <el-icon><Link /></el-icon> GitHub
-              </el-link>
-              <el-link type="primary" href="#" target="_blank">
-                <el-icon><Document /></el-icon> 文档
-              </el-link>
+          </div>
+          <!-- 基本信息 -->
+          <div class="user-info">
+            <div class="user-name">{{ currentUser.name || '未设置昵称' }}</div>
+            <div class="user-role-wrap">
+              <span class="role-badge" :class="'role-' + (currentUser.role || 'editor')">{{ roleLabel(currentUser.role) }}</span>
+            </div>
+            <div class="user-email">
+              <el-icon :size="12"><Message /></el-icon>
+              <span>{{ currentUser.email || '-' }}</span>
+            </div>
+            <p class="user-bio" v-if="currentUser.bio">{{ currentUser.bio }}</p>
+            <p class="user-bio user-bio--empty" v-else>暂无个人简介</p>
+          </div>
+          <div class="card-sep"></div>
+          <!-- 统计 -->
+          <div class="stats-block">
+            <div class="stat-item">
+              <div class="stat-num">{{ stats.published_posts }}</div>
+              <div class="stat-label">已发布</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num">{{ stats.draft_posts }}</div>
+              <div class="stat-label">草稿</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num">{{ stats.total_posts }}</div>
+              <div class="stat-label">文章总数</div>
             </div>
           </div>
         </el-card>
@@ -207,9 +225,9 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import {
   Document, User, Folder, Picture,
   Edit, DocumentAdd, Upload, FolderAdd,
-  Setting, Link, Timer, Monitor, Coin, Cpu,
+  Setting, Timer, Monitor, Coin, Cpu,
   Connection, Histogram, PriceTag, ChatDotRound,
-  Brush, ArrowRight
+  Brush, ArrowRight, Message, UserFilled, View
 } from '@element-plus/icons-vue'
 import { get } from '@/utils/request'
 
@@ -220,6 +238,15 @@ const stats = reactive({
 const recentPosts = ref([])
 const systemInfo = ref({})
 const loading = reactive({ posts: false, system: false })
+
+// 当前用户信息
+const currentUser = reactive({
+  name: '',
+  email: '',
+  role: '',
+  avatar: '',
+  bio: ''
+})
 
 // 今日日期
 const todayStr = computed(() => {
@@ -258,6 +285,23 @@ const loadSystemInfo = async () => {
   finally { loading.system = false }
 }
 
+// 加载当前用户信息
+const loadCurrentUser = async () => {
+  try {
+    const res = await get('/api/auth/me')
+    const data = res.data || res
+    if (data) {
+      Object.assign(currentUser, data)
+    }
+  } catch {}
+}
+
+// 角色标签
+const roleLabel = (role) => {
+  const map = { admin: '管理员', editor: '编辑', author: '作者', subscriber: '订阅者' }
+  return map[role] || role || '未知'
+}
+
 const formatDate = (d) => {
   if (!d) return '-'
   return new Date(d).toLocaleString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
@@ -277,7 +321,7 @@ const getMemoryStatus = (p) => {
   return 'success'
 }
 
-onMounted(() => { loadDashboardData(); loadSystemInfo() })
+onMounted(() => { loadDashboardData(); loadSystemInfo(); loadCurrentUser() })
 </script>
 
 <style scoped>
@@ -485,60 +529,127 @@ onMounted(() => { loadDashboardData(); loadSystemInfo() })
   color: var(--el-text-color-placeholder);
 }
 
-/* ===== 系统信息 ===== */
-.sys-info-block { padding: 4px 0; }
-
-.sys-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+/* ===== 用户信息卡片（Profile 风格） ===== */
+.user-card {
+  overflow: hidden;
+  padding: 0;
 }
 
-.sys-logo-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: #F3F4F6;
-  color: #374151;
+/* 顶部色条 */
+.user-card-banner {
+  height: 56px;
+  background-color: var(--el-color-primary);
+  opacity: 0.12;
+}
+
+/* 头像 */
+.user-avatar-wrap {
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
+  margin-top: -36px;
+  margin-bottom: 4px;
+}
+.user-avatar-btn {
+  position: relative;
+  width: 76px;
+  height: 76px;
   flex-shrink: 0;
-  border: 1px solid #E5E7EB;
 }
+.user-card :deep(.user-avatar) {
+  width: 70px !important;
+  height: 70px !important;
+  border: 3px solid var(--el-bg-color);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  font-size: 26px;
+}
+.avatar-fallback { font-size: 26px; font-weight: 700; }
 
-.sys-name {
-  font-size: 15px;
-  font-weight: 600;
+/* 用户信息 */
+.user-info {
+  padding: 0 16px 8px;
+  text-align: center;
+}
+.user-name {
+  font-size: 16px;
+  font-weight: 700;
   color: var(--el-text-color-primary);
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.sys-version {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-top: 2px;
+.user-role-wrap { margin-bottom: 8px; }
+.role-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
 }
-
-.sys-desc {
-  font-size: 13px;
-  color: var(--el-text-color-regular);
-  line-height: 1.65;
-  margin: 0 0 14px;
+.role-admin {
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  border: 1px solid var(--el-color-primary-light-7);
 }
-
-.sys-links {
-  display: flex;
-  gap: 16px;
+.role-editor {
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success);
+  border: 1px solid var(--el-color-success-light-7);
 }
-
-.sys-links .el-link {
+.user-email {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-bottom: 8px;
+  max-width: 100%;
+  overflow: hidden;
+}
+.user-email span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-bio {
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  line-height: 1.6;
+  margin: 4px 0 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.user-bio--empty { color: var(--el-text-color-placeholder); font-style: italic; }
+
+/* 分割线 */
+.card-sep {
+  height: 1px;
+  background: var(--el-border-color-lighter);
+  margin: 0 0 4px;
+}
+
+/* 统计块 */
+.stats-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 8px 12px 12px;
+  gap: 4px;
+}
+.stat-item {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.stat-item:hover { background: var(--el-fill-color-light); }
+.stat-num {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--el-color-primary);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
+  margin-top: 4px;
 }
 
 /* ===== 系统监控 ===== */

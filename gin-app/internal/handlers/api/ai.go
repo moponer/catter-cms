@@ -372,6 +372,37 @@ func GetAISchema(c *gin.Context) {
 	c.JSON(200, schema)
 }
 
+// GetThemeDevSkill 获取主题开发 Skill 文档（读取静态文件）
+func GetThemeDevSkill(c *gin.Context) {
+	if isBrowserRequest(c) {
+		respondAIOnly(c, "Theme Development Skill Document (Markdown)")
+		return
+	}
+	// 尝试从 deploy/public/ai/themes-skill.md 读取，否则从源码 public/ai/themes-skill.md 读取
+	paths := []string{
+		"public/ai/themes-skill.md",
+		"../public/ai/themes-skill.md",
+	}
+
+	var content []byte
+	var err error
+	for _, p := range paths {
+		content, err = os.ReadFile(p)
+		if err == nil {
+			break
+		}
+	}
+
+	if err != nil || len(content) == 0 {
+		c.String(500, "Theme development skill document not found")
+		return
+	}
+
+	c.Header("Content-Type", "text/plain; charset=utf-8")
+	c.Header("X-Content-Type", "ai-theme-skill-document")
+	c.String(200, string(content))
+}
+
 // GetAISetupCommands 获取 AI 集成设置命令（JWT 认证）
 func GetAISetupCommands(c *gin.Context) {
 	user, exists := c.Get("current_user")

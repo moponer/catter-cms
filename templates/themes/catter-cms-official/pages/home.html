@@ -3,196 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .site.title }}</title>
-    <meta name="description" content="{{ .site.description }}">
+    <title>{{ if getConfig "metaTitle" "" }}{{ getConfig "metaTitle" "" }}{{ else }}{{ .site.title }}{{ end }}</title>
+    <meta name="description" content="{{ if getConfig "metaDescription" "" }}{{ getConfig "metaDescription" "" }}{{ else }}{{ .site.description }}{{ end }}">
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
-    <link rel="stylesheet" href="{{ asset_path "assets/css/home.css" }}">
+    {{ if getConfig "customCss" "" }}
+    <style>{{ getConfig "customCss" "" | safe }}</style>
+    {{ end }}
 </head>
 <body>
     <!-- 头部导航 -->
-    <header>
+    <header class="header">
         <div class="header-container">
-            <a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
-            <nav>
-                <a href="/page/features">功能</a>
-                <a href="/page/pricing">定价</a>
-                <a href="/page/docs">文档</a>
-                <a href="/article">博客</a>
-                <a href="/page/about">关于</a>
+            <a href="/" class="logo">{{ .site.title }}</a>
+            {{ if .headerMenu }}
+            <nav class="nav">
+                {{ range .headerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
             </nav>
+            {{ end }}
         </div>
     </header>
 
     <!-- Hero 区域 -->
-    {{ if .themeConfig.heroEnabled }}
+    {{ if getConfig "heroEnabled" true }}
     <section class="hero">
-        <h1>{{ .themeConfig.heroTitle }}</h1>
-        <p>{{ .themeConfig.heroSubtitle }}</p>
-        {{ if .themeConfig.heroButtonText }}
-        <a href="{{ .themeConfig.heroButtonLink }}" class="hero-btn">{{ .themeConfig.heroButtonText }}</a>
-        {{ end }}
+        <div class="hero-container">
+            <h1>{{ getConfig "heroTitle" "Catter CMS" }}</h1>
+            <p class="hero-subtitle">{{ getConfig "heroSubtitle" "" }}</p>
+            <p class="hero-description">{{ getConfig "heroDescription" "" }}</p>
+            <div class="hero-buttons">
+                {{ if getConfig "heroButtonText" "" }}
+                <a href="{{ getConfig "heroButtonLink" "" }}" class="btn btn-primary">{{ getConfig "heroButtonText" "快速开始" }}</a>
+                {{ end }}
+                {{ if getConfig "heroSecondaryText" "" }}
+                <a href="{{ getConfig "heroSecondaryLink" "" }}" class="btn btn-secondary">{{ getConfig "heroSecondaryText" "" }}</a>
+                {{ end }}
+            </div>
+        </div>
     </section>
     {{ end }}
 
-    <!-- 统计数据 -->
-    {{ if and .themeConfig.moduleStatsEnabled .themeConfig.stats }}
-    <section class="stats">
-        <div class="stats-grid">
-            {{ range (json_decode .themeConfig.stats) }}
-            <div class="stat-item">
-                <span class="stat-value">{{ .value }}</span>
-                <span class="stat-label">{{ .label }}</span>
+    <!-- 四大自由模块 -->
+    {{ if getConfig "freedomsEnabled" true }}
+    <section class="section section-alt">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>四大自由</h2>
+                <p>Catter CMS 的核心理念，让网站建设更加自由灵活</p>
+            </div>
+            {{ $freedoms := getConfig "freedoms" "[]" }}
+            {{ if gt (len (ensureSlice $freedoms)) 0 }}
+            <div class="freedoms-grid">
+                {{ range $freedoms }}
+                <div class="freedom-card card">
+                    <div class="freedom-icon">
+                        <i class="{{ .icon }}"></i>
+                    </div>
+                    <h3 class="freedom-title">{{ .title }}</h3>
+                    <p class="freedom-desc">{{ .desc }}</p>
+                </div>
+                {{ end }}
             </div>
             {{ end }}
         </div>
     </section>
     {{ end }}
 
-    <!-- 特性介绍 -->
-    {{ if and .themeConfig.moduleFeaturesEnabled .themeConfig.features }}
-    <section class="features">
-        <div class="section-header">
-            <h2>核心特性</h2>
-            <p>为什么选择 Catter CMS</p>
-        </div>
-        <div class="features-grid">
-            {{ range (json_decode .themeConfig.features) }}
-            <div class="feature-card">
-                <div class="feature-icon">
-                    {{ if eq .icon "lightning" }}<i class="fa-solid fa-bolt"></i>
-                    {{ else if eq .icon "puzzle" }}<i class="fa-solid fa-puzzle-piece"></i>
-                    {{ else if eq .icon "paintbrush" }}<i class="fa-solid fa-paintbrush"></i>
-                    {{ else if eq .icon "shield" }}<i class="fa-solid fa-shield-halved"></i>
-                    {{ else }}<i class="fa-solid fa-check"></i>{{ end }}
+    <!-- 功能特性模块 -->
+    {{ if getConfig "featuresEnabled" true }}
+    <section class="section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>核心功能</h2>
+                <p>强大而实用的功能特性，满足各种建站需求</p>
+            </div>
+            {{ $features := getConfig "features" "[]" }}
+            {{ if gt (len (ensureSlice $features)) 0 }}
+            <div class="features-grid">
+                {{ range $features }}
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="{{ .icon }}"></i>
+                    </div>
+                    <h3 class="card-title">{{ .title }}</h3>
+                    <p class="card-desc">{{ .desc }}</p>
                 </div>
-                <h3>{{ .title }}</h3>
-                <p>{{ .desc }}</p>
+                {{ end }}
             </div>
             {{ end }}
         </div>
     </section>
     {{ end }}
 
-    <!-- 产品展示 -->
-    {{ if and .themeConfig.moduleProductsEnabled .themeConfig.products }}
-    <section class="products">
-        <div class="section-header">
-            <h2>产品展示</h2>
-            <p>探索我们的产品线</p>
-        </div>
-        <div class="products-grid">
-            {{ range (json_decode .themeConfig.products) }}
-            <div class="product-card">
-                <div class="product-image">
-                    <i class="fa-solid fa-gem"></i>
+    <!-- 技术栈展示 -->
+    {{ if getConfig "techStackEnabled" true }}
+    <section class="section section-alt">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>技术栈</h2>
+                <p>基于成熟稳定的技术构建，性能卓越</p>
+            </div>
+            {{ $techStack := getConfig "techStack" "[]" }}
+            {{ if gt (len (ensureSlice $techStack)) 0 }}
+            <div class="tech-grid">
+                {{ range $techStack }}
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <i class="{{ .icon }}"></i>
+                    </div>
+                    <h3 class="tech-name">{{ .name }}</h3>
+                    <p class="tech-desc">{{ .desc }}</p>
                 </div>
-                <div class="product-content">
-                    <h3>{{ .name }}</h3>
-                    <p>{{ .desc }}</p>
-                    <a href="{{ .link }}" class="product-link">了解更多 →</a>
-                </div>
+                {{ end }}
             </div>
             {{ end }}
         </div>
     </section>
     {{ end }}
 
-    <!-- 价格方案 -->
-    {{ if and .themeConfig.modulePricingEnabled .themeConfig.pricing }}
-    <section class="pricing">
-        <div class="section-header">
-            <h2>价格方案</h2>
-            <p>选择最适合您的方案</p>
-        </div>
-        <div class="pricing-grid">
-            {{ range (json_decode .themeConfig.pricing) }}
-            <div class="pricing-card {{ if .recommended }}recommended{{ end }}">
-                {{ if .recommended }}<span class="badge">推荐</span>{{ end }}
-                <h3>{{ .name }}</h3>
-                <div class="price">
-                    <span class="amount">{{ .price }}</span>
-                    <span class="period">{{ .period }}</span>
-                </div>
-                <ul>
-                    {{ range .features }}
-                    <li><i class="fa-solid fa-check"></i>{{ . }}</li>
+    <!-- 主题展示模块 -->
+    {{ if getConfig "themeShowcaseEnabled" true }}
+    <section class="section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>{{ getConfig "themeShowcaseTitle" "精美主题，随心选择" }}</h2>
+                <p>{{ getConfig "themeShowcaseDesc" "" }}</p>
+            </div>
+            {{ if .posts }}
+            <div class="themes-grid">
+                {{ range first 6 .posts }}
+                <div class="card theme-card">
+                    {{ if .Cover }}
+                    <img src="{{ .Cover }}" alt="{{ .Title }}" class="theme-thumb">
+                    {{ else }}
+                    <div class="theme-thumb">
+                        <i class="fa-solid fa-image"></i>
+                    </div>
                     {{ end }}
-                </ul>
-                <a href="{{ .link }}" class="pricing-btn {{ if .recommended }}pricing-btn-primary{{ else }}pricing-btn-outline{{ end }}">{{ .button }}</a>
-            </div>
-            {{ end }}
-        </div>
-    </section>
-    {{ end }}
-
-    <!-- 用户评价 -->
-    {{ if and .themeConfig.moduleTestimonialsEnabled .themeConfig.testimonials }}
-    <section class="testimonials">
-        <div class="section-header">
-            <h2>用户评价</h2>
-            <p>听听他们怎么说</p>
-        </div>
-        <div class="testimonials-grid">
-            {{ range (json_decode .themeConfig.testimonials) }}
-            <div class="testimonial-card">
-                <p class="content">"{{ .content }}"</p>
-                <div class="author">
-                    <div class="author-avatar">{{ .name }}</div>
-                    <div class="author-info">
-                        <span class="name">{{ .name }}</span>
-                        <span class="title">{{ .title }}</span>
+                    <div class="theme-info">
+                        <h3 class="theme-name">{{ .Title }}</h3>
                     </div>
                 </div>
+                {{ end }}
+            </div>
+            {{ else }}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fa-solid fa-palette"></i></div>
+                <p class="empty-hint">暂无主题展示，请先在管理后台发布文章</p>
             </div>
             {{ end }}
         </div>
     </section>
     {{ end }}
 
-    <!-- CTA 区域 -->
-    {{ if and .themeConfig.ctaEnabled .themeConfig.ctaTitle }}
-    <section class="cta">
-        <h2>{{ .themeConfig.ctaTitle }}</h2>
-        <p>{{ .themeConfig.ctaSubtitle }}</p>
-        {{ if .themeConfig.ctaButtonText }}
-        <a href="{{ .themeConfig.ctaButtonLink }}" class="cta-btn">{{ .themeConfig.ctaButtonText }}</a>
-        {{ end }}
+    <!-- 快速开始模块 -->
+    {{ if getConfig "quickstartEnabled" true }}
+    <section class="section section-dark">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 style="color: white;">{{ getConfig "quickstartTitle" "快速开始" }}</h2>
+                <p style="color: var(--text-muted);">{{ getConfig "quickstartDesc" "" }}</p>
+            </div>
+            {{ $steps := getConfig "quickstartSteps" "[]" }}
+            {{ if gt (len (ensureSlice $steps)) 0 }}
+            <div class="steps">
+                {{ range $steps }}
+                <div class="step">
+                    <div class="step-number">{{ .step }}</div>
+                    <h3 class="step-title">{{ .title }}</h3>
+                    <p class="step-desc">{{ .desc }}</p>
+                </div>
+                {{ end }}
+            </div>
+            {{ end }}
+            {{ if getConfig "quickstartButtonText" "" }}
+            <div style="text-align: center;">
+                <a href="{{ getConfig "quickstartButtonLink" "" }}" class="btn btn-accent">{{ getConfig "quickstartButtonText" "立即下载" }}</a>
+            </div>
+            {{ end }}
+        </div>
     </section>
     {{ end }}
+
+    <!-- 最新文章 -->
+    <section class="section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>最新文章</h2>
+                <p>了解 Catter CMS 的最新动态和使用技巧</p>
+            </div>
+            {{ if .posts }}
+            <div class="article-list">
+                {{ range first 5 .posts }}
+                <article class="article-card">
+                    {{ if .Cover }}
+                    <img src="{{ .Cover }}" alt="{{ .Title }}" class="article-cover">
+                    {{ end }}
+                    <h2 class="article-title">
+                        <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+                    </h2>
+                    <p class="article-excerpt">{{ .Excerpt }}</p>
+                    <div class="article-meta">
+                        {{ if .Category }}
+                        <span><i class="fa-solid fa-folder"></i>{{ .Category.Name }}</span>
+                        {{ end }}
+                        <span><i class="fa-solid fa-calendar"></i>{{ dateFormat "2006-01-02" .PublishedAt }}</span>
+                        <span><i class="fa-solid fa-eye"></i>{{ .Views }}</span>
+                    </div>
+                </article>
+                {{ end }}
+            </div>
+            <div style="text-align: center; margin-top: var(--spacing-2xl);">
+                <a href="/article" class="btn btn-outline">查看全部文章</a>
+            </div>
+            {{ else }}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fa-solid fa-file-lines"></i></div>
+                <p class="empty-hint">暂无文章，请先在管理后台发布内容</p>
+            </div>
+            {{ end }}
+        </div>
+    </section>
 
     <!-- 页脚 -->
-    {{ if .themeConfig.footerEnabled }}
-    <footer>
+    {{ if getConfig "footerEnabled" true }}
+    <footer class="footer">
         <div class="footer-container">
-            <div>
-                <h4>{{ .site.title }} CMS</h4>
-                <p>现代化的开源内容管理系统</p>
-            </div>
-            {{ if .themeConfig.footerLinks }}
-            <div>
-                <h4>链接</h4>
-                {{ range (json_decode .themeConfig.footerLinks) }}
-                <a href="{{ .link }}">{{ .text }}</a>
+            {{ if .footerMenu }}
+            <nav class="footer-nav">
+                {{ range .footerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            {{ end }}
+            <div class="footer-bottom">
+                <p>{{ getConfig "footerCopyright" "" }}</p>
+                {{ if getConfig "footerICP" "" }}
+                <p class="footer-icp">{{ getConfig "footerICP" "" }}</p>
                 {{ end }}
             </div>
-            {{ end }}
-            {{ if .themeConfig.footerSocial }}
-            <div>
-                <h4>关注我们</h4>
-                {{ range (json_decode .themeConfig.footerSocial) }}
-                <a href="{{ .link }}">{{ .icon }}</a>
-                {{ end }}
-            </div>
-            {{ end }}
-        </div>
-        <div class="footer-bottom">
-            <p>{{ .themeConfig.footerCopyright }}</p>
-            {{ if .themeConfig.footerICP }}
-            <p class="footer-icp">{{ .themeConfig.footerICP }}</p>
-            {{ end }}
         </div>
     </footer>
+    {{ end }}
+
+    {{ if getConfig "customJs" "" }}
+    <script>{{ getConfig "customJs" "" | safe }}</script>
     {{ end }}
 </body>
 </html>

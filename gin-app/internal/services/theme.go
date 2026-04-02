@@ -553,6 +553,14 @@ func GetTheme(name string) *Theme {
 	return themeService.themes[name]
 }
 
+// GetThemesPath 获取主题服务使用的路径
+func GetThemesPath() string {
+	if themeService == nil {
+		return ""
+	}
+	return themeService.themesPath
+}
+
 // GetAllThemes 获取所有主题
 func GetAllThemes() map[string]*Theme {
 	if themeService == nil {

@@ -3,65 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .site.title }} - {{ .post.Title }}</title>
+    <title>{{ .post.Title }} - {{ .site.title }}</title>
     <meta name="description" content="{{ .post.Excerpt }}">
+    {{ if .post.Cover }}
+    <meta property="og:image" content="{{ .post.Cover }}">
+    {{ end }}
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
-    <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
+    {{ if getConfig "customCss" "" }}
+    <style>{{ getConfig "customCss" "" | safe }}</style>
+    {{ end }}
 </head>
 <body>
-    <header>
+    <!-- 头部导航 -->
+    <header class="header">
         <div class="header-container">
             <a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
-            <nav>
-                <a href="/page/features">功能</a>
-                <a href="/page/pricing">定价</a>
-                <a href="/page/docs">文档</a>
-                <a href="/article">博客</a>
-                <a href="/page/about">关于</a>
+            {{ if .headerMenu }}
+            <nav class="nav">
+                {{ range .headerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
             </nav>
+            {{ end }}
         </div>
     </header>
 
-    <div class="article-header">
-        <div class="article-meta">
-            {{ if .post.PublishedAt }}<span>{{ .post.PublishedAt.Format "2006-01-02" }}</span>{{ end }}
-            {{ if .post.Category }}<span>{{ .post.Category.Name }}</span>{{ end }}
-            <span>{{ .post.Views }} 阅读</span>
+    <!-- 文章内容 -->
+    <main class="article-detail">
+        <article>
+            <h1>{{ .post.Title }}</h1>
+            <div class="article-meta">
+                {{ if .post.Category }}
+                <span><i class="fa-solid fa-folder"></i><a href="/category/{{ .post.Category.Slug }}">{{ .post.Category.Name }}</a></span>
+                {{ end }}
+                {{ if .post.Author }}
+                <span><i class="fa-solid fa-user"></i>{{ .post.Author.Name }}</span>
+                {{ end }}
+                <span><i class="fa-solid fa-calendar"></i>{{ dateFormat "2006-01-02" .post.PublishedAt }}</span>
+                <span><i class="fa-solid fa-eye"></i>{{ .post.Views }} 阅读</span>
+            </div>
+
+            {{ if .post.Cover }}
+            <img src="{{ .post.Cover }}" alt="{{ .post.Title }}" class="article-cover">
+            {{ end }}
+
+            <div class="content">
+                {{ markdownHTML .post.Content }}
+            </div>
+        </article>
+
+        <!-- 标签 -->
+        {{ if .post.Tags }}
+        <div style="margin-top: var(--spacing-2xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+            {{ range .post.Tags }}
+            <a href="/tag/{{ .Slug }}" class="btn btn-outline" style="margin-right: var(--spacing-sm); margin-bottom: var(--spacing-sm); padding: 0.4rem 1rem; font-size: 0.85rem;">
+                <i class="fa-solid fa-tag"></i> {{ .Name }}
+            </a>
+            {{ end }}
         </div>
-        <h1>{{ .post.Title }}</h1>
-    </div>
+        {{ end }}
+    </main>
 
-    <article class="article-content">
-        {{ markdownHTML .post.Content }}
-    </article>
+    <!-- 相关文章 -->
+    {{ if .recentPosts }}
+    <section class="section section-alt">
+        <div class="section-container">
+            <div class="section-header">
+                <h2>相关文章</h2>
+            </div>
+            <div class="grid grid-3">
+                {{ range first 3 .recentPosts }}
+                <div class="card">
+                    {{ if .Cover }}
+                    <img src="{{ .Cover }}" alt="{{ .Title }}" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: var(--spacing-md);">
+                    {{ end }}
+                    <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">
+                        <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+                    </h3>
+                    <p class="card-desc">{{ dateFormat "2006-01-02" .PublishedAt }}</p>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </section>
+    {{ end }}
 
-    <footer>
+    <!-- 页脚 -->
+    {{ if getConfig "footerEnabled" true }}
+    <footer class="footer">
         <div class="footer-container">
-            <div>
-                <h4>{{ .site.title }} CMS</h4>
-                <p>现代化的开源内容管理系统</p>
+            {{ if .footerMenu }}
+            <nav class="footer-nav">
+                {{ range .footerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            {{ end }}
+            <div class="footer-bottom">
+                <p>{{ getConfig "footerCopyright" "" }}</p>
+                {{ if getConfig "footerICP" "" }}
+                <p class="footer-icp">{{ getConfig "footerICP" "" }}</p>
+                {{ end }}
             </div>
-            <div>
-                <h4>产品</h4>
-                <a href="/page/features">功能介绍</a>
-                <a href="/page/pricing">定价方案</a>
-                <a href="/article">博客更新</a>
-            </div>
-            <div>
-                <h4>资源</h4>
-                <a href="/page/docs">开发文档</a>
-                <a href="/article">技术博客</a>
-            </div>
-            <div>
-                <h4>关于</h4>
-                <a href="/page/about">关于我们</a>
-                <a href="/page/contact">联系我们</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; {{ .site.year }} {{ .site.title }}. All rights reserved.</p>
         </div>
     </footer>
+    {{ end }}
+
+    {{ if getConfig "customJs" "" }}
+    <script>{{ getConfig "customJs" "" | safe }}</script>
+    {{ end }}
 </body>
 </html>

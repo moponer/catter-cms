@@ -3,90 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .site.title }} - {{ .pageTitle }}</title>
+    <title>{{ if .pageTitle }}{{ .pageTitle }} - {{ end }}{{ .site.title }}</title>
     <meta name="description" content="{{ .site.description }}">
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
-    <link rel="stylesheet" href="{{ asset_path "assets/css/list.css" }}">
+    {{ if getConfig "customCss" "" }}
+    <style>{{ getConfig "customCss" "" | safe }}</style>
+    {{ end }}
 </head>
 <body>
-    <header>
+    <!-- 头部导航 -->
+    <header class="header">
         <div class="header-container">
             <a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
-            <nav>
-                <a href="/page/features">功能</a>
-                <a href="/page/pricing">定价</a>
-                <a href="/page/docs">文档</a>
-                <a href="/article" class="active">博客</a>
-                <a href="/page/about">关于</a>
+            {{ if .headerMenu }}
+            <nav class="nav">
+                {{ range .headerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
             </nav>
+            {{ end }}
         </div>
     </header>
 
-    <div class="page-header">
-        <h1>{{ .pageTitle }}</h1>
-    </div>
-
-    <div class="posts-container">
-        {{ range .posts }}
-        <article class="post-card">
-            <div class="post-meta">
-                {{ if .PublishedAt }}<span>{{ .PublishedAt.Format "2006-01-02" }}</span>{{ end }}
-                {{ if .Category }}<span>{{ .Category.Name }}</span>{{ end }}
-                <span>{{ .Views }} 阅读</span>
+    <!-- 文章列表 -->
+    <main class="section">
+        <div class="section-container">
+            <div class="section-header">
+                <h1>{{ if .pageTitle }}{{ .pageTitle }}{{ else }}文章列表{{ end }}</h1>
             </div>
-            <h2><a href="/article/{{ .Slug }}">{{ .Title }}</a></h2>
-            {{ if .Excerpt }}<p>{{ .Excerpt }}</p>{{ end }}
-            <a href="/article/{{ .Slug }}" class="read-more">阅读全文 →</a>
-        </article>
-        {{ else }}
-        <div class="empty-state">
-            <p>暂无文章</p>
+
+            {{ if .posts }}
+            <div class="article-list">
+                {{ range .posts }}
+                <article class="article-card">
+                    {{ if .Cover }}
+                    <img src="{{ .Cover }}" alt="{{ .Title }}" class="article-cover">
+                    {{ end }}
+                    <div>
+                        <h2 class="article-title">
+                            <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+                        </h2>
+                        {{ if .Excerpt }}
+                        <p class="article-excerpt">{{ .Excerpt }}</p>
+                        {{ end }}
+                        <div class="article-meta">
+                            {{ if .Category }}
+                            <span><i class="fa-solid fa-folder"></i><a href="/category/{{ .Category.Slug }}">{{ .Category.Name }}</a></span>
+                            {{ end }}
+                            <span><i class="fa-solid fa-calendar"></i>{{ dateFormat "2006-01-02" .PublishedAt }}</span>
+                            <span><i class="fa-solid fa-eye"></i>{{ .Views }}</span>
+                        </div>
+                    </div>
+                </article>
+                {{ end }}
+            </div>
+
+            <!-- 分页 -->
+            {{ if .pagination }}
+            {{ if gt .pagination.totalPages 1 }}
+            <div class="pagination">
+                {{ if gt .pagination.page 1 }}
+                <a href="/article?page={{ sub .pagination.page 1 }}">&laquo; 上一页</a>
+                {{ end }}
+                {{ range $i := iterate .pagination.totalPages }}
+                {{ $pageNum := add $i 1 }}
+                {{ if eq $pageNum $.pagination.page }}
+                <span class="active">{{ $pageNum }}</span>
+                {{ else }}
+                <a href="/article?page={{ $pageNum }}">{{ $pageNum }}</a>
+                {{ end }}
+                {{ end }}
+                {{ if lt .pagination.page .pagination.totalPages }}
+                <a href="/article?page={{ add .pagination.page 1 }}">下一页 &raquo;</a>
+                {{ end }}
+            </div>
+            {{ end }}
+            {{ end }}
+
+            {{ else }}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fa-solid fa-file-lines"></i></div>
+                <p class="empty-hint">暂无文章</p>
+            </div>
+            {{ end }}
         </div>
-        {{ end }}
-    </div>
+    </main>
 
-    {{ if gt .pagination.totalPages 1 }}
-    <div class="pagination">
-        {{ if gt .pagination.page 1 }}
-        <a href="/article?page={{ sub .pagination.page 1 }}">上一页</a>
-        {{ end }}
-        {{ range $i := iterate .pagination.totalPages }}
-        {{ $pageNum := add $i 1 }}
-        <a href="/article?page={{ $pageNum }}" class="{{ if eq $pageNum $.pagination.page }}active{{ end }}">{{ $pageNum }}</a>
-        {{ end }}
-        {{ if lt .pagination.page .pagination.totalPages }}
-        <a href="/article?page={{ add .pagination.page 1 }}">下一页</a>
-        {{ end }}
-    </div>
-    {{ end }}
-
-    <footer>
+    <!-- 页脚 -->
+    {{ if getConfig "footerEnabled" true }}
+    <footer class="footer">
         <div class="footer-container">
-            <div>
-                <h4>{{ .site.title }} CMS</h4>
-                <p>现代化的开源内容管理系统</p>
+            {{ if .footerMenu }}
+            <nav class="footer-nav">
+                {{ range .footerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            {{ end }}
+            <div class="footer-bottom">
+                <p>{{ getConfig "footerCopyright" "" }}</p>
+                {{ if getConfig "footerICP" "" }}
+                <p class="footer-icp">{{ getConfig "footerICP" "" }}</p>
+                {{ end }}
             </div>
-            <div>
-                <h4>产品</h4>
-                <a href="/page/features">功能介绍</a>
-                <a href="/page/pricing">定价方案</a>
-                <a href="/article">博客更新</a>
-            </div>
-            <div>
-                <h4>资源</h4>
-                <a href="/page/docs">开发文档</a>
-                <a href="/article">技术博客</a>
-            </div>
-            <div>
-                <h4>关于</h4>
-                <a href="/page/about">关于我们</a>
-                <a href="/page/contact">联系我们</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; {{ .site.year }} {{ .site.title }}. All rights reserved.</p>
         </div>
     </footer>
+    {{ end }}
+
+    {{ if getConfig "customJs" "" }}
+    <script>{{ getConfig "customJs" "" | safe }}</script>
+    {{ end }}
 </body>
 </html>

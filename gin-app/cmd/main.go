@@ -303,6 +303,7 @@ func main() {
 	// AI Skill 和 Schema（公开，无需认证）
 	r.GET("/api/ai/skill", api.GetAISkill)
 	r.GET("/api/ai/schema", api.GetAISchema)
+	r.GET("/api/ai/themes-skill", api.GetThemeDevSkill)
 
 	// AI v1 API（使用 AI Key 认证）
 	aiGroup := r.Group("/api/v1")

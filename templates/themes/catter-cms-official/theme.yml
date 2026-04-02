@@ -1,74 +1,63 @@
 name: Catter CMS Official
 slug: catter-cms-official
-version: 1.0.0
-author: Catter
-description: 官方CMS主题，适合企业官网和内容展示网站
+version: 2.0.0
+author: Catter CMS Team
+description: Catter CMS 开源官网主题，展示四大自由与核心特性
 
 config:
-  # ===== 颜色配置 =====
-  primaryColor: "#0f3460"
-  primaryDark: "#0f3460"
-  primaryDarker: "#16213e"
-  accent: "#e94560"
-  bgPrimary: "#f8f9fa"
-  bgSecondary: "#ffffff"
-  textPrimary: "#1a1a2e"
-  textSecondary: "#6b7280"
-  textMuted: "#9ca3af"
-  borderColor: "#e5e7eb"
-  success: "#10b981"
-
-  # ===== 字体配置 =====
-  baseFont: "system-ui, -apple-system, sans-serif"
-  headingFont: "system-ui, -apple-system, sans-serif"
-
-  # ===== 导航设置 =====
-  navStyle: "solid"
+  # ===== 颜色配置（绿色系，无蓝色）=====
+  primaryColor: "#10B981"
+  primaryDark: "#059669"
+  primaryDarker: "#047857"
+  accent: "#F59E0B"
+  bgPrimary: "#F9FAFB"
+  bgSecondary: "#FFFFFF"
+  bgDark: "#0F172A"
+  textPrimary: "#1E293B"
+  textSecondary: "#64748B"
+  textMuted: "#94A3B8"
+  borderColor: "#E2E8F0"
+  success: "#10B981"
 
   # ===== Hero 区域 =====
   heroEnabled: true
-  heroTitle: Catter CMS
-  heroSubtitle: 现代化、模块化、易扩展的内容管理系统
-  heroButtonText: 开始使用
-  heroButtonLink: "/download"
-  heroImage: ""
+  heroTitle: "Catter CMS"
+  heroSubtitle: "开源、模块化、AI 驱动的内容管理系统"
+  heroDescription: "四大自由：内容自由、主题自由、AI 集成、管理自由。让每个人都能轻松搭建专业网站。"
+  heroButtonText: "快速开始"
+  heroButtonLink: "/page/getting-started"
+  heroSecondaryText: "查看文档"
+  heroSecondaryLink: "/page/docs"
 
-  # ===== 首页模块开关 =====
-  moduleStatsEnabled: true
-  moduleFeaturesEnabled: true
-  moduleProductsEnabled: true
-  modulePricingEnabled: true
-  moduleTestimonialsEnabled: true
-  moduleCtaEnabled: true
+  # ===== 四大自由模块 =====
+  freedomsEnabled: true
+  freedoms: '[{"icon":"fa-solid fa-pen-nib","title":"内容自由","desc":"富文本编辑器、Markdown 支持、定时发布、分类标签，让创作随心所欲"},{"icon":"fa-solid fa-palette","title":"主题自由","desc":"可视化主题市场，一键切换风格，支持自定义开发，打造独一无二的网站"},{"icon":"fa-solid fa-robot","title":"AI 集成","desc":"内置 AI 写作助手，智能生成内容，OpenAPI 接口开放，无限扩展可能"},{"icon":"fa-solid fa-sliders","title":"管理自由","desc":" intuitive 管理后台，用户权限、媒体库、菜单管理、定时任务，一切尽在掌握"}]'
 
-  # ===== Features 特性（数组）=====
-  features: '[{"icon":"lightning","title":"高性能","desc":"基于Go语言开发，支持高并发访问"},{"icon":"puzzle","title":"模块化","desc":"丰富的模块市场，一键安装扩展功能"},{"icon":"paintbrush","title":"主题市场","desc":"多种精美主题模板，轻松打造个性化网站"},{"icon":"shield","title":"安全可靠","desc":"多重安全防护，数据自动备份"}]'
+  # ===== 功能特性模块 =====
+  featuresEnabled: true
+  features: '[{"icon":"fa-solid fa-bolt","title":"高性能","desc":"基于 Go 语言开发，支持高并发访问，响应速度毫秒级"},{"icon":"fa-solid fa-puzzle-piece","title":"模块化","desc":"丰富的模块市场，一键安装扩展功能，灵活组合满足各种需求"},{"icon":"fa-solid fa-shield-halved","title":"安全可靠","desc":"XSS 防护、CSRF 令牌、安全响应头、参数化查询，多重安全保障"},{"icon":"fa-solid fa-cloud-arrow-up","title":"单文件部署","desc":"前后端编译为单一可执行文件，上传即可运行，无需复杂环境配置"},{"icon":"fa-solid fa-code","title":"开放 API","desc":"RESTful API 设计，支持第三方集成，AI Skill 文档自动生成"},{"icon":"fa-solid fa-mobile-screen","title":"响应式设计","desc":"移动端优先，自适应各种屏幕尺寸，用户体验始终如一"}]'
 
-  # ===== Stats 统计数据（数组）=====
-  stats: '[{"value":"10K+","label":"用户"},{"value":"50+","label":"主题"},{"value":"100+","label":"模块"},{"value":"99%","label":"满意度"}]'
+  # ===== 技术栈展示 =====
+  techStackEnabled: true
+  techStack: '[{"name":"Go / Gin","desc":"高性能后端框架","icon":"fa-solid fa-server"},{"name":"Vue 3","desc":"现代化前端框架","icon":"fa-solid fa-code"},{"name":"SQLite","desc":"轻量级数据库","icon":"fa-solid fa-database"},{"name":"Element Plus","desc":"企业级 UI 组件库","icon":"fa-solid fa-layer-group"}]'
 
-  # ===== Products 产品展示（数组）=====
-  products: '[{"name":"Catter Blog","desc":"个人博客主题","link":"/themes/blog","image":""},{"name":"Enterprise","desc":"企业官网主题","link":"/themes/enterprise","image":""},{"name":"Store","desc":"商城主题","link":"/themes/store","image":""}]'
+  # ===== 主题展示模块 =====
+  themeShowcaseEnabled: true
+  themeShowcaseTitle: "精美主题，随心选择"
+  themeShowcaseDesc: "内置多款精心设计的主题，覆盖博客、企业官网、物流等多种场景"
 
-  # ===== Pricing 价格方案（数组）=====
-  pricing: '[{"name":"免费版","price":"0","period":"永久","features":["3个页面","5篇文章","基础主题","邮件支持"],"button":"免费使用","link":"/pricing/free"},{"name":"专业版","price":"299","period":"/年","features":["无限页面","无限文章","全部主题","优先支持","数据备份"],"button":"立即购买","link":"/pricing/pro","recommended":true},{"name":"企业版","price":"999","period":"/年","features":["全部功能","私有部署","专属客服","定制开发","SLA保障"],"button":"联系我们","link":"/pricing/enterprise"}]'
-
-  # ===== Testimonials 用户评价（数组）=====
-  testimonials: '[{"name":"张三","title":"技术总监","content":"使用Catter CMS后，我们的内容发布效率提升了3倍","avatar":""},{"name":"李四","title":"产品经理","content":"模块化设计非常灵活，满足了我们各种定制化需求","avatar":""},{"name":"王五","title":"个人博主","content":"主题美观大方，配置简单，SEO效果很好","avatar":""}]'
-
-  # ===== CTA 区域 =====
-  ctaEnabled: true
-  ctaTitle: 准备好开始了吗
-  ctaSubtitle: 立即体验Catter CMS，开启您的内容管理新体验
-  ctaButtonText: 立即开始
-  ctaButtonLink: "/download"
+  # ===== 快速开始模块 =====
+  quickstartEnabled: true
+  quickstartTitle: "快速开始"
+  quickstartDesc: "三步搭建您的专属网站"
+  quickstartSteps: '[{"step":1,"title":"下载安装","desc":"下载 Catter CMS，解压后运行可执行文件，开箱即用"},{"step":2,"title":"选择主题","desc":"进入管理后台，选择喜欢的主题并配置"},{"step":3,"title":"发布内容","desc":"创建文章和页面，使用 AI 辅助写作，一键发布"}]'
+  quickstartButtonText: "立即下载"
+  quickstartButtonLink: "/page/download"
 
   # ===== Footer =====
   footerEnabled: true
-  footerCopyright: "2024 Catter CMS. All rights reserved."
+  footerCopyright: "2026 Catter CMS. All rights reserved."
   footerICP: ""
-  footerLinks: '[{"text":"产品","link":"/product"},{"text":"文档","link":"/docs"},{"text":"主题","link":"/themes"},{"text":"模块","link":"/modules"},{"text":"关于","link":"/about"}]'
-  footerSocial: '[{"icon":"github","link":"#"},{"icon":"twitter","link":"#"}]'
 
   # ===== 自定义代码 =====
   customCss: ""
@@ -80,130 +69,105 @@ configDefinition:
       - name: primaryColor
         type: color
         label: 主色调
-        default: "#0f3460"
+        default: "#10B981"
       - name: primaryDark
         type: color
         label: 深主色调
-        default: "#0f3460"
+        default: "#059669"
       - name: primaryDarker
         type: color
         label: 更深主色调
-        default: "#16213e"
+        default: "#047857"
       - name: accent
         type: color
         label: 强调色
-        default: "#e94560"
+        default: "#F59E0B"
       - name: bgPrimary
         type: color
         label: 主背景色
-        default: "#f8f9fa"
+        default: "#F9FAFB"
       - name: bgSecondary
         type: color
         label: 次背景色
-        default: "#ffffff"
+        default: "#FFFFFF"
+      - name: bgDark
+        type: color
+        label: 深色背景
+        default: "#0F172A"
       - name: textPrimary
         type: color
         label: 主文字色
-        default: "#1a1a2e"
+        default: "#1E293B"
       - name: textSecondary
         type: color
         label: 次文字色
-        default: "#6b7280"
+        default: "#64748B"
       - name: textMuted
         type: color
         label: 弱化文字色
-        default: "#9ca3af"
+        default: "#94A3B8"
       - name: borderColor
         type: color
         label: 边框色
-        default: "#e5e7eb"
+        default: "#E2E8F0"
 
-  - section: 字体设置
-    fields:
-      - name: baseFont
-        type: text
-        label: 基础字体
-        default: "system-ui, -apple-system, sans-serif"
-      - name: headingFont
-        type: text
-        label: 标题字体
-        default: "system-ui, -apple-system, sans-serif"
-
-  - section: 导航设置
-    fields:
-      - name: navStyle
-        type: select
-        label: 导航栏样式
-        options:
-          - value: solid
-            label: 实色背景
-          - value: transparent
-            label: 透明背景
-        default: solid
-
-  - section: Hero模块
+  - section: Hero 模块
     fields:
       - name: heroEnabled
         type: switch
-        label: 显示Hero区域
+        label: 显示 Hero 区域
         default: true
       - name: heroTitle
         type: text
         label: 主标题
         show_if: "heroEnabled == true"
-        default: Catter CMS
+        default: "Catter CMS"
       - name: heroSubtitle
         type: text
         label: 副标题
         show_if: "heroEnabled == true"
-        default: 现代化、模块化、易扩展的内容管理系统
+        default: "开源、模块化、AI 驱动的内容管理系统"
+      - name: heroDescription
+        type: textarea
+        label: 描述
+        show_if: "heroEnabled == true"
+        default: "四大自由：内容自由、主题自由、AI 集成、管理自由。让每个人都能轻松搭建专业网站。"
       - name: heroButtonText
         type: text
-        label: 按钮文字
+        label: 主按钮文字
         show_if: "heroEnabled == true"
-        default: 开始使用
+        default: "快速开始"
       - name: heroButtonLink
         type: text
-        label: 按钮链接
+        label: 主按钮链接
         show_if: "heroEnabled == true"
-        default: /download
+        default: "/page/getting-started"
+      - name: heroSecondaryText
+        type: text
+        label: 次要按钮文字
+        show_if: "heroEnabled == true"
+        default: "查看文档"
+      - name: heroSecondaryLink
+        type: text
+        label: 次要按钮链接
+        show_if: "heroEnabled == true"
+        default: "/page/docs"
 
-  - section: 统计数据
+  - section: 四大自由模块
     fields:
-      - name: moduleStatsEnabled
+      - name: freedomsEnabled
         type: switch
-        label: 显示统计数据区域
+        label: 显示四大自由区域
         default: true
-      - name: stats
+      - name: freedoms
         type: repeater
-        label: 统计数据
-        itemTitle: label
-        show_if: "moduleStatsEnabled == true"
-        fields:
-          - name: value
-            type: text
-            label: 数值
-            default: ""
-          - name: label
-            type: text
-            label: 标签
-            default: ""
-
-  - section: 特性介绍
-    fields:
-      - name: moduleFeaturesEnabled
-        type: switch
-        label: 显示特性介绍区域
-        default: true
-      - name: features
-        type: repeater
-        label: 特性列表
+        label: 自由列表
         itemTitle: title
-        show_if: "moduleFeaturesEnabled == true"
+        show_if: "freedomsEnabled == true"
         fields:
           - name: icon
             type: text
-            label: 图标
+            label: 图标 (FontAwesome class)
             default: ""
           - name: title
             type: text
@@ -214,131 +178,117 @@ configDefinition:
             label: 描述
             default: ""
 
-  - section: 产品展示
+  - section: 功能特性模块
     fields:
-      - name: moduleProductsEnabled
+      - name: featuresEnabled
         type: switch
-        label: 显示产品展示区域
+        label: 显示功能特性区域
         default: true
-      - name: products
+      - name: features
         type: repeater
-        label: 产品列表
-        itemTitle: name
-        show_if: "moduleProductsEnabled == true"
+        label: 特性列表
+        itemTitle: title
+        show_if: "featuresEnabled == true"
         fields:
-          - name: name
+          - name: icon
             type: text
-            label: 产品名称
-            default: ""
-          - name: desc
-            type: textarea
-            label: 产品描述
-            default: ""
-          - name: link
-            type: text
-            label: 链接
-            default: ""
-          - name: image
-            type: image
-            label: 图片
-            default: ""
-
-  - section: 价格方案
-    fields:
-      - name: modulePricingEnabled
-        type: switch
-        label: 显示价格方案区域
-        default: true
-      - name: pricing
-        type: repeater
-        label: 价格方案
-        itemTitle: name
-        show_if: "modulePricingEnabled == true"
-        fields:
-          - name: name
-            type: text
-            label: 方案名称
-            default: ""
-          - name: price
-            type: text
-            label: 价格
-            default: ""
-          - name: period
-            type: text
-            label: 周期
-            default: ""
-          - name: features
-            type: textarea
-            label: 特性列表（每行一个）
-            default: ""
-          - name: button
-            type: text
-            label: 按钮文字
-            default: ""
-          - name: link
-            type: text
-            label: 链接
-            default: ""
-          - name: recommended
-            type: switch
-            label: 推荐方案
-            default: false
-
-  - section: 用户评价
-    fields:
-      - name: moduleTestimonialsEnabled
-        type: switch
-        label: 显示用户评价区域
-        default: true
-      - name: testimonials
-        type: repeater
-        label: 用户评价
-        itemTitle: name
-        show_if: "moduleTestimonialsEnabled == true"
-        fields:
-          - name: name
-            type: text
-            label: 姓名
+            label: 图标 (FontAwesome class)
             default: ""
           - name: title
             type: text
-            label: 职位
+            label: 标题
             default: ""
-          - name: content
+          - name: desc
             type: textarea
-            label: 评价内容
-            default: ""
-          - name: avatar
-            type: image
-            label: 头像
+            label: 描述
             default: ""
 
-  - section: CTA区域
+  - section: 技术栈展示
     fields:
-      - name: ctaEnabled
+      - name: techStackEnabled
         type: switch
-        label: 显示CTA区域
+        label: 显示技术栈区域
         default: true
-      - name: ctaTitle
+      - name: techStack
+        type: repeater
+        label: 技术列表
+        itemTitle: name
+        show_if: "techStackEnabled == true"
+        fields:
+          - name: name
+            type: text
+            label: 技术名称
+            default: ""
+          - name: desc
+            type: text
+            label: 描述
+            default: ""
+          - name: icon
+            type: text
+            label: 图标 (FontAwesome class)
+            default: ""
+
+  - section: 主题展示模块
+    fields:
+      - name: themeShowcaseEnabled
+        type: switch
+        label: 显示主题展示区域
+        default: true
+      - name: themeShowcaseTitle
         type: text
-        label: CTA标题
-        show_if: "ctaEnabled == true"
-        default: 准备好开始了吗
-      - name: ctaSubtitle
+        label: 标题
+        show_if: "themeShowcaseEnabled == true"
+        default: "精美主题，随心选择"
+      - name: themeShowcaseDesc
         type: text
-        label: CTA副标题
-        show_if: "ctaEnabled == true"
-        default: 立即体验Catter CMS，开启您的内容管理新体验
-      - name: ctaButtonText
+        label: 描述
+        show_if: "themeShowcaseEnabled == true"
+        default: "内置多款精心设计的主题，覆盖博客、企业官网、物流等多种场景"
+
+  - section: 快速开始模块
+    fields:
+      - name: quickstartEnabled
+        type: switch
+        label: 显示快速开始区域
+        default: true
+      - name: quickstartTitle
+        type: text
+        label: 标题
+        show_if: "quickstartEnabled == true"
+        default: "快速开始"
+      - name: quickstartDesc
+        type: text
+        label: 描述
+        show_if: "quickstartEnabled == true"
+        default: "三步搭建您的专属网站"
+      - name: quickstartSteps
+        type: repeater
+        label: 步骤列表
+        itemTitle: title
+        show_if: "quickstartEnabled == true"
+        fields:
+          - name: step
+            type: number
+            label: 步骤序号
+            default: 1
+          - name: title
+            type: text
+            label: 标题
+            default: ""
+          - name: desc
+            type: textarea
+            label: 描述
+            default: ""
+      - name: quickstartButtonText
         type: text
         label: 按钮文字
-        show_if: "ctaEnabled == true"
-        default: 立即开始
-      - name: ctaButtonLink
+        show_if: "quickstartEnabled == true"
+        default: "立即下载"
+      - name: quickstartButtonLink
         type: text
         label: 按钮链接
-        show_if: "ctaEnabled == true"
-        default: /download
+        show_if: "quickstartEnabled == true"
+        default: "/page/download"
 
   - section: 页脚
     fields:
@@ -350,53 +300,14 @@ configDefinition:
         type: text
         label: 版权信息
         show_if: "footerEnabled == true"
-        default: "2024 Catter CMS. All rights reserved."
+        default: "2026 Catter CMS. All rights reserved."
       - name: footerICP
         type: text
-        label: ICP备案号
+        label: ICP 备案号
         show_if: "footerEnabled == true"
         default: ""
-      - name: footerLinks
-        type: repeater
-        label: 链接列表
-        itemTitle: text
-        show_if: "footerEnabled == true"
-        fields:
-          - name: text
-            type: text
-            label: 链接文字
-            default: ""
-          - name: link
-            type: text
-            label: 链接地址
-            default: ""
-      - name: footerSocial
-        type: repeater
-        label: 社交媒体
-        itemTitle: icon
-        show_if: "footerEnabled == true"
-        fields:
-          - name: icon
-            type: select
-            label: 图标
-            default: ""
-            options:
-              - label: GitHub
-                value: github
-              - label: Twitter
-                value: twitter
-              - label: 微信
-                value: wechat
-              - label: 微博
-                value: weibo
-              - label: 邮箱
-                value: email
-          - name: link
-            type: text
-            label: 链接地址
-            default: ""
 
-  - section: SEO设置
+  - section: SEO 设置
     fields:
       - name: metaTitle
         type: text
@@ -419,9 +330,9 @@ configDefinition:
     fields:
       - name: customCss
         type: textarea
-        label: 自定义CSS
+        label: 自定义 CSS
         default: ""
       - name: customJs
         type: textarea
-        label: 自定义JavaScript
+        label: 自定义 JavaScript
         default: ""

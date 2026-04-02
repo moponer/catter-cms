@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"catter-cms-gin/config"
 	"catter-cms-gin/internal/services"
 )
 
@@ -260,11 +259,11 @@ func DeleteTheme(c *gin.Context) {
 		return
 	}
 
-	// 获取主题目录路径
-	cfg := config.Get()
-	themesPath := cfg.Server.ThemePath
+	// 使用主题服务的路径，确保删除和加载使用同一路径
+	themesPath := services.GetThemesPath()
 	if themesPath == "" {
-		themesPath = "../templates/themes"
+		InternalError(c, "主题服务未初始化")
+		return
 	}
 	themeDir := filepath.Join(themesPath, slug)
 
@@ -294,11 +293,11 @@ func DeleteTheme(c *gin.Context) {
 
 // UploadTheme 上传主题
 func UploadTheme(c *gin.Context) {
-	// 获取上传配置
-	cfg := config.Get()
-	themesPath := cfg.Server.ThemePath
+	// 使用主题服务的路径，确保上传和加载使用同一路径
+	themesPath := services.GetThemesPath()
 	if themesPath == "" {
-		themesPath = "../templates/themes"
+		InternalError(c, "主题服务未初始化")
+		return
 	}
 
 	// 确保主题目录存在
