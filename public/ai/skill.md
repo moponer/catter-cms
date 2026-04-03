@@ -218,8 +218,135 @@ console.log(greeting);
 
 | 方法 | 端点 | 说明 | 权限 |
 |------|------|------|------|
-| GET | /api/v1/media | 媒体列表 | read |
-| DELETE | /api/v1/media/:id | 删除媒体 | admin |
+| GET | /api/v1/media | 媒体列表（支持 page, page_size, file_type, search） | read |
+| GET | /api/v1/media/:id | 媒体详情 | read |
+| POST | /api/v1/media/upload | 上传文件（multipart/form-data，字段名 file） | write |
+| POST | /api/v1/media/upload-cover | 上传封面图（自动压缩到 1200px 宽，85% 质量） | write |
+| DELETE | /api/v1/media/:id | 删除媒体（同时删除物理文件和数据库记录） | admin |
+
+**上传响应格式：**
+```json
+{
+  "code": 0,
+  "message": "文件上传成功",
+  "data": {
+    "id": 1,
+    "filename": "原始文件名.jpg",
+    "path": "服务器文件路径",
+    "url": "/uploads/1234567890_123456.jpg",
+    "file_size": 102400,
+    "uploaded_by": 1,
+    "created_at": "2026-04-02T15:00:00Z"
+  }
+}
+```
+
+**封面图上传额外返回：**
+```json
+{
+  "data": {
+    "id": 1,
+    "url": "/uploads/cover_xxx.jpg",
+    "width": 1200,
+    "height": 675,
+    "original_size": 500000,
+    "compressed_size": 120000
+  }
+}
+```
+
+### 图片上传与使用流程
+
+当用户提供图片（本地文件、截图等）需要在文章中使用：
+
+**Step 1: 上传图片获取 URL**
+
+使用 PowerShell Socket 上传图片到 CMS 媒体库（Windows 推荐）：
+
+```powershell
+$cmsUrl = [Environment]::GetEnvironmentVariable("CATTER_CMS_URL", "User")
+$apiKey = [Environment]::GetEnvironmentVariable("CATTER_CMS_KEY", "User")
+$filePath = "C:\path\to\image.jpg"
+
+# 读取文件
+$fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+$fileName = [System.IO.Path]::GetFileName($filePath)
+
+# 构造 multipart/form-data 请求体
+$boundary = [System.Guid]::NewGuid().ToString()
+$LF = "`r`n"
+$bodyLines = @(
+    "--$boundary",
+    "Content-Disposition: form-data; name=`"file`"; filename=`"$fileName`"",
+    "Content-Type: application/octet-stream$LF",
+    ([System.Text.Encoding]::GetEncoding("iso-8859-1").GetString($fileBytes)),
+    "--$boundary--$LF"
+) -join $LF
+
+$bodyBytes = [System.Text.Encoding]::GetEncoding("iso-8859-1").GetBytes($bodyLines)
+
+# 解析 URL
+$uri = [System.Uri]$cmsUrl
+$hostName = $uri.Host
+$port = if ($uri.Port -gt 0) { $uri.Port } else { 80 }
+
+# Socket 连接
+$tcp = New-Object System.Net.Sockets.TcpClient
+$tcp.Connect($hostName, $port)
+$stream = $tcp.GetStream()
+
+$request = "POST /api/v1/media/upload HTTP/1.1$LF" +
+    "Host: $hostName`:$port$LF" +
+    "Authorization: Bearer $apiKey$LF" +
+    "Content-Type: multipart/form-data; boundary=$boundary$LF" +
+    "Content-Length: $($bodyBytes.Length)$LF" +
+    "Connection: close$LF$LF"
+
+$requestBytes = [System.Text.Encoding]::ASCII.GetBytes($request)
+$stream.Write($requestBytes, 0, $requestBytes.Length)
+$stream.Write($bodyBytes, 0, $bodyBytes.Length)
+
+$reader = New-Object System.IO.StreamReader($stream)
+$response = $reader.ReadToEnd()
+$tcp.Close()
+
+# 解析响应（跳过 HTTP 头，提取 JSON body）
+$jsonStart = $response.IndexOf("{")
+$jsonBody = $response.Substring($jsonStart)
+$result = $jsonBody | ConvertFrom-Json
+
+# 获取图片 URL
+$imageUrl = "$cmsUrl$($result.data.url)"
+Write-Host "图片 URL: $imageUrl"
+```
+
+**Step 2: 在文章中使用图片 URL**
+
+将获取到的 URL 插入到 Markdown 内容中：
+
+```markdown
+![图片描述](https://your-cms.com/uploads/1234567890_123456.jpg)
+```
+
+**Step 3: 创建/更新文章时引用图片**
+
+```json
+{
+  "title": "文章标题",
+  "content": "正文内容...![配图](https://your-cms.com/uploads/xxx.jpg)...更多内容",
+  "content_type": "markdown",
+  "cover": "https://your-cms.com/uploads/cover_xxx.jpg",
+  "status": "draft"
+}
+```
+
+**注意事项：**
+- 图片必须先上传到 CMS 媒体库，不要使用外部图床
+- 上传后建议通过 `GET /api/v1/media` 确认上传成功
+- 封面图使用 `upload-cover` 接口会自动压缩优化
+- 普通图片使用 `upload` 接口保持原图
+- 每个 `![]()` 图片语法不要超过 200 字符
+- 不要使用相对路径，必须使用完整 URL
 
 ### 评论
 

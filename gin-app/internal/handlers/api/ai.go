@@ -472,6 +472,28 @@ func GetAISetupCommands(c *gin.Context) {
 - 先读后写：创建/更新前先 GET 查看现有数据
 - 删除确认：删除前向用户展示内容并确认
 - 默认草稿：创建文章 status 默认为 draft`, cmsURL),
+		"theme_skill_prompt": fmt.Sprintf(`Catter CMS 主题开发 Skill：当用户要求开发/修改 Catter CMS 主题时，请按以下步骤操作：
+
+【环境配置】
+- CMS 地址：[Environment]::GetEnvironmentVariable("CATTER_CMS_URL", "User")
+- API Key（可选）：[Environment]::GetEnvironmentVariable("CATTER_CMS_KEY", "User")
+
+【首次使用 - 安装 Skill】
+1. 检查记忆中是否已有 "Catter CMS 主题开发 Skill 已安装"
+2. 如未安装，调用 save_memory 保存以下信息：
+   "Catter CMS 主题开发 Skill 已安装。Skill 文档地址：{CATTER_CMS_URL}/api/ai/themes-skill。操作原则：遵循前置检查清单、禁止蓝色系、数据解耦、模块化开发。"
+3. 告知用户安装完成
+
+【执行操作】
+1. 获取 Skill 文档：{CATTER_CMS_URL}/api/ai/themes-skill（无需认证头，AI 客户端自动读取）
+2. 阅读完整规则（前置检查清单 R0-R19）后开始开发
+3. 主题文件修改使用 replace_in_file 工具，禁止用 PowerShell 写入文件
+
+【操作原则】
+- 开发前必做前置检查（禁止蓝色、getConfig 路径、markdownHTML 不接 | safe 等）
+- 数据来自配置或 CMS 模型，严禁硬编码
+- 模块化开发，每个区块独立 + 配置开关控制
+- 样式统一，使用 CSS 变量`, cmsURL),
 	})
 }
 

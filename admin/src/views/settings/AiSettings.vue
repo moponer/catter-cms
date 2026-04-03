@@ -105,7 +105,7 @@
           <template #header>
             <div class="card-header">
               <span class="card-title">主题开发 AI Skill</span>
-              <el-button type="primary" plain size="small" @click="loadThemeSkillPrompt" :loading="loadingThemeSkill">
+              <el-button type="primary" plain size="small" @click="loadSetupCommands" :loading="loadingSetup">
                 刷新
               </el-button>
             </div>
@@ -351,7 +351,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { get, post, del } from '@/utils/request'
 import { Connection, Warning, Document, Setting, Brush, DataAnalysis, Lightning, CircleCheck } from '@element-plus/icons-vue'
@@ -374,6 +374,7 @@ const setupData = reactive({
   expires_at: null,
   commands: { windows: '', mac: '', linux: '' },
   skill_prompt: '',
+  theme_skill_prompt: '',
 })
 
 // 密钥列表
@@ -401,8 +402,7 @@ const logPageSize = 20
 const logTotal = ref(0)
 
 // 主题开发 Skill
-const loadingThemeSkill = ref(false)
-const themeSkillPrompt = ref('')
+const themeSkillPrompt = computed(() => setupData.theme_skill_prompt || '')
 
 // 加载设置命令
 const loadSetupCommands = async () => {
@@ -415,20 +415,6 @@ const loadSetupCommands = async () => {
     // ignore
   } finally {
     loadingSetup.value = false
-  }
-}
-
-// 加载主题开发 Skill 提示词
-const loadThemeSkillPrompt = async () => {
-  loadingThemeSkill.value = true
-  try {
-    const res = await get('/api/ai/themes-skill')
-    // API 返回的是纯文本，直接赋值
-    themeSkillPrompt.value = typeof res === 'string' ? res : JSON.stringify(res, null, 2)
-  } catch (error) {
-    ElMessage.error('加载主题开发 Skill 失败')
-  } finally {
-    loadingThemeSkill.value = false
   }
 }
 
@@ -581,7 +567,6 @@ const handleCloseDialog = () => {
 onMounted(() => {
   loadSetupCommands()
   loadKeys()
-  loadThemeSkillPrompt()
 })
 </script>
 
