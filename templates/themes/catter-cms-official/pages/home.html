@@ -29,41 +29,105 @@
         </div>
     </header>
 
-    <!-- Hero - Terminal 风格 -->
-    <section class="hero-terminal">
+    <!-- Hero - 亮色系项目特点展示 -->
+    <section class="hero-bright">
         <div class="hero-container">
-            <div class="terminal">
+            <h1 class="hero-title">{{ .site.title }}</h1>
+            <p class="hero-subtitle">Go + Vue 3 轻量级内容管理系统</p>
+
+            <div class="feature-badges">
+                <span class="badge">
+                    <i class="fa-solid fa-rocket"></i> 单文件部署
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-database"></i> SQLite
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-code"></i> Go + Vue 3
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-scale-balanced"></i> MIT 开源
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-palette"></i> 6 套主题
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-robot"></i> AI API
+                </span>
+            </div>
+
+            <div class="hero-terminal">
                 <div class="terminal-bar">
                     <span class="terminal-dot red"></span>
                     <span class="terminal-dot yellow"></span>
                     <span class="terminal-dot green"></span>
-                    <span class="terminal-title">catter-cms</span>
+                    <span class="terminal-title">bash</span>
                 </div>
                 <div class="terminal-body">
                     <div class="terminal-line">
                         <span class="prompt">$</span>
                         <span class="cmd"> git clone https://github.com/your-username/catter-cms.git</span>
                     </div>
-                    <div class="terminal-line muted">Cloning into 'catter-cms'...</div>
                     <div class="terminal-line">
                         <span class="prompt">$</span>
-                        <span class="cmd"> cd catter-cms && go build -o catter-cms.exe ./cmd</span>
+                        <span class="cmd"> cd catter-cms && go build -o catter-cms.exe .</span>
                     </div>
-                    <div class="terminal-line muted"># 构建完成</div>
                     <div class="terminal-line">
                         <span class="prompt">$</span>
                         <span class="cmd"> ./catter-cms.exe</span>
                     </div>
-                    <div class="terminal-line muted"># 访问 http://localhost:3000/admin</div>
+                    <div class="terminal-line muted"># 访问 http://localhost:3000</div>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="hero-keywords">
-                <span class="keyword">MIT</span>
-                <span class="keyword">Go</span>
-                <span class="keyword">Vue 3</span>
-                <span class="keyword">SQLite</span>
-                <span class="keyword">AI-Native</span>
+    <!-- 项目特点 -->
+    <section class="section section-alt">
+        <div class="section-container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <h3 class="feature-title">单文件部署</h3>
+                    <p class="feature-desc">一个 .exe + 一个 .db，无需安装数据库，开箱即用</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <h3 class="feature-title">Go + Vue 3</h3>
+                    <p class="feature-desc">Go 后端高性能，Vue 3 前端现代化，前后端分离架构</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <h3 class="feature-title">SQLite 数据库</h3>
+                    <p class="feature-desc">零配置，零依赖，文件即数据库，备份只需复制一个文件</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <h3 class="feature-title">MIT 开源协议</h3>
+                    <p class="feature-desc">无授权费用，可商用，可二次开发，无任何限制</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+                    <h3 class="feature-title">6 套主题</h3>
+                    <p class="feature-desc">博客、企业官网、物流等场景，开源免费，持续更新</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3 class="feature-title">AI API 接口</h3>
+                    <p class="feature-desc">提供 REST API，AI 客户端可直接调用管理内容</p>
+                </div>
             </div>
         </div>
     </section>
@@ -85,9 +149,9 @@
                     <p class="article-excerpt">{{ .Excerpt }}</p>
                     <div class="article-meta">
                         {{ if .Category }}
-                        <span><i class="fa-solid fa-folder"></i>{{ .Category.Name }}</span>
+                        <span><i class="fa-solid fa-folder"></i> {{ .Category.Name }}</span>
                         {{ end }}
-                        <span><i class="fa-solid fa-calendar"></i>{{ dateFormat "2006-01-02" .PublishedAt }}</span>
+                        <span><i class="fa-solid fa-calendar"></i> {{ dateFormat "2006-01-02" .PublishedAt }}</span>
                     </div>
                 </article>
                 {{ end }}
