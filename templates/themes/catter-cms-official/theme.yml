@@ -19,25 +19,24 @@ config:
   borderColor: "#E2E8F0"
   success: "#10B981"
 
-  # ===== Hero 区域（左侧轮播 + 右侧滚动） =====
+  # ===== Hero 区域 =====
   heroEnabled: true
-  heroImages: "[]"
-  heroGitHubUrl: "https://github.com/your-username/catter-cms"
-  heroGitHubText: "获取项目"
-  heroDocUrl: "/page/getting-started"
-  heroDocText: "快速开始"
-  heroViewDocText: "查看文档"
-  heroViewDocUrl: "/page/docs"
 
-  # Hero 右侧首屏文字
-  heroTitle: "Catter CMS"
-  heroSubtitle: "自由定义你的内容"
-  heroBadges: "MIT 开源,四大自由,单二进制零依赖部署"
+  # ===== 左右分栏模块（特性下方） =====
+  showcaseEnabled: true
+  showcaseImages: "[]"
+  showcaseTitle: "Catter CMS"
+  showcaseSubtitle: "自由定义你的内容"
+  showcaseBadges: "MIT 开源,四大自由,单二进制零依赖部署"
+  showcaseGitHubUrl: "https://github.com/your-username/catter-cms"
+  showcaseGitHubText: "获取项目"
+  showcaseDocUrl: "/page/getting-started"
+  showcaseDocText: "快速开始"
+  showcaseViewDocUrl: "/page/docs"
+  showcaseViewDocText: "查看文档"
+  showcaseScrollSections: "[]"
 
-  # Hero 滚动内容区（JSON 数组）
-  heroScrollSections: "[]"
-
-  # ===== 截图展示 =====
+  # ===== Footer =====
   showcaseEnabled: true
   showcaseTitle: "界面预览"
   showcaseDescription: "管理后台截图展示"
@@ -106,60 +105,67 @@ configDefinition:
         type: switch
         label: 显示 Hero 区域
         default: true
-      - name: heroTitle
-        type: text
-        label: 主标题
-        show_if: "heroEnabled == true"
-        default: "Catter CMS"
-      - name: heroSubtitle
-        type: text
-        label: 副标题
-        show_if: "heroEnabled == true"
-        default: "自由定义你的内容"
-      - name: heroBadges
-        type: text
-        label: 顶部徽章（逗号分隔）
-        show_if: "heroEnabled == true"
-        default: "MIT 开源,四大自由,单二进制零依赖部署"
-      - name: heroImages
+
+  - section: 左右分栏模块
+    fields:
+      - name: showcaseEnabled
+        type: switch
+        label: 显示左右分栏模块（特性下方）
+        default: true
+      - name: showcaseImages
         type: image-list
         label: 左侧轮播图片
-        show_if: "heroEnabled == true"
+        show_if: "showcaseEnabled == true"
         default: "[]"
-      - name: heroGitHubUrl
+      - name: showcaseTitle
+        type: text
+        label: 主标题
+        show_if: "showcaseEnabled == true"
+        default: "Catter CMS"
+      - name: showcaseSubtitle
+        type: text
+        label: 副标题
+        show_if: "showcaseEnabled == true"
+        default: "自由定义你的内容"
+      - name: showcaseBadges
+        type: text
+        label: 顶部徽章（逗号分隔）
+        show_if: "showcaseEnabled == true"
+        default: "MIT 开源,四大自由,单二进制零依赖部署"
+      - name: showcaseGitHubUrl
         type: text
         label: GitHub 链接
-        show_if: "heroEnabled == true"
+        show_if: "showcaseEnabled == true"
         default: "https://github.com/your-username/catter-cms"
-      - name: heroGitHubText
+      - name: showcaseGitHubText
         type: text
         label: GitHub 按钮文字
-        show_if: "heroEnabled == true"
+        show_if: "showcaseEnabled == true"
         default: "获取项目"
-      - name: heroDocUrl
+      - name: showcaseDocUrl
         type: text
         label: 快速开始链接
-        show_if: "heroEnabled == true"
+        show_if: "showcaseEnabled == true"
         default: "/page/getting-started"
-      - name: heroDocText
+      - name: showcaseDocText
         type: text
         label: 快速开始文字
-        show_if: "heroEnabled == true"
+        show_if: "showcaseEnabled == true"
         default: "快速开始"
-      - name: heroViewDocUrl
+      - name: showcaseViewDocUrl
         type: text
         label: 查看文档链接
-        show_if: "heroEnabled == true"
+        show_if: "showcaseEnabled == true"
         default: "/page/docs"
-      - name: heroViewDocText
+      - name: showcaseViewDocText
         type: text
         label: 查看文档文字
-        show_if: "heroEnabled == true"
+        show_if: "showcaseEnabled == true"
         default: "查看文档"
-      - name: heroScrollSections
+      - name: showcaseScrollSections
         type: textarea
         label: 滚动内容区（JSON）
-        show_if: "heroEnabled == true"
+        show_if: "showcaseEnabled == true"
         default: "[]"
 
   - section: 页脚
@@ -197,28 +203,6 @@ configDefinition:
         type: image
         label: Open Graph 图片
         default: ""
-
-  - section: 截图展示
-    fields:
-      - name: showcaseEnabled
-        type: switch
-        label: 显示截图展示区
-        default: true
-      - name: showcaseTitle
-        type: text
-        label: 标题
-        show_if: "showcaseEnabled == true"
-        default: "界面预览"
-      - name: showcaseDescription
-        type: text
-        label: 描述
-        show_if: "showcaseEnabled == true"
-        default: "管理后台截图展示"
-      - name: showcaseImages
-        type: image-list
-        label: 截图列表
-        show_if: "showcaseEnabled == true"
-        default: "[]"
 
   - section: 自定义代码
     fields:

@@ -22,80 +22,182 @@
                 <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
                 {{ end }}
                 {{ end }}
-                <a href="{{ getConfig "heroGitHubUrl" "https://github.com/your-username/catter-cms" }}" target="_blank" class="github-link">
+                <a href="https://github.com/your-username/catter-cms" target="_blank" class="github-link">
                     <i class="fa-brands fa-github"></i> Star
                 </a>
             </nav>
         </div>
     </header>
 
-    <!-- Hero 分栏：左侧轮播 + 右侧滚动 -->
-    {{ if getConfig "heroEnabled" true }}
-    <section class="hero-split" id="heroSplit">
+    <!-- Hero - 亮色系项目特点展示 -->
+    <section class="hero-bright">
+        <div class="hero-container">
+            <h1 class="hero-title">{{ .site.title }}</h1>
+            <p class="hero-subtitle">Go + Vue 3 轻量级内容管理系统</p>
+
+            <div class="feature-badges">
+                <span class="badge">
+                    <i class="fa-solid fa-rocket"></i> 单文件部署
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-database"></i> SQLite
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-code"></i> Go + Vue 3
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-scale-balanced"></i> MIT 开源
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-palette"></i> 6 套主题
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-robot"></i> AI API
+                </span>
+            </div>
+
+            <div class="hero-terminal">
+                <div class="terminal-bar">
+                    <span class="terminal-dot red"></span>
+                    <span class="terminal-dot yellow"></span>
+                    <span class="terminal-dot green"></span>
+                    <span class="terminal-title">bash</span>
+                </div>
+                <div class="terminal-body">
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> git clone https://github.com/your-username/catter-cms.git</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> cd catter-cms && go build -o catter-cms.exe .</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> ./catter-cms.exe</span>
+                    </div>
+                    <div class="terminal-line muted"># 访问 http://localhost:3000</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目特点 -->
+    <section class="section section-alt">
+        <div class="section-container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <h3 class="feature-title">单文件部署</h3>
+                    <p class="feature-desc">一个 .exe + 一个 .db，无需安装数据库，开箱即用</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <h3 class="feature-title">Go + Vue 3</h3>
+                    <p class="feature-desc">Go 后端高性能，Vue 3 前端现代化，前后端分离架构</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <h3 class="feature-title">SQLite 数据库</h3>
+                    <p class="feature-desc">零配置，零依赖，文件即数据库，备份只需复制一个文件</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <h3 class="feature-title">MIT 开源协议</h3>
+                    <p class="feature-desc">无授权费用，可商用，可二次开发，无任何限制</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+                    <h3 class="feature-title">6 套主题</h3>
+                    <p class="feature-desc">博客、企业官网、物流等场景，开源免费，持续更新</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3 class="feature-title">AI API 接口</h3>
+                    <p class="feature-desc">提供 REST API，AI 客户端可直接调用管理内容</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 新模块：左侧轮播 + 右侧滚动（特性下方） -->
+    {{ if getConfig "showcaseEnabled" true }}
+    <section class="showcase-split" id="showcaseSplit">
 
         <!-- 左侧轮播图 -->
-        <div class="hero-left" id="heroLeft">
-            <div class="carousel" id="heroCarousel">
-                {{ $images := getConfig "heroImages" "[]" }}
+        <div class="showcase-left" id="showcaseLeft">
+            <div class="showcase-carousel" id="showcaseCarousel">
+                {{ $images := getConfig "showcaseImages" "[]" }}
                 {{ if $images }}
                 {{ range $images }}
-                <div class="carousel-slide">
-                    <img src="{{ . }}" alt="Hero 图片" loading="eager">
+                <div class="showcase-slide">
+                    <img src="{{ . }}" alt="展示图片" loading="eager">
                 </div>
                 {{ end }}
                 {{ else }}
-                <div class="carousel-slide">
-                    <img src="https://picsum.photos/800/600?random=1" alt="Hero 图片" loading="eager">
+                <div class="showcase-slide">
+                    <img src="https://picsum.photos/800/600?random=4" alt="展示图片" loading="eager">
                 </div>
-                <div class="carousel-slide">
-                    <img src="https://picsum.photos/800/600?random=2" alt="Hero 图片" loading="lazy">
+                <div class="showcase-slide">
+                    <img src="https://picsum.photos/800/600?random=5" alt="展示图片" loading="lazy">
                 </div>
-                <div class="carousel-slide">
-                    <img src="https://picsum.photos/800/600?random=3" alt="Hero 图片" loading="lazy">
+                <div class="showcase-slide">
+                    <img src="https://picsum.photos/800/600?random=6" alt="展示图片" loading="lazy">
                 </div>
                 {{ end }}
             </div>
-            <!-- 轮播指示器 -->
-            <div class="carousel-dots" id="carouselDots"></div>
+            <div class="showcase-dots" id="showcaseDots"></div>
         </div>
 
-        <!-- 右侧滚动内容 -->
-        <div class="hero-right" id="heroRight">
+        <!-- 右侧滚动文案 -->
+        <div class="showcase-right" id="showcaseRight">
 
-            <!-- 首屏：主标题区 -->
-            <div class="hero-main" data-slide="0">
-                <h1 class="hero-title">{{ getConfig "heroTitle" "Catter CMS" }}</h1>
-                <p class="hero-subtitle">{{ getConfig "heroSubtitle" "自由定义你的内容" }}</p>
-                <div class="hero-badges">
-                    {{ range (split (getConfig "heroBadges" "MIT 开源,四大自由,单二进制零依赖部署") ",") }}
-                    <span class="hero-badge">{{ . }}</span>
+            <!-- 首屏 -->
+            <div class="showcase-panel" data-panel="0">
+                <h1 class="showcase-main-title">{{ getConfig "showcaseTitle" "Catter CMS" }}</h1>
+                <p class="showcase-main-sub">{{ getConfig "showcaseSubtitle" "自由定义你的内容" }}</p>
+                <div class="showcase-badges">
+                    {{ range (split (getConfig "showcaseBadges" "MIT 开源,四大自由,单二进制零依赖部署") ",") }}
+                    <span class="showcase-badge">{{ . }}</span>
                     {{ end }}
                 </div>
-                <div class="hero-buttons">
-                    <a href="{{ getConfig "heroGitHubUrl" "https://github.com/your-username/catter-cms" }}" target="_blank" class="btn btn-primary">
-                        <i class="fa-brands fa-github"></i> {{ getConfig "heroGitHubText" "获取项目" }}
+                <div class="showcase-buttons">
+                    <a href="{{ getConfig "showcaseGitHubUrl" "https://github.com/your-username/catter-cms" }}" target="_blank" class="btn btn-primary">
+                        <i class="fa-brands fa-github"></i> {{ getConfig "showcaseGitHubText" "获取项目" }}
                     </a>
-                    <a href="{{ getConfig "heroDocUrl" "/page/getting-started" }}" class="btn btn-secondary">
-                        {{ getConfig "heroDocText" "快速开始" }}
+                    <a href="{{ getConfig "showcaseDocUrl" "/page/getting-started" }}" class="btn btn-secondary">
+                        {{ getConfig "showcaseDocText" "快速开始" }}
                     </a>
-                    <a href="{{ getConfig "heroViewDocUrl" "/page/docs" }}" class="btn btn-ghost">
-                        {{ getConfig "heroViewDocText" "查看文档" }}
+                    <a href="{{ getConfig "showcaseViewDocUrl" "/page/docs" }}" class="btn btn-ghost">
+                        {{ getConfig "showcaseViewDocText" "查看文档" }}
                     </a>
                 </div>
             </div>
 
             <!-- 滚动内容区 -->
-            {{ $sections := getConfig "heroScrollSections" "[]" }}
+            {{ $sections := getConfig "showcaseScrollSections" "[]" }}
             {{ if $sections }}
             {{ range json_decode $sections }}
-            <div class="scroll-section" data-slide="{{ add (index . "index") 1 }}">
-                <div class="scroll-section-icon">
+            <div class="showcase-panel" data-panel="{{ add (index . "index") 1 }}">
+                <div class="showcase-icon">
                     <i class="{{ index . "icon" "fa-solid fa-star" }}"></i>
                 </div>
-                <h2 class="scroll-section-title">{{ index . "title" "" }}</h2>
-                <p class="scroll-section-desc">{{ index . "desc" "" }}</p>
+                <h2 class="showcase-panel-title">{{ index . "title" "" }}</h2>
+                <p class="showcase-panel-desc">{{ index . "desc" "" }}</p>
                 {{ if index . "items" }}
-                <ul class="scroll-section-list">
+                <ul class="showcase-list">
                     {{ range index . "items" }}
                     <li>{{ . }}</li>
                     {{ end }}
@@ -164,16 +266,14 @@
 
     <script>
     (function() {
-        // ===== 左侧轮播逻辑 =====
-        var slides = document.querySelectorAll('.carousel-slide');
-        var dotsContainer = document.getElementById('carouselDots');
+        var slides = document.querySelectorAll('.showcase-slide');
+        var dotsContainer = document.getElementById('showcaseDots');
         var currentSlide = 0;
 
         if (slides.length > 1 && dotsContainer) {
-            // 创建指示器
             slides.forEach(function(_, i) {
                 var dot = document.createElement('span');
-                dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+                dot.className = 'showcase-dot' + (i === 0 ? ' active' : '');
                 dot.addEventListener('click', function() { goToSlide(i); });
                 dotsContainer.appendChild(dot);
             });
@@ -182,36 +282,27 @@
                 slides.forEach(function(s, i) {
                     s.classList.toggle('active', i === index);
                 });
-                document.querySelectorAll('.carousel-dot').forEach(function(d, i) {
+                document.querySelectorAll('.showcase-dot').forEach(function(d, i) {
                     d.classList.toggle('active', i === index);
                 });
                 currentSlide = index;
             }
 
-            function nextSlide() {
-                goToSlide((currentSlide + 1) % slides.length);
-            }
+            setInterval(function() { goToSlide((currentSlide + 1) % slides.length); }, 4000);
 
-            // 自动轮播
-            setInterval(nextSlide, 4000);
-
-            // ===== 右侧滚动 → 同步左侧图片 =====
-            var rightSections = document.querySelectorAll('.hero-right > [data-slide]');
-            if (rightSections.length > 1) {
+            var rightPanels = document.querySelectorAll('.showcase-right > [data-panel]');
+            if (rightPanels.length > 1) {
                 var observer = new IntersectionObserver(function(entries) {
                     entries.forEach(function(entry) {
                         if (entry.isIntersecting) {
-                            var slideIndex = parseInt(entry.target.getAttribute('data-slide'), 10);
-                            if (!isNaN(slideIndex) && slideIndex < slides.length) {
-                                goToSlide(slideIndex);
+                            var panelIndex = parseInt(entry.target.getAttribute('data-panel'), 10);
+                            if (!isNaN(panelIndex) && panelIndex < slides.length) {
+                                goToSlide(panelIndex);
                             }
                         }
                     });
                 }, { threshold: 0.4 });
-
-                rightSections.forEach(function(section) {
-                    observer.observe(section);
-                });
+                rightPanels.forEach(function(p) { observer.observe(p); });
             }
         } else if (slides.length === 1) {
             slides[0].classList.add('active');
