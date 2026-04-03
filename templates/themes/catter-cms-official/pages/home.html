@@ -133,7 +133,7 @@
     </section>
 
     <!-- 截图展示 -->
-    {{ if and (getConfig "showcaseEnabled" true) (getConfig "showcaseImages") }}
+    {{ if and (getConfig "showcaseEnabled" true) (getConfig "showcaseImages" "[]") }}
     <section class="section">
         <div class="section-container">
             <div class="section-header">
@@ -143,7 +143,7 @@
                 {{ end }}
             </div>
             <div class="showcase-grid">
-                {{ range getConfig "showcaseImages" }}
+                {{ range getConfig "showcaseImages" "[]" }}
                 <div class="showcase-item">
                     <img src="{{ . }}" alt="截图" loading="lazy">
                 </div>
