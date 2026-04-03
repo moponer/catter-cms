@@ -132,6 +132,27 @@
         </div>
     </section>
 
+    <!-- 截图展示 -->
+    {{ if and (getConfig "showcaseEnabled" true) (getConfig "showcaseImages") }}
+    <section class="section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">{{ getConfig "showcaseTitle" "界面预览" }}</h2>
+                {{ if getConfig "showcaseDescription" "" }}
+                <p class="section-desc">{{ getConfig "showcaseDescription" "" }}</p>
+                {{ end }}
+            </div>
+            <div class="showcase-grid">
+                {{ range getConfig "showcaseImages" }}
+                <div class="showcase-item">
+                    <img src="{{ . }}" alt="截图" loading="lazy">
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </section>
+    {{ end }}
+
     <!-- 最新文章 -->
     {{ if .posts }}
     <section class="section">

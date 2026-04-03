@@ -23,11 +23,12 @@ config:
   heroEnabled: true
   heroTitle: "Catter CMS"
   heroSubtitle: "开源、模块化、AI 驱动的内容管理系统"
-  heroDescription: "四大自由：内容自由、主题自由、AI 集成、管理自由。让每个人都能轻松搭建专业网站。"
-  heroButtonText: "快速开始"
-  heroButtonLink: "/page/getting-started"
-  heroSecondaryText: "查看文档"
-  heroSecondaryLink: "/page/docs"
+
+  # ===== 截图展示 =====
+  showcaseEnabled: true
+  showcaseTitle: "界面预览"
+  showcaseDescription: "管理后台截图展示"
+  showcaseImages: "[]"
 
   # ===== Footer =====
   footerEnabled: true
@@ -121,6 +122,28 @@ configDefinition:
         type: image
         label: Open Graph 图片
         default: ""
+
+  - section: 截图展示
+    fields:
+      - name: showcaseEnabled
+        type: switch
+        label: 显示截图展示区
+        default: true
+      - name: showcaseTitle
+        type: text
+        label: 标题
+        show_if: "showcaseEnabled == true"
+        default: "界面预览"
+      - name: showcaseDescription
+        type: text
+        label: 描述
+        show_if: "showcaseEnabled == true"
+        default: "管理后台截图展示"
+      - name: showcaseImages
+        type: image-list
+        label: 截图列表
+        show_if: "showcaseEnabled == true"
+        default: "[]"
 
   - section: 自定义代码
     fields:
