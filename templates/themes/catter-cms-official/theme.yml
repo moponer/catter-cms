@@ -19,10 +19,23 @@ config:
   borderColor: "#E2E8F0"
   success: "#10B981"
 
-  # ===== Hero 区域 =====
+  # ===== Hero 区域（左侧轮播 + 右侧滚动） =====
   heroEnabled: true
+  heroImages: "[]"
+  heroGitHubUrl: "https://github.com/your-username/catter-cms"
+  heroGitHubText: "获取项目"
+  heroDocUrl: "/page/getting-started"
+  heroDocText: "快速开始"
+  heroViewDocText: "查看文档"
+  heroViewDocUrl: "/page/docs"
+
+  # Hero 右侧首屏文字
   heroTitle: "Catter CMS"
-  heroSubtitle: "开源、模块化、AI 驱动的内容管理系统"
+  heroSubtitle: "自由定义你的内容"
+  heroBadges: "MIT 开源,四大自由,单二进制零依赖部署"
+
+  # Hero 滚动内容区（JSON 数组）
+  heroScrollSections: "[]"
 
   # ===== 截图展示 =====
   showcaseEnabled: true
@@ -86,6 +99,68 @@ configDefinition:
         type: color
         label: 边框色
         default: "#E2E8F0"
+
+  - section: 首页 Hero
+    fields:
+      - name: heroEnabled
+        type: switch
+        label: 显示 Hero 区域
+        default: true
+      - name: heroTitle
+        type: text
+        label: 主标题
+        show_if: "heroEnabled == true"
+        default: "Catter CMS"
+      - name: heroSubtitle
+        type: text
+        label: 副标题
+        show_if: "heroEnabled == true"
+        default: "自由定义你的内容"
+      - name: heroBadges
+        type: text
+        label: 顶部徽章（逗号分隔）
+        show_if: "heroEnabled == true"
+        default: "MIT 开源,四大自由,单二进制零依赖部署"
+      - name: heroImages
+        type: image-list
+        label: 左侧轮播图片
+        show_if: "heroEnabled == true"
+        default: "[]"
+      - name: heroGitHubUrl
+        type: text
+        label: GitHub 链接
+        show_if: "heroEnabled == true"
+        default: "https://github.com/your-username/catter-cms"
+      - name: heroGitHubText
+        type: text
+        label: GitHub 按钮文字
+        show_if: "heroEnabled == true"
+        default: "获取项目"
+      - name: heroDocUrl
+        type: text
+        label: 快速开始链接
+        show_if: "heroEnabled == true"
+        default: "/page/getting-started"
+      - name: heroDocText
+        type: text
+        label: 快速开始文字
+        show_if: "heroEnabled == true"
+        default: "快速开始"
+      - name: heroViewDocUrl
+        type: text
+        label: 查看文档链接
+        show_if: "heroEnabled == true"
+        default: "/page/docs"
+      - name: heroViewDocText
+        type: text
+        label: 查看文档文字
+        show_if: "heroEnabled == true"
+        default: "查看文档"
+      - name: heroScrollSections
+        type: textarea
+        label: 滚动内容区（JSON）
+        show_if: "heroEnabled == true"
+        default: "[]"
 
   - section: 页脚
     fields:
