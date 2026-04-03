@@ -10,6 +10,7 @@
     {{ end }}
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
     {{ if getConfig "customCss" "" }}
     <style>{{ getConfig "customCss" "" | safe }}</style>
     {{ end }}
@@ -48,7 +49,7 @@
             <img src="{{ .post.Cover }}" alt="{{ .post.Title }}" class="article-cover">
             {{ end }}
 
-            <div class="content">
+            <div class="article-content">
                 {{ markdownHTML .post.Content }}
             </div>
         </article>

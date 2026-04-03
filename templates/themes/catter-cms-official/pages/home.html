@@ -16,216 +16,85 @@
     <header class="header">
         <div class="header-container">
             <a href="/" class="logo">{{ .site.title }}</a>
-            {{ if .headerMenu }}
             <nav class="nav">
+                {{ if .headerMenu }}
                 {{ range .headerMenu.Items }}
                 <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
                 {{ end }}
+                {{ end }}
+                <a href="https://github.com/your-username/catter-cms" target="_blank" class="github-link">
+                    <i class="fa-brands fa-github"></i> Star
+                </a>
             </nav>
-            {{ end }}
         </div>
     </header>
 
-    <!-- Hero 区域 -->
-    {{ if getConfig "heroEnabled" true }}
-    <section class="hero">
+    <!-- Hero - Terminal 风格 -->
+    <section class="hero-terminal">
         <div class="hero-container">
-            <h1>{{ getConfig "heroTitle" "Catter CMS" }}</h1>
-            <p class="hero-subtitle">{{ getConfig "heroSubtitle" "" }}</p>
-            <p class="hero-description">{{ getConfig "heroDescription" "" }}</p>
-            <div class="hero-buttons">
-                {{ if getConfig "heroButtonText" "" }}
-                <a href="{{ getConfig "heroButtonLink" "" }}" class="btn btn-primary">{{ getConfig "heroButtonText" "快速开始" }}</a>
-                {{ end }}
-                {{ if getConfig "heroSecondaryText" "" }}
-                <a href="{{ getConfig "heroSecondaryLink" "" }}" class="btn btn-secondary">{{ getConfig "heroSecondaryText" "" }}</a>
-                {{ end }}
-            </div>
-        </div>
-    </section>
-    {{ end }}
-
-    <!-- 四大自由模块 -->
-    {{ if getConfig "freedomsEnabled" true }}
-    <section class="section section-alt">
-        <div class="section-container">
-            <div class="section-header">
-                <h2>四大自由</h2>
-                <p>Catter CMS 的核心理念，让网站建设更加自由灵活</p>
-            </div>
-            {{ $freedoms := getConfig "freedoms" "[]" }}
-            {{ if gt (len (ensureSlice $freedoms)) 0 }}
-            <div class="freedoms-grid">
-                {{ range $freedoms }}
-                <div class="freedom-card card">
-                    <div class="freedom-icon">
-                        <i class="{{ .icon }}"></i>
-                    </div>
-                    <h3 class="freedom-title">{{ .title }}</h3>
-                    <p class="freedom-desc">{{ .desc }}</p>
+            <div class="terminal">
+                <div class="terminal-bar">
+                    <span class="terminal-dot red"></span>
+                    <span class="terminal-dot yellow"></span>
+                    <span class="terminal-dot green"></span>
+                    <span class="terminal-title">catter-cms</span>
                 </div>
-                {{ end }}
-            </div>
-            {{ end }}
-        </div>
-    </section>
-    {{ end }}
-
-    <!-- 功能特性模块 -->
-    {{ if getConfig "featuresEnabled" true }}
-    <section class="section">
-        <div class="section-container">
-            <div class="section-header">
-                <h2>核心功能</h2>
-                <p>强大而实用的功能特性，满足各种建站需求</p>
-            </div>
-            {{ $features := getConfig "features" "[]" }}
-            {{ if gt (len (ensureSlice $features)) 0 }}
-            <div class="features-grid">
-                {{ range $features }}
-                <div class="card">
-                    <div class="card-icon">
-                        <i class="{{ .icon }}"></i>
+                <div class="terminal-body">
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> git clone https://github.com/your-username/catter-cms.git</span>
                     </div>
-                    <h3 class="card-title">{{ .title }}</h3>
-                    <p class="card-desc">{{ .desc }}</p>
-                </div>
-                {{ end }}
-            </div>
-            {{ end }}
-        </div>
-    </section>
-    {{ end }}
-
-    <!-- 技术栈展示 -->
-    {{ if getConfig "techStackEnabled" true }}
-    <section class="section section-alt">
-        <div class="section-container">
-            <div class="section-header">
-                <h2>技术栈</h2>
-                <p>基于成熟稳定的技术构建，性能卓越</p>
-            </div>
-            {{ $techStack := getConfig "techStack" "[]" }}
-            {{ if gt (len (ensureSlice $techStack)) 0 }}
-            <div class="tech-grid">
-                {{ range $techStack }}
-                <div class="tech-card">
-                    <div class="tech-icon">
-                        <i class="{{ .icon }}"></i>
+                    <div class="terminal-line muted">Cloning into 'catter-cms'...</div>
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> cd catter-cms && go build -o catter-cms.exe ./cmd</span>
                     </div>
-                    <h3 class="tech-name">{{ .name }}</h3>
-                    <p class="tech-desc">{{ .desc }}</p>
-                </div>
-                {{ end }}
-            </div>
-            {{ end }}
-        </div>
-    </section>
-    {{ end }}
-
-    <!-- 主题展示模块 -->
-    {{ if getConfig "themeShowcaseEnabled" true }}
-    <section class="section">
-        <div class="section-container">
-            <div class="section-header">
-                <h2>{{ getConfig "themeShowcaseTitle" "精美主题，随心选择" }}</h2>
-                <p>{{ getConfig "themeShowcaseDesc" "" }}</p>
-            </div>
-            {{ if .posts }}
-            <div class="themes-grid">
-                {{ range first 6 .posts }}
-                <div class="card theme-card">
-                    {{ if .Cover }}
-                    <img src="{{ .Cover }}" alt="{{ .Title }}" class="theme-thumb">
-                    {{ else }}
-                    <div class="theme-thumb">
-                        <i class="fa-solid fa-image"></i>
+                    <div class="terminal-line muted"># 构建完成</div>
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> ./catter-cms.exe</span>
                     </div>
-                    {{ end }}
-                    <div class="theme-info">
-                        <h3 class="theme-name">{{ .Title }}</h3>
-                    </div>
+                    <div class="terminal-line muted"># 访问 http://localhost:3000/admin</div>
                 </div>
-                {{ end }}
             </div>
-            {{ else }}
-            <div class="empty-state">
-                <div class="empty-icon"><i class="fa-solid fa-palette"></i></div>
-                <p class="empty-hint">暂无主题展示，请先在管理后台发布文章</p>
-            </div>
-            {{ end }}
-        </div>
-    </section>
-    {{ end }}
 
-    <!-- 快速开始模块 -->
-    {{ if getConfig "quickstartEnabled" true }}
-    <section class="section section-dark">
-        <div class="section-container">
-            <div class="section-header">
-                <h2 style="color: white;">{{ getConfig "quickstartTitle" "快速开始" }}</h2>
-                <p style="color: var(--text-muted);">{{ getConfig "quickstartDesc" "" }}</p>
+            <div class="hero-keywords">
+                <span class="keyword">MIT</span>
+                <span class="keyword">Go</span>
+                <span class="keyword">Vue 3</span>
+                <span class="keyword">SQLite</span>
+                <span class="keyword">AI-Native</span>
             </div>
-            {{ $steps := getConfig "quickstartSteps" "[]" }}
-            {{ if gt (len (ensureSlice $steps)) 0 }}
-            <div class="steps">
-                {{ range $steps }}
-                <div class="step">
-                    <div class="step-number">{{ .step }}</div>
-                    <h3 class="step-title">{{ .title }}</h3>
-                    <p class="step-desc">{{ .desc }}</p>
-                </div>
-                {{ end }}
-            </div>
-            {{ end }}
-            {{ if getConfig "quickstartButtonText" "" }}
-            <div style="text-align: center;">
-                <a href="{{ getConfig "quickstartButtonLink" "" }}" class="btn btn-accent">{{ getConfig "quickstartButtonText" "立即下载" }}</a>
-            </div>
-            {{ end }}
         </div>
     </section>
-    {{ end }}
 
     <!-- 最新文章 -->
+    {{ if .posts }}
     <section class="section">
         <div class="section-container">
-            <div class="section-header">
-                <h2>最新文章</h2>
-                <p>了解 Catter CMS 的最新动态和使用技巧</p>
-            </div>
-            {{ if .posts }}
+            <h2 class="section-title">最新文章</h2>
             <div class="article-list">
                 {{ range first 5 .posts }}
                 <article class="article-card">
                     {{ if .Cover }}
                     <img src="{{ .Cover }}" alt="{{ .Title }}" class="article-cover">
                     {{ end }}
-                    <h2 class="article-title">
+                    <h3 class="article-title">
                         <a href="/article/{{ .Slug }}">{{ .Title }}</a>
-                    </h2>
+                    </h3>
                     <p class="article-excerpt">{{ .Excerpt }}</p>
                     <div class="article-meta">
                         {{ if .Category }}
                         <span><i class="fa-solid fa-folder"></i>{{ .Category.Name }}</span>
                         {{ end }}
                         <span><i class="fa-solid fa-calendar"></i>{{ dateFormat "2006-01-02" .PublishedAt }}</span>
-                        <span><i class="fa-solid fa-eye"></i>{{ .Views }}</span>
                     </div>
                 </article>
                 {{ end }}
             </div>
-            <div style="text-align: center; margin-top: var(--spacing-2xl);">
-                <a href="/article" class="btn btn-outline">查看全部文章</a>
-            </div>
-            {{ else }}
-            <div class="empty-state">
-                <div class="empty-icon"><i class="fa-solid fa-file-lines"></i></div>
-                <p class="empty-hint">暂无文章，请先在管理后台发布内容</p>
-            </div>
-            {{ end }}
         </div>
     </section>
+    {{ end }}
 
     <!-- 页脚 -->
     {{ if getConfig "footerEnabled" true }}
@@ -239,7 +108,11 @@
             </nav>
             {{ end }}
             <div class="footer-bottom">
-                <p>{{ getConfig "footerCopyright" "" }}</p>
+                <p>
+                    <i class="fa-solid fa-code"></i>
+                    {{ getConfig "footerCopyright" "2026 Catter CMS" }}
+                    · MIT License
+                </p>
                 {{ if getConfig "footerICP" "" }}
                 <p class="footer-icp">{{ getConfig "footerICP" "" }}</p>
                 {{ end }}

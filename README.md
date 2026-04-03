@@ -1,72 +1,151 @@
-# Catter CMS
+<h1 align="center">Catter CMS</h1>
 
-一款基于 Go + Gin + Vue 3 + Element Plus 的现代化内容管理系统，支持主题定制、定时任务、Sitemap 生成等功能，开箱即用。
+<p align="center">
+  <img src="https://img.shields.io/badge/Version-1.0.0-brightgreen?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" alt="Go">
+  <img src="https://img.shields.io/badge/Vue-3-4FC08D?style=flat-square&logo=vue.js" alt="Vue">
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite" alt="SQLite">
+</p>
 
-## 技术栈
+<p align="center">
+  <strong>原生 AI 驱动的现代化内容管理系统</strong>
+</p>
 
-| 层级 | 技术 |
-|------|------|
-| 后端 | Go 1.25 + Gin Framework + GORM + SQLite |
-| 前端 | Vue 3 + Element Plus + Vite |
-| 认证 | JWT |
-| 部署 | 单二进制文件，无额外依赖 |
+<p align="center">
+ 主题自由 · 使用自由 · 管理自由 · 插件自由
+</p>
 
-## 功能特性
+<p align="center">
+  <a href="#快速开始">快速开始</a> ·
+  <a href="#特性亮点">特性亮点</a> ·
+  <a href="#功能列表">功能列表</a> ·
+  <a href="#技术架构">技术架构</a> ·
+  <a href="#安全特性">安全特性</a>
+</p>
 
-### 核心功能
-- ✅ **用户认证** - JWT 登录/登出，角色权限控制
-- ✅ **内容管理** - 文章、页面、分类、标签、评论
-- ✅ **媒体库** - 图片/文件上传与管理
-- ✅ **菜单管理** - 可视化菜单配置
-- ✅ **主题系统** - 多主题支持，配置可视化编辑
-- ✅ **定时任务** - 备份、清理、定时发布
-- ✅ **Sitemap** - 自动生成 XML Sitemap
+---
 
-### 安全特性
-- ✅ XSS 防护（用户输入自动转义）
-- ✅ CSRF 防护
-- ✅ 安全响应头（CSP、X-Frame-Options 等）
-- ✅ JWT 密钥强度验证（生产环境 >=32 字符）
-- ✅ 随机密码生成
+## 自由理念
 
-### 系统特性
-- ✅ 配置热加载（环境变量覆盖）
-- ✅ 开发/生产环境切换
-- ✅ Gzip 压缩
-- ✅ SPA 路由支持（管理后台刷新不空白）
+Catter CMS 是一款基于 **Go + Vue 3** 构建的轻量级内容管理系统，以 **"自由"** 为核心理念——内置 AI 专用接口与 Agent Skill，复制一段提示词即可让大模型帮你开发主题、管理内容、扩展插件。
+
+> **与传统 CMS 对比**：Catter CMS 则轻量、原生中文、AI 原生、Go 高性能。
+
+---
+
+## 界面预览
+
+<p align="center">
+  <img src="public/login.jpeg" alt="管理后台登录" width="800">
+  <br><em>管理后台 · 三套主题自由切换</em>
+</p>
+
+<p align="center">
+  <img src="public/1.jpeg" alt="仪表盘" width="800">
+</p>
+
+<p align="center">
+  <img src="public/2.jpeg" alt="内容管理" width="800">
+</p>
+
+<p align="center">
+  <img src="public/3.jpeg" alt="主题管理" width="800">
+</p>
+
+<p align="center">
+  <img src="public/4.jpeg" alt="媒体库" width="800">
+</p>
+
+<p align="center">
+  <img src="public/5.jpeg" alt="AI 设置" width="800">
+</p>
+
+<p align="center">
+  <img src="public/6.jpeg" alt="系统设置" width="800">
+</p>
+
+---
+
+## 特性亮点
+
+### 🎨 主题自由 — 让 AI 帮你写主题
+
+内置完整的**主题开发 Skill 文档**，AI 编程助手（Cursor、Claude 等）只需读取一份 Markdown 文件，就能掌握 Catter CMS 的全部模板语法、配置系统和设计规范，快速开发出符合规范的高质量主题。
+
+- 扁平化配置系统，后台可视化编辑
+- 模块化开发，每个区块独立 + 开关控制
+- 强制规则前置检查，杜绝常见错误
+- 已内置 6 套精选主题（博客、企业、物流等）
+
+### 🤖 管理自由 — 复制提示词，AI 接管后台
+
+内置 **AI 专用 API 接口** + **Agent Skill 文档**，用户只需：
+
+1. 在管理后台创建一个 API Key
+2. 复制一段提示词发送给 AI
+3. 告诉 AI 你的需求
+
+AI 就能自动帮你写文章、改页面、管分类、传图片，还支持**权限控制**和**审计日志**，安全可控。
+
+### 🔓 使用自由 — MIT 开源，无商业限制
+
+- **MIT 许可证**：个人/商业项目均可自由使用，无授权费、无功能限制
+- **单二进制部署**：编译后仅一个可执行文件 + SQLite 数据库，零依赖
+- **配置热加载**：环境变量覆盖，开发/生产无缝切换
+
+### 🧩 插件自由 — 标准接口，AI 随心扩展
+
+所有核心功能均通过标准 RESTful API 暴露，AI 可根据需求自动开发插件模块：
+
+- 定时任务（备份、清理、定时发布）
+- Sitemap 自动生成
+- 评论管理
+- 媒体库管理
+
+---
 
 ## 快速开始
 
 ### 环境要求
-- Go 1.25+
-- Node.js 18+
-- npm / yarn
+
+| 软件 | 版本 |
+|------|------|
+| Go | 1.22+ |
+| Node.js | 18+ |
+| npm / yarn | 最新稳定版 |
 
 ### 1. 克隆项目
+
 ```bash
-git clone <repository-url>
-cd Catter-CMS
+git clone https://github.com/your-username/catter-cms.git
+cd catter-cms
 ```
 
 ### 2. 配置
-编辑 `config.yaml` 或使用环境变量：
+
+编辑 `config.yaml`：
 
 ```yaml
 app:
   port: "3000"
-  env: "development"  # development / production
+  env: "development"          # development / production
   jwt_secret: "your-secret-key-min-32-chars"
   admin_dist: "./admin/dist"
+
+database:
+  type: "sqlite"
+  path: "./catter.db"
 ```
 
-**环境变量覆盖**：
-```bash
-export APP_ENV=production
-export JWT_SECRET=your-production-secret-key-min-32-chars
-export PORT=3000
-```
+> **生产环境**：建议使用环境变量覆盖敏感配置：
+> ```bash
+> export APP_ENV=production
+> export JWT_SECRET=your-production-secret
+> ```
 
 ### 3. 构建
+
 ```bash
 # 构建后端
 cd gin-app
@@ -79,6 +158,7 @@ npm run build
 ```
 
 ### 4. 运行
+
 ```bash
 # Windows
 .\run.bat
@@ -90,170 +170,197 @@ npm run build
 访问 `http://localhost:3000/admin` 进入管理后台。
 
 ### 5. 开发模式
+
 ```bash
-# 后端热重载
-cd gin-app
+# 后端（gin-app 目录下）
 go run ./cmd
 
-# 前端开发服务器（可选）
-cd admin
+# 前端（admin 目录下）
 npm run dev
 ```
 
-## 项目结构
+---
+
+## 功能列表
+
+### 内容管理
+
+| 功能 | 说明 |
+|------|------|
+| 文章管理 | 创建、编辑、删除、定时发布、Markdown 支持 |
+| 页面管理 | 自定义单页、模板选择、SEO 元数据 |
+| 分类管理 | 多级分类、排序 |
+| 标签管理 | 文章标签、标签云 |
+| 评论管理 | 审核、回复、状态管理 |
+| 媒体库 | 图片/文件上传、预览、管理 |
+
+### 主题系统
+
+| 功能 | 说明 |
+|------|------|
+| 多主题支持 | 上传、激活、切换主题 |
+| 可视化配置 | 后台表单编辑，实时预览 |
+| 主题开发 Skill | AI 可读的完整开发规范 |
+| 服务端渲染 | Go html/template，SEO 友好 |
+| 内置主题 | 6 套精选主题开箱即用 |
+
+### AI 集成
+
+| 功能 | 说明 |
+|------|------|
+| AI 专用 API | 标准 RESTful 接口，AI 客户端直接调用 |
+| Agent Skill | 复制提示词即可让 AI 学会操作 CMS |
+| 权限控制 | Key 级别权限（read/write/admin）+ 资源范围限制 |
+| 审计日志 | 记录每次 AI 调用的时间、动作、状态、IP |
+| 图片处理 | 支持 AI 上传图片到媒体库并自动引用 |
+
+### 系统功能
+
+| 功能 | 说明 |
+|------|------|
+| 定时任务 | 备份、清理、定时发布 |
+| Sitemap | 自动生成 XML Sitemap |
+| 菜单管理 | 顶部、底部、侧边栏菜单可视化配置 |
+| 多主题后台 | 3 套管理后台主题可选 |
+| 用户认证 | JWT + httpOnly Cookie 双通道 |
+
+---
+
+## 安全特性
+
+| 防护措施 | 说明 |
+|----------|------|
+| XSS 防护 | 用户输入自动转义，评论转义输出 |
+| SQL 注入防护 | 参数化查询 + LIKE 通配符转义 |
+| Token 安全 | httpOnly Cookie + Header 双通道 |
+| 安全响应头 | CSP、X-Frame-Options、X-Content-Type-Options |
+| JWT 密钥强度 | 生产环境强制 >=32 字符 |
+| AI 权限隔离 | 独立 Key 系统，权限/资源范围精细控制 |
+| 审计日志 | 所有 AI 操作可追溯 |
+
+---
+
+## 技术架构
+
+### 技术栈
+
+| 层级 | 技术 | 说明 |
+|------|------|------|
+| 后端 | Go 1.22 + Gin + GORM | 高性能 HTTP 服务 |
+| 数据库 | SQLite | 零配置，单文件 |
+| 前端 | Vue 3 + Vite + Element Plus | 现代化管理后台 |
+| 模板引擎 | Go html/template | 服务端渲染（SSR） |
+| 认证 | JWT + httpOnly Cookie | 双通道安全认证 |
+| 部署 | 单二进制文件 | 无额外依赖 |
+
+### 项目结构
 
 ```
 Catter-CMS/
-├── admin/                      # Vue 3 前端管理后台
+├── admin/                    # Vue 3 管理后台
 │   ├── src/
-│   │   ├── views/             # 页面组件
-│   │   ├── components/        # 公共组件
-│   │   ├── router/            # 路由配置
-│   │   ├── utils/             # 工具函数
-│   │   └── App.vue            # 根组件
-│   ├── dist/                  # 构建输出（部署用）
-│   └── vite.config.*          # Vite 配置
+│   │   ├── views/           # 页面组件
+│   │   ├── components/      # 公共组件
+│   │   ├── router/          # 路由配置
+│   │   ├── utils/           # 工具函数
+│   │   └── composables/     # 组合式函数
+│   └── dist/                # 构建产物
 │
-├── gin-app/                    # Go 后端
-│   ├── cmd/
-│   │   └── main.go            # 入口文件
-│   ├── config/
-│   │   └── config.go          # 配置管理
-│   ├── internal/
-│   │   ├── handlers/          # HTTP 处理器
-│   │   ├── middleware/        # 中间件（认证、安全、SPA）
-│   │   ├── models/           # 数据模型
-│   │   └── services/          # 业务逻辑
-│   └── templates/             # SSR 模板
+├── gin-app/                  # Go 后端
+│   ├── cmd/main.go          # 入口
+│   ├── config/              # 配置管理
+│   └── internal/
+│       ├── handlers/        # HTTP 处理器
+│       ├── middleware/      # 中间件
+│       ├── models/          # 数据模型
+│       └── services/        # 业务逻辑
 │
-├── templates/                  # 主题模板
-│   └── themes/
-│       ├── catter-blog/       # 博客主题
-│       └── catter-cms-official/ # 企业主题
+├── templates/themes/         # 主题模板
+│   ├── catter-blog/         # 博客主题
+│   ├── catter-cms-official/ # 企业官网
+│   ├── enterprise-website/  # 商务网站
+│   └── ...                  # 更多主题
 │
-├── config.yaml                 # 应用配置
-├── run.bat                     # Windows 启动脚本
-└── catter.db                   # SQLite 数据库
+├── public/ai/               # AI Skill 文档
+│   ├── skill.md             # CMS 集成 Skill
+│   └── themes-skill.md      # 主题开发 Skill
+│
+├── config.yaml              # 应用配置
+└── run.bat                  # 启动脚本
 ```
 
-## API 接口
-
-### 认证
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| POST | `/api/auth/login` | 用户登录 |
-| GET | `/api/auth/me` | 获取当前用户 |
-
-### 内容
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| GET | `/api/posts` | 文章列表 |
-| GET | `/api/posts/:id` | 文章详情 |
-| POST | `/api/posts` | 创建文章 |
-| PUT | `/api/posts/:id` | 更新文章 |
-| DELETE | `/api/posts/:id` | 删除文章 |
-
-### 分类/标签/媒体/用户
-类似 RESTful 设计，完整 API 列表见 [API_STATUS.md](API_STATUS.md)
-
-### 系统
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| GET | `/api/settings` | 获取设置 |
-| PUT | `/api/settings` | 保存设置 |
-| GET | `/api/themes` | 主题列表 |
-| POST | `/api/themes/upload` | 上传主题 |
-| POST | `/api/themes/:id/activate` | 激活主题 |
-| GET | `/sitemap.xml` | Sitemap |
-
-## 主题开发
-
-主题放在 `templates/themes/` 目录下，每个主题包含：
+### 数据流
 
 ```
-theme-name/
-├── theme.yml           # 主题元数据
-├── settings.yaml       # 配置表单定义（可选）
-├── assets/             # 静态资源
-│   ├── css/base.css    # 基础样式
-│   └── js/main.js
-└── pages/             # 页面模板
-    ├── home.html       # 首页
-    ├── article_list.html  # 文章列表
-    ├── article_show.html  # 文章详情
-    └── ...
+用户请求 → Gin 路由 → 中间件（认证/安全） → Handler → GORM/SQLite
+                                              ↓
+                                        模板渲染（SSR）
+                                              ↓
+                                        HTML 响应
 ```
 
-详细开发指南见 `docs/THEME_DEVELOPER_GUIDE_V3.md`
+---
 
-## 配置说明
+## 项目链接
 
-### config.yaml
-```yaml
-app:
-  port: "3000"           # 服务端口
-  env: "development"    # 环境模式
-  jwt_secret: "dev-secret-key-change-in-production"
-  admin_dist: "./admin/dist"  # 前端构建目录
-  log_level: "debug"    # 日志级别
+| 链接 | 地址 |
+|------|------|
+| GitHub | [链接] |
+| 在线演示 | [链接] |
+| 使用文档 | [链接] |
 
-database:
-  type: "sqlite"
-  path: "./catter.db"
+---
 
-scheduler:
-  enabled: true
-  max_retries: 3
+## 目标用户
+
+- **个人博主** — 轻量、快速上手、AI 辅助写作
+- **中小企业官网** — 主题丰富、SEO 友好、维护成本低
+- **需要 AI 辅助管理的团队** — 内置 AI 接口，复制提示词即可让 AI 管理内容
+
+---
+
+## 贡献指南
+
+我们欢迎所有形式的贡献！
+
+1. Fork 本仓库
+2. 创建特性分支（`git checkout -b feature/amazing-feature`）
+3. 提交更改（`git commit -m 'feat: add amazing feature'`）
+4. 推送到分支（`git push origin feature/amazing-feature`）
+5. 提交 Pull Request
+
+> 提交前请确保代码通过基本测试，并遵循项目编码规范。
+
+---
+
+## 开源协议
+
+本项目基于 **MIT License** 开源。
+
 ```
-
-### 环境变量
-
-| 变量 | 描述 | 默认值 |
-|------|------|--------|
-| `APP_ENV` | 环境模式 | `development` |
-| `PORT` | 服务端口 | `3000` |
-| `JWT_SECRET` | JWT 密钥（生产环境必填） | - |
-| `DB_PATH` | 数据库路径 | `./catter.db` |
-
-## 部署
-
-### 生产环境
-```bash
-# 1. 设置环境变量
-export APP_ENV=production
-export JWT_SECRET=your-production-secret-key-min-32-chars
-
-# 2. 构建
-cd gin-app && go build -o catter-cms ./cmd
-cd admin && npm install && npm run build
-
-# 3. 运行
-./catter-cms
-```
-
-### Docker（可选）
-```dockerfile
-FROM golang:1.25-alpine AS builder
-WORKDIR /app
-COPY . .
-RUN go build -o catter-cms ./gin-app/cmd
-
-FROM alpine:latest
-COPY --from=builder /app/catter-cms .
-COPY --from=builder /app/admin/dist ./admin/dist
-COPY --from=builder /app/templates ./templates
-EXPOSE 3000
-CMD ["./catter-cms"]
-```
-
-## 安全建议
-
-1. **修改默认密码** - 首次部署后立即修改管理员密码
-2. **设置强 JWT 密钥** - 生产环境使用 >=32 字符的随机字符串
-3. **启用生产模式** - 设置 `APP_ENV=production`
-4. **配置 HTTPS** - 使用反向代理（Nginx/Caddy）终止 TLS
-5. **定期备份** - 使用定时任务自动备份数据库
-
-## 许可证
-
 MIT License
+
+Copyright (c) 2024-2026 Catter CMS
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+<p align="center">Made with ❤️ by Catter CMS Team</p>
