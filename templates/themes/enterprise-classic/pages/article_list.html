@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
     {{ end }}
-    <title>新闻资讯 - {{ .site.title }}</title>
+    <title>{{ getConfig "articleListTitle" "新闻资讯" }} - {{ .site.title }}</title>
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     {{ if getConfig "customHead" "" }}
     {{ getConfig "customHead" "" }}
@@ -17,67 +18,176 @@
 
 {{ template "header" . }}
 
+{{/* 获取配置 */}}
+{{ $title := getConfig "articleListTitle" "新闻资讯" }}
+{{ $subtitle := getConfig "articleListSubtitle" "了解行业动态，获取最新资讯" }}
+{{ $bgImage := getConfig "articleListBgImage" "" }}
+{{ $layout := getConfig "articleListLayout" "list" }}
+{{ $columns := getConfig "articleListColumns" "3" }}
+{{ $showCategory := getConfig "articleListShowCategory" true }}
+{{ $showSidebar := getConfig "articleListShowSidebar" false }}
+{{ $sidebarPos := getConfig "articleListSidebarPosition" "right" }}
+
+{{/* 横幅 - 使用全局 heroBgImage，与其他内页一致 */}}
 {{ $heroBg := getConfig "heroBgImage" "" }}
-{{ if $heroBg }}
-<div class="page-banner" style="background-image:url('{{ $heroBg }}')">
+{{ if or $bgImage $heroBg }}
+<div class="page-banner" style="background-image:url('{{ if $bgImage }}{{ $bgImage }}{{ else }}{{ $heroBg }}{{ end }}')">
 {{ else }}
 <div class="page-banner">
 {{ end }}
-    <h1 class="page-banner-title">新闻资讯</h1>
+    <h1 class="page-banner-title">{{ $title }}</h1>
     <div class="page-banner-breadcrumb">
-        <a href="/">首页</a><span>›</span>新闻资讯
+        <a href="/">首页</a><span>›</span>{{ $title }}
     </div>
 </div>
 
 <main class="main-wrapper">
     <div class="container">
-        <div class="category-filter">
-            <span class="category-filter-label">分类：</span>
-            <a href="/article-list" class="active">全部</a>
-            {{ range .categories }}
-            <a href="/category/{{ .Slug }}">{{ .Name }}</a>
-            {{ end }}
-            <a href="/article">文章列表</a>
-        </div>
-
-        {{ range .posts }}
-        <a href="/article/{{ .Slug }}" class="news-list-item-row">
-            {{ if .Cover }}
-            <img src="{{ .Cover }}" alt="{{ .Title }}" class="news-list-thumb">
-            {{ else }}
-            <div class="news-list-thumb-placeholder"><i class="fa-regular fa-newspaper"></i></div>
-            {{ end }}
-            <div class="news-list-body">
-                <div class="news-list-meta">
-                    {{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
-                </div>
-                <div class="news-list-title-row">
-                    <div class="news-list-item-title">{{ .Title }}</div>
-                    {{ $date := .PublishedAt }}{{ if not $date }}{{ $date = .CreatedAt }}{{ end }}
-                    {{ if $date }}
-                    <span class="news-list-date-text"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" $date }}</span>
-                    {{ end }}
-                </div>
-                <p class="news-list-excerpt">{{ .Excerpt }}</p>
-            </div>
-        </a>
+        {{/* 侧边栏布局 */}}
+        {{ if $showSidebar }}
+        <div class="with-sidebar" style="display:flex;gap:var(--space-xl);align-items:flex-start;">
         {{ end }}
 
-        {{ if gt .pagination.totalPages 1 }}
-        <div class="pagination">
-            {{ if gt .pagination.page 1 }}
-            <a href="/article?page={{ sub .pagination.page 1 }}">&laquo;</a>
-            {{ end }}
-            {{ range $i := iterate .pagination.totalPages }}
-            {{ $p := add $i 1 }}
-            {{ if eq $p $.pagination.page }}
-            <span class="current">{{ $p }}</span>
-            {{ else }}
-            <a href="/article?page={{ $p }}">{{ $p }}</a>
-            {{ end }}
-            {{ end }}
-            {{ if lt .pagination.page .pagination.totalPages }}
-            <a href="/article?page={{ add .pagination.page 1 }}">&raquo;</a>
+            <div {{ if $showSidebar }}style="flex:1;"{{ else }}style="max-width:100%;"{{ end }}>
+                {{/* 副标题描述 */}}
+                {{ if $subtitle }}
+                <div class="article-list-intro">{{ $subtitle }}</div>
+                {{ end }}
+
+                {{/* 分类筛选 */}}
+                {{ if $showCategory }}
+                <div class="category-filter">
+                    <span class="category-filter-label">分类：</span>
+                    <a href="/article" class="active">全部</a>
+                    {{ range .categories }}
+                    <a href="/category/{{ .Slug }}">{{ .Name }}</a>
+                    {{ end }}
+                </div>
+                {{ end }}
+
+                {{/* 文章列表 */}}
+                {{ if .posts }}
+                {{ if eq $layout "grid" }}
+                {{/* ===== 网格式布局 ===== */}}
+                <div class="article-grid article-grid-cols-{{ $columns }}">
+                    {{ range .posts }}
+                    <article class="article-card">
+                        <a href="/article/{{ .Slug }}" class="article-card-link">
+                            {{ if .Cover }}
+                            <div class="article-card-cover">
+                                <img src="{{ .Cover }}" alt="{{ .Title }}">
+                            </div>
+                            {{ else }}
+                            <div class="article-card-cover article-card-cover-empty">
+                                <i class="fa-solid fa-newspaper"></i>
+                            </div>
+                            {{ end }}
+                            <div class="article-card-body">
+                                <div class="article-card-meta">
+                                    {{ if .Category }}<span class="article-card-category">{{ .Category.Name }}</span>{{ end }}
+                                    {{ $date := .PublishedAt }}{{ if not $date }}{{ $date = .CreatedAt }}{{ end }}
+                                    {{ if $date }}<span class="article-card-date"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" $date }}</span>{{ end }}
+                                </div>
+                                <h3 class="article-card-title">{{ .Title }}</h3>
+                                <p class="article-card-excerpt">{{ .Excerpt }}</p>
+                                <span class="article-card-more">阅读全文 <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </a>
+                    </article>
+                    {{ end }}
+                </div>
+
+                {{ else if eq $layout "card" }}
+                {{/* ===== 卡片式布局 ===== */}}
+                <div class="article-cards">
+                    {{ range .posts }}
+                    <article class="article-card-item">
+                        <a href="/article/{{ .Slug }}" class="article-card-item-link">
+                            {{ if .Cover }}
+                            <div class="article-card-item-cover">
+                                <img src="{{ .Cover }}" alt="{{ .Title }}">
+                            </div>
+                            {{ end }}
+                            <div class="article-card-item-body">
+                                <div class="article-card-item-meta">
+                                    {{ if .Category }}<span class="badge badge-accent">{{ .Category.Name }}</span>{{ end }}
+                                    {{ $date := .PublishedAt }}{{ if not $date }}{{ $date = .CreatedAt }}{{ end }}
+                                    {{ if $date }}<span class="article-card-item-date"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" $date }}</span>{{ end }}
+                                </div>
+                                <h3 class="article-card-item-title">{{ .Title }}</h3>
+                                <p class="article-card-item-excerpt">{{ .Excerpt }}</p>
+                                <span class="article-card-item-more">阅读全文 <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </a>
+                    </article>
+                    {{ end }}
+                </div>
+
+                {{ else }}
+                {{/* ===== 列表式布局（默认） ===== */}}
+                <div class="article-list">
+                    {{ range .posts }}
+                    <a href="/article/{{ .Slug }}" class="article-list-item">
+                        {{ if .Cover }}
+                        <img src="{{ .Cover }}" alt="{{ .Title }}" class="article-list-thumb">
+                        {{ else }}
+                        <div class="article-list-thumb article-list-thumb-placeholder"><i class="fa-regular fa-newspaper"></i></div>
+                        {{ end }}
+                        <div class="article-list-body">
+                            <div class="article-list-meta">
+                                {{ if .Category }}<span class="badge badge-accent">{{ .Category.Name }}</span>{{ end }}
+                                {{ range .Tags }}<span class="badge badge-outline">{{ .Name }}</span>{{ end }}
+                            </div>
+                            <div class="article-list-title-row">
+                                <h3 class="article-list-item-title">{{ .Title }}</h3>
+                                {{ $date := .PublishedAt }}{{ if not $date }}{{ $date = .CreatedAt }}{{ end }}
+                                {{ if $date }}
+                                <span class="article-list-date"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" $date }}</span>
+                                {{ end }}
+                            </div>
+                            <p class="article-list-excerpt">{{ .Excerpt }}</p>
+                        </div>
+                    </a>
+                    {{ end }}
+                </div>
+                {{ end }}
+                {{ else }}
+                <div class="article-empty">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <p>暂无文章</p>
+                </div>
+                {{ end }}
+
+                {{/* 分页 */}}
+                {{ if gt .pagination.totalPages 1 }}
+                <div class="pagination">
+                    {{ if gt .pagination.page 1 }}
+                    <a href="/article?page={{ sub .pagination.page 1 }}">&laquo;</a>
+                    {{ end }}
+                    {{ range $i := iterate .pagination.totalPages }}
+                    {{ $p := add $i 1 }}
+                    {{ if eq $p $.pagination.page }}
+                    <span class="current">{{ $p }}</span>
+                    {{ else }}
+                    <a href="/article?page={{ $p }}">{{ $p }}</a>
+                    {{ end }}
+                    {{ end }}
+                    {{ if lt .pagination.page .pagination.totalPages }}
+                    <a href="/article?page={{ add .pagination.page 1 }}">&raquo;</a>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+
+        {{/* 侧边栏 */}}
+        {{ if $showSidebar }}
+            {{ $sidebarCfg := dict "template_type" "article_list" "sidebar" (dict "enabled" true "position" $sidebarPos) }}
+            {{ $sidebarEnabled := sidebarEnabled $sidebarCfg }}
+            {{ if $sidebarEnabled }}
+                {{ $sidebarModules := getSidebarModules $sidebarCfg }}
+                {{ if $sidebarModules }}
+                    {{ template "sidebar" dict "modules" $sidebarModules "position" $sidebarPos }}
+                {{ end }}
             {{ end }}
         </div>
         {{ end }}

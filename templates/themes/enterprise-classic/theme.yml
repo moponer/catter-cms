@@ -1,6 +1,6 @@
 name: 企业经典官网
 version: 1.0.0
-description: 清爽简洁的企业官网主题，深蓝配色，模块化设计
+description: 明亮商务风格企业官网主题，支持5套配色方案一键切换，模块化设计，全CSS变量控制
 author: Catter CMS Team
 
 configDefinition:
@@ -13,6 +13,22 @@ configDefinition:
         label: "Logo图片"
         type: "image"
         default: ""
+      - name: "colorScheme"
+        label: "配色方案"
+        type: "select"
+        default: "default"
+        description: "切换主题整体配色风格"
+        options:
+          - value: "default"
+            label: "默认 - 橙红 + 暖金"
+          - value: "scheme-a"
+            label: "A - 权威藏蓝 + 古典金"
+          - value: "scheme-b"
+            label: "B - 深邃墨蓝 + 香槟金"
+          - value: "scheme-c"
+            label: "C - 米白 + 浅棕 + 暖橙"
+          - value: "scheme-d"
+            label: "D - 天际蓝 + 活力橙"
       - name: "footerCopyright"
         label: "底部版权信息"
         type: "text"
@@ -89,6 +105,75 @@ configDefinition:
         label: "区块标题"
         type: "text"
         default: "新闻资讯"
+
+  # ========== 文章列表页 ==========
+  - section: "articleList"
+    label: "文章列表页"
+    icon: "fa-solid fa-list"
+    fields:
+      - name: "articleListEnabled"
+        label: "启用文章列表页"
+        type: "switch"
+        default: true
+        description: "关闭后访问 /article 将跳转到首页"
+      - name: "articleListTitle"
+        label: "页面标题"
+        type: "text"
+        default: "新闻资讯"
+      - name: "articleListSubtitle"
+        label: "页面副标题"
+        type: "text"
+        default: "了解行业动态，获取最新资讯"
+      - name: "articleListBgImage"
+        label: "横幅背景图"
+        type: "image"
+        default: ""
+      - name: "articleListLayout"
+        label: "布局样式"
+        type: "select"
+        default: "list"
+        options:
+          - value: "list"
+            label: "列表式"
+          - value: "card"
+            label: "卡片式"
+          - value: "grid"
+            label: "网格式"
+      - name: "articleListColumns"
+        label: "网格列数"
+        type: "select"
+        default: "3"
+        description: "仅网格式布局生效"
+        options:
+          - value: "2"
+            label: "2列"
+          - value: "3"
+            label: "3列"
+          - value: "4"
+            label: "4列"
+      - name: "articleListPageSize"
+        label: "每页数量"
+        type: "number"
+        default: 9
+        min: 3
+        max: 20
+      - name: "articleListShowCategory"
+        label: "显示分类筛选"
+        type: "switch"
+        default: true
+      - name: "articleListShowSidebar"
+        label: "启用侧边栏"
+        type: "switch"
+        default: false
+      - name: "articleListSidebarPosition"
+        label: "侧边栏位置"
+        type: "select"
+        default: "right"
+        options:
+          - value: "left"
+            label: "左侧"
+          - value: "right"
+            label: "右侧"
 
   # ========== 服务项目 ==========
   - section: "services"

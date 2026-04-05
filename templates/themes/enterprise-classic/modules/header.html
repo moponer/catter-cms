@@ -1,4 +1,5 @@
 {{ define "header" }}
+<script>document.body.dataset.colorScheme = "{{ getConfig "colorScheme" "default" }}";</script>
 <nav class="site-header">
     <div class="container">
         <div class="header-inner">
@@ -6,15 +7,19 @@
                 {{ $logo := getConfig "logo" "" }}
                 {{ if $logo }}
                 <img src="{{ $logo }}" alt="{{ .site.title }}" class="header-logo-img">
+                {{ else }}
+                <span class="header-logo-text logo-text-only">{{ .site.title }}</span>
                 {{ end }}
-                <span class="header-logo-text">{{ .site.title }}</span>
+                {{ if .site.description }}
+                <span class="header-logo-desc">{{ .site.description }}</span>
+                {{ end }}
             </a>
             <ul class="header-menu" id="headerMenu">
                 {{ with .headerMenu }}{{ range .Items }}
                 <li><a href="{{ .URL }}">{{ .Label }}</a></li>
                 {{ end }}{{ else }}
                 <li><a href="/">首页</a></li>
-                <li><a href="/article-list">新闻资讯</a></li>
+                <li><a href="/article">新闻资讯</a></li>
                 <li><a href="/page/about">关于我们</a></li>
                 {{ end }}
             </ul>
