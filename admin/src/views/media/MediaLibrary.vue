@@ -418,14 +418,21 @@ const handleUpload = async (file) => {
     const formData = new FormData()
     formData.append('file', uploadFile)
 
-    await post('/api/media/upload', formData, {
+    const res = await post('/api/media/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-    task.status = 'done'
-    loadMedia()
+    // 兼容多种响应格式
+    const url = res?.data?.url || res?.data?.path || res?.url || res?.path
+    if (url) {
+      // 上传成功即标记完成，loadMedia 在用户关闭队列或刷新时再调
+      const idx = uploadQueue.value.findIndex(t => t.id === taskId)
+      if (idx > -1) uploadQueue.value.splice(idx, 1, { ...uploadQueue.value[idx], status: 'done' })
+    } else {
+      throw new Error('服务器返回格式异常')
+    }
   } catch (error) {
-    task.status = 'error'
-    task.error = error?.message || '上传失败'
+    const idx = uploadQueue.value.findIndex(t => t.id === taskId)
+    if (idx > -1) uploadQueue.value.splice(idx, 1, { ...uploadQueue.value[idx], status: 'error', error: error?.message || '上传失败' })
   }
   return false
 }

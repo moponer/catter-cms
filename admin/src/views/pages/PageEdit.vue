@@ -245,6 +245,49 @@
             </el-form-item>
           </el-form>
         </el-card>
+
+        <!-- 侧边栏设置 -->
+        <el-card class="sidebar-card" v-if="currentTemplateConfig?.hasSidebar || form.template === 'default'">
+          <template #header>
+            <span>侧边栏设置</span>
+          </template>
+          <el-form :model="form" label-position="top">
+            <el-form-item label="启用侧边栏">
+              <el-switch v-model="sidebarConfig.enabled" @change="handleSidebarChange" />
+              <div class="form-tip">启用后页面将显示侧边栏模块</div>
+            </el-form-item>
+
+            <template v-if="sidebarConfig.enabled">
+              <el-form-item label="侧边栏位置">
+                <el-radio-group v-model="sidebarConfig.position" @change="handleSidebarChange">
+                  <el-radio value="right">右侧</el-radio>
+                  <el-radio value="left">左侧</el-radio>
+                </el-radio-group>
+              </el-form-item>
+
+              <el-form-item label="侧边栏模块">
+                <div class="sidebar-modules">
+                  <div v-if="!sidebarModules.length" class="empty-tip">
+                    暂无可用模块
+                  </div>
+                  <div
+                    v-for="mod in sidebarModules"
+                    :key="mod.id"
+                    class="sidebar-module-item"
+                  >
+                    <el-checkbox
+                      :model-value="isModuleEnabled(mod.id)"
+                      @change="(val) => toggleModule(mod.id, val)"
+                    >
+                      <i :class="mod.icon" style="margin-right: 4px;"></i>
+                      {{ mod.name }}
+                    </el-checkbox>
+                  </div>
+                </div>
+              </el-form-item>
+            </template>
+          </el-form>
+        </el-card>
       </div>
     </div>
   </div>
@@ -306,6 +349,86 @@ const showDefaultEditor = computed(() => {
   const fields = currentTemplateConfig.value.fields
   return !fields || fields.length === 0
 })
+
+// 侧边栏模块列表（从主题配置获取）
+const sidebarModules = ref([])
+
+// 侧边栏配置
+const sidebarConfig = reactive({
+  enabled: false,
+  position: 'right',
+  modules: [] // [{id, enabled, sort}]
+})
+
+// 检查模块是否启用
+const isModuleEnabled = (moduleId) => {
+  const mod = sidebarConfig.modules.find(m => m.id === moduleId)
+  return mod ? mod.enabled : false
+}
+
+// 切换模块启用状态
+const toggleModule = (moduleId, enabled) => {
+  const existingMod = sidebarConfig.modules.find(m => m.id === moduleId)
+  if (existingMod) {
+    existingMod.enabled = enabled
+  } else {
+    sidebarConfig.modules.push({
+      id: moduleId,
+      enabled,
+      sort: sidebarConfig.modules.length + 1
+    })
+  }
+  handleSidebarChange()
+}
+
+// 侧边栏配置变更处理
+const handleSidebarChange = () => {
+  // 将侧边栏配置保存到 templateDataObj.sidebar 中
+  form.templateDataObj.sidebar = {
+    enabled: sidebarConfig.enabled,
+    position: sidebarConfig.position,
+    modules: sidebarConfig.modules.filter(m => m.enabled)
+  }
+}
+
+// 加载侧边栏模块列表
+const loadSidebarModules = async () => {
+  try {
+    const res = await getPageTemplates()
+    if (res.code === 0 && res.data) {
+      sidebarModules.value = res.data.sidebarModules || []
+      // 如果有模板默认配置，应用它
+      const defaults = res.data.templateSidebarDefaults || {}
+      const templateType = form.template === 'default' ? 'page' : form.template
+      if (defaults[templateType]) {
+        const defaultConfig = defaults[templateType]
+        sidebarConfig.position = defaultConfig.position || 'right'
+        // 从模块列表初始化默认启用的模块
+        if (defaultConfig.modules && defaultConfig.modules.length > 0) {
+          sidebarConfig.modules = defaultConfig.modules.map(m => ({
+            id: m.id,
+            enabled: m.enabled,
+            sort: m.sort
+          }))
+        }
+      }
+    }
+  } catch (error) {
+    console.error('加载侧边栏模块失败:', error)
+  }
+}
+
+// 初始化侧边栏配置（从 templateData 中读取）
+const initSidebarConfig = () => {
+  const sidebarData = form.templateDataObj.sidebar
+  if (sidebarData) {
+    sidebarConfig.enabled = sidebarData.enabled || false
+    sidebarConfig.position = sidebarData.position || 'right'
+    if (sidebarData.modules && sidebarData.modules.length > 0) {
+      sidebarConfig.modules = sidebarData.modules
+    }
+  }
+}
 
 // 加载页面模板列表
 const loadPageTemplates = async () => {
@@ -443,6 +566,8 @@ const loadPage = async () => {
     })
     // 反序列化 template_data
     deserializeTemplateData(form.template_data)
+    // 初始化侧边栏配置
+    initSidebarConfig()
   } catch (error) {
     ElMessage.error('加载页面失败')
   }
@@ -523,6 +648,7 @@ const handleImageUpload = async (file) => {
 onMounted(() => {
   loadPageTemplates()
   loadPageOptions()
+  loadSidebarModules()
   loadPage()
 })
 </script>
@@ -639,6 +765,45 @@ onMounted(() => {
   max-height: 150px;
   border-radius: 4px;
   margin-bottom: 10px;
+}
+
+/* 侧边栏设置卡片 */
+.sidebar-card {
+  margin-top: var(--spacing-md);
+}
+
+.sidebar-card :deep(.el-card__header) {
+  background: var(--el-fill-color-light);
+}
+
+.sidebar-modules {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-module-item {
+  padding: 8px 12px;
+  background: var(--el-fill-color-light);
+  border-radius: 6px;
+  transition: background var(--transition-fast);
+}
+
+.sidebar-module-item:hover {
+  background: var(--el-fill-color);
+}
+
+.empty-tip {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.form-tip {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 4px;
 }
 
 @media (max-width: 1024px) {

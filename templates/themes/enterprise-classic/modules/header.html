@@ -1,0 +1,27 @@
+{{ define "header" }}
+<nav class="site-header">
+    <div class="container">
+        <div class="header-inner">
+            <a href="/" class="header-logo">
+                {{ $logo := getConfig "logo" "" }}
+                {{ if $logo }}
+                <img src="{{ $logo }}" alt="{{ .site.title }}" class="header-logo-img">
+                {{ end }}
+                <span class="header-logo-text">{{ .site.title }}</span>
+            </a>
+            <ul class="header-menu" id="headerMenu">
+                {{ with .headerMenu }}{{ range .Items }}
+                <li><a href="{{ .URL }}">{{ .Label }}</a></li>
+                {{ end }}{{ else }}
+                <li><a href="/">首页</a></li>
+                <li><a href="/article-list">新闻资讯</a></li>
+                <li><a href="/page/about">关于我们</a></li>
+                {{ end }}
+            </ul>
+            <button class="header-toggle" id="headerToggle" aria-label="菜单">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</nav>
+{{ end }}

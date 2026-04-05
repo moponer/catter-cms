@@ -2,7 +2,7 @@
   <div class="icon-picker">
     <!-- 当前选中的图标显示 -->
     <div class="icon-preview" @click="dialogVisible = true">
-      <i v-if="modelValue" :class="getIconClass(modelValue.replace('fa-', ''))"></i>
+      <i v-if="modelValue" :class="modelValue"></i>
       <span v-else class="placeholder-text">点击选择图标</span>
     </div>
 
@@ -55,7 +55,7 @@
       <template #footer>
         <div class="dialog-footer">
           <span v-if="modelValue" class="selected-info">
-            当前: <i :class="getIconClass(modelValue.replace('fa-', ''))"></i> {{ modelValue }}
+            当前: <i :class="modelValue"></i> {{ modelValue }}
           </span>
           <el-button @click="dialogVisible = false">关闭</el-button>
         </div>
@@ -85,9 +85,16 @@ const dialogVisible = ref(false)
 const searchKeyword = ref('')
 const selectedCategory = ref('常用')
 
-// 获取图标的完整 class（包含 fa-solid 前缀）
+// 判断是否为品牌图标（id 以 brands/ 开头）
+const isBrandIcon = (iconId) => iconId && iconId.startsWith('brands/')
+
+// 获取图标的完整 class（包含前缀）
 const getIconClass = (iconId) => {
   if (!iconId) return ''
+  if (isBrandIcon(iconId)) {
+    // brands/xxx → fa-brands fa-xxx
+    return `fa-brands ${iconId.replace('brands/', 'fa-')}`
+  }
   // 如果已经包含 fa- 前缀，直接返回
   if (iconId.startsWith('fa-')) {
     return `fa-solid ${iconId}`
@@ -95,10 +102,14 @@ const getIconClass = (iconId) => {
   return `fa-solid fa-${iconId}`
 }
 
-// 判断 modelValue 是否选中
+// 判断 modelValue 是否选中（兼容普通 fa-xxx 和品牌 fa-brands fa-xxx 格式）
 const isIconSelected = (iconId) => {
-  const fullClass = `fa-${iconId}`
-  return props.modelValue === fullClass
+  if (isBrandIcon(iconId)) {
+    // brands/weixin → 比较 fa-brands fa-weixin
+    return props.modelValue === `fa-brands ${iconId.replace('brands/', 'fa-')}`
+  }
+  // 普通 → 比较 fa-xxx
+  return props.modelValue === `fa-${iconId}`
 }
 
 // 分类列表
@@ -159,7 +170,13 @@ const filteredIcons = computed(() => {
 
 // 选择图标
 const selectIcon = (icon) => {
-  emit('update:modelValue', `fa-${icon.id}`)
+  if (isBrandIcon(icon.id)) {
+    // brands/xxx → 输出 fa-brands fa-xxx（完整格式，模板中可直接用作 class）
+    emit('update:modelValue', `fa-brands ${icon.id.replace('brands/', 'fa-')}`)
+  } else {
+    // 普通 → 输出 fa-xxx（保持向后兼容）
+    emit('update:modelValue', `fa-${icon.id}`)
+  }
   dialogVisible.value = false
   searchKeyword.value = ''
 }

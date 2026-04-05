@@ -1,0 +1,447 @@
+name: 企业经典官网
+version: 1.0.0
+description: 清爽简洁的企业官网主题，深蓝配色，模块化设计
+author: Catter CMS Team
+
+configDefinition:
+  # ========== 全局设置 ==========
+  - section: "global"
+    label: "全局设置"
+    icon: "cog"
+    fields:
+      - name: "logo"
+        label: "Logo图片"
+        type: "image"
+        default: ""
+      - name: "footerCopyright"
+        label: "底部版权信息"
+        type: "text"
+        default: "Copyright © 2026 公司名称 版权所有"
+
+  # ========== Hero 模块 ==========
+  - section: "hero"
+    label: "Hero 横幅"
+    icon: "image"
+    fields:
+      - name: "heroEnabled"
+        label: "启用模块"
+        type: "switch"
+        default: true
+      - name: "heroTitle"
+        label: "主标题"
+        type: "text"
+        default: "专业、创新、值得信赖"
+      - name: "heroSubtitle"
+        label: "副标题"
+        type: "text"
+        default: "为您提供优质的行业解决方案"
+      - name: "heroBgImage"
+        label: "背景图片"
+        type: "image"
+        default: ""
+      - name: "heroBtnText"
+        label: "按钮文字"
+        type: "text"
+        default: ""
+      - name: "heroBtnLink"
+        label: "按钮链接"
+        type: "text"
+        default: ""
+
+  # ========== 关于我们 ==========
+  - section: "about"
+    label: "关于我们"
+    icon: "info-circle"
+    fields:
+      - name: "aboutEnabled"
+        label: "启用模块"
+        type: "switch"
+        default: true
+      - name: "aboutTitle"
+        label: "区块标题"
+        type: "text"
+        default: "关于我们"
+      - name: "aboutImage"
+        label: "展示图片（单张）"
+        type: "image"
+        default: ""
+        description: "兼容旧数据，建议改用「多图轮播」"
+      - name: "aboutImages"
+        label: "多图轮播"
+        type: "image-list"
+        default: []
+        description: "推荐使用，支持多张图片自动轮播"
+      - name: "aboutContent"
+        label: "简介内容"
+        type: "textarea"
+        default: "这是一段公司简介，请前往后台编辑。"
+
+  # ========== 新闻资讯 ==========
+  - section: "news"
+    label: "新闻资讯"
+    icon: "newspaper-o"
+    fields:
+      - name: "newsEnabled"
+        label: "启用模块"
+        type: "switch"
+        default: true
+      - name: "newsTitle"
+        label: "区块标题"
+        type: "text"
+        default: "新闻资讯"
+
+  # ========== 服务项目 ==========
+  - section: "services"
+    label: "服务项目"
+    icon: "briefcase"
+    fields:
+      - name: "servicesEnabled"
+        label: "启用模块"
+        type: "switch"
+        default: true
+      - name: "servicesTitle"
+        label: "区块标题"
+        type: "text"
+        default: "服务项目"
+      - name: "servicesSubtitle"
+        label: "区块副标题"
+        type: "text"
+        default: "为客户提供全方位的专业物流服务"
+      - name: "servicesList"
+        label: "服务列表"
+        type: "repeater"
+        itemTitle: "title"
+        default:
+          - icon: "fa-solid fa-truck-fast"
+            title: "国内零担配送"
+            description: "覆盖全国主要城市的零担配送网络，门到门服务，实时货物追踪，确保货物安全准时送达。"
+          - icon: "fa-solid fa-truck"
+            title: "国内长途整车配送"
+            description: "提供全国范围内的整车运输服务，专业调度团队优化路线，降低运输成本，保障时效。"
+          - icon: "fa-solid fa-ship"
+            title: "集装箱运输"
+            description: "涵盖海运、铁路集装箱运输，提供整箱及拼箱服务，对接全球主要港口航线。"
+          - icon: "fa-solid fa-flask"
+            title: "危险品运输"
+            description: "持有危险品运输资质，专业车辆与持证驾驶员，全程符合安全监管要求。"
+        fields:
+          - name: "icon"
+            label: "图标"
+            type: "icon"
+          - name: "title"
+            label: "标题"
+            type: "text"
+          - name: "description"
+            label: "描述"
+            type: "textarea"
+
+  # ========== 展示模块（产品展示） ==========
+  - section: "showcase"
+    label: "展示模块"
+    icon: "th-large"
+    fields:
+      - name: "showcaseEnabled"
+        label: "启用模块"
+        type: "switch"
+        default: true
+      - name: "showcaseTitle"
+        label: "区块标题"
+        type: "text"
+        default: "产品展示"
+      - name: "showcaseCategories"
+        label: "产品分类"
+        type: "repeater"
+        itemTitle: "name"
+        default:
+          - name: "全部"
+          - name: "分类一"
+          - name: "分类二"
+        fields:
+          - name: "name"
+            label: "分类名称"
+            type: "text"
+      - name: "showcaseItems"
+        label: "产品列表"
+        type: "repeater"
+        itemTitle: "title"
+        default:
+          - title: "产品一"
+            image: ""
+            category: "分类一"
+            description: "请前往后台编辑产品描述。"
+          - title: "产品二"
+            image: ""
+            category: "分类一"
+            description: "请前往后台编辑产品描述。"
+          - title: "产品三"
+            image: ""
+            category: "分类二"
+            description: "请前往后台编辑产品描述。"
+        fields:
+          - name: "title"
+            label: "产品名称"
+            type: "text"
+          - name: "image"
+            label: "产品图片"
+            type: "image"
+          - name: "category"
+            label: "所属分类"
+            type: "text"
+          - name: "description"
+            label: "产品描述"
+            type: "textarea"
+
+  # ========== 自定义代码 ==========
+  - section: "custom"
+    label: "自定义代码"
+    icon: "code"
+    fields:
+      - name: "customHead"
+        label: "头部代码（<head> 内）"
+        type: "code"
+        language: "html"
+        default: ""
+      - name: "customFooter"
+        label: "底部代码（</body> 前）"
+        type: "code"
+        language: "html"
+        default: ""
+
+  # ========== 侧边栏模块配置 ==========
+  - section: "sidebar"
+    label: "侧边栏模块"
+    icon: "columns"
+    description: "配置侧边栏各模块的内容和显示参数，页面编辑中可自由选择启用哪些模块"
+    fields:
+      # --- 最新文章 ---
+      - name: "sidebarRecentPostsCount"
+        label: "最新文章 - 显示数量"
+        type: "number"
+        default: 5
+        min: 1
+        max: 20
+      # --- 热门文章 ---
+      - name: "sidebarHotPostsCount"
+        label: "热门文章 - 显示数量"
+        type: "number"
+        default: 5
+        min: 1
+        max: 20
+      # --- 标签云 ---
+      - name: "sidebarTagsCount"
+        label: "标签云 - 显示数量"
+        type: "number"
+        default: 20
+        min: 1
+        max: 50
+      # --- 社交链接 ---
+      - name: "sidebarSocialLinks"
+        label: "社交链接"
+        type: "repeater"
+        itemTitle: "name"
+        default: []
+        fields:
+          - name: "name"
+            label: "平台名称"
+            type: "text"
+            placeholder: "如：微信、微博、GitHub"
+          - name: "icon"
+            label: "图标"
+            type: "icon"
+            description: "选择社交媒体图标，如 brands 分类下的微信、微博等"
+          - name: "url"
+            label: "链接地址"
+            type: "text"
+            placeholder: "https://"
+      # --- 友情链接 ---
+      - name: "sidebarFriendLinks"
+        label: "友情链接"
+        type: "repeater"
+        itemTitle: "name"
+        default: []
+        fields:
+          - name: "name"
+            label: "站点名称"
+            type: "text"
+          - name: "icon"
+            label: "图标"
+            type: "icon"
+            description: "选择友站图标，可选"
+          - name: "url"
+            label: "链接地址"
+            type: "text"
+            placeholder: "https://"
+      # --- 最新评论 ---
+      - name: "sidebarRecentCommentsCount"
+        label: "最新评论 - 显示数量"
+        type: "number"
+        default: 5
+        min: 1
+        max: 20
+      # --- 自定义HTML ---
+      - name: "sidebarCustomHtml"
+        label: "自定义HTML内容"
+        type: "code"
+        language: "html"
+        default: ""
+        description: "在侧边栏显示一段自定义HTML代码"
+
+# =============================================
+# 侧边栏模块定义
+# 主题提供的所有侧边栏模块，页面可自由组合
+# =============================================
+sidebarModules:
+  - id: "recent_posts"
+    name: "最新文章"
+    icon: "fa-solid fa-clock"
+    limit: 5
+  - id: "hot_posts"
+    name: "热门文章"
+    icon: "fa-solid fa-fire"
+    limit: 5
+  - id: "categories"
+    name: "分类列表"
+    icon: "fa-solid fa-folder"
+    show_count: true
+  - id: "tags"
+    name: "标签云"
+    icon: "fa-solid fa-tags"
+    limit: 20
+  - id: "site_info"
+    name: "站点信息"
+    icon: "fa-solid fa-globe"
+  - id: "search"
+    name: "搜索框"
+    icon: "fa-solid fa-search"
+  - id: "social_links"
+    name: "社交链接"
+    icon: "fa-solid fa-share-nodes"
+  - id: "custom_html"
+    name: "自定义HTML"
+    icon: "fa-solid fa-code"
+    html_content: ""
+  - id: "recent_comments"
+    name: "最新评论"
+    icon: "fa-solid fa-comments"
+    limit: 5
+  - id: "links"
+    name: "友情链接"
+    icon: "fa-solid fa-link"
+
+# =============================================
+# 模板默认侧边栏配置
+# 继承关系：页面template_data > 模板默认配置 > 全局默认
+# =============================================
+templateSidebarDefaults:
+  # 文章详情页 - 默认启用侧边栏
+  "article_show":
+    enabled: true
+    position: "right"  # left / right
+    modules:
+      - id: "recent_posts"
+        enabled: true
+        sort: 1
+      - id: "categories"
+        enabled: true
+        sort: 2
+      - id: "tags"
+        enabled: true
+        sort: 3
+
+  # 单页模板默认不启用侧边栏
+  "page":
+    enabled: false
+    position: "right"
+    modules: []
+
+  "page-gallery":
+    enabled: false
+    position: "right"
+    modules: []
+
+  "page-contact":
+    enabled: false
+    position: "right"
+    modules: []
+
+  # 列表页默认不启用
+  "article_list":
+    enabled: false
+    position: "right"
+    modules: []
+
+  "category":
+    enabled: false
+    position: "right"
+    modules: []
+
+  "tag":
+    enabled: false
+    position: "right"
+    modules: []
+
+# =============================================
+# 页面模板定义
+# 用户在管理后台创建页面时可选择以下模板
+# =============================================
+pageTemplates:
+  - type: "gallery"
+    name: "图片灯箱"
+    icon: "fa-solid fa-images"
+    description: "适用于图片展示页面，支持灯箱浏览"
+    hasSidebar: true
+    fields:
+      - name: "columns"
+        label: "列数"
+        type: "select"
+        default: "3"
+        options:
+          - value: "2"
+            label: "2列"
+          - value: "3"
+            label: "3列"
+          - value: "4"
+            label: "4列"
+      - name: "images"
+        label: "图片列表"
+        type: "image-list"
+        placeholder: "点击上传或从媒体库选择图片"
+
+  - type: "contact"
+    name: "联系我们"
+    icon: "fa-solid fa-envelope"
+    description: "联系信息展示页面，包含电话/邮箱/地址"
+    hasSidebar: true
+    fields:
+      - name: "contactTitle"
+        label: "页面标题"
+        type: "text"
+        default: "联系我们"
+      - name: "contactImage"
+        label: "配图"
+        type: "image"
+        default: ""
+      - name: "contactInfo"
+        label: "联系信息"
+        type: "repeater"
+        itemTitle: "label"
+        default:
+          - label: "电话"
+            icon: "fa-solid fa-phone"
+            value: "400-888-8888"
+          - label: "邮箱"
+            icon: "fa-solid fa-envelope"
+            value: "info@example.com"
+          - label: "地址"
+            icon: "fa-solid fa-location-dot"
+            value: "浙江省杭州市西湖区"
+        fields:
+          - name: "label"
+            label: "名称"
+            type: "text"
+          - name: "icon"
+            label: "图标"
+            type: "text"
+          - name: "value"
+            label: "内容"
+            type: "text"

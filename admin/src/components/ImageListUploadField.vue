@@ -18,8 +18,8 @@
               </div>
             </div>
             <div class="image-meta">
-              <el-input v-model="element.title" placeholder="图片标题(可选)" size="small" />
-              <el-input v-model="element.link" placeholder="点击链接(可选)" size="small" />
+              <el-input v-model="element.title" placeholder="图片标题(可选)" size="small" @input="updateValue" />
+              <el-input v-model="element.link" placeholder="点击链接(可选)" size="small" @input="updateValue" />
             </div>
           </div>
         </template>
@@ -220,6 +220,11 @@ const updateValue = () => {
   emit('update:modelValue', JSON.stringify(imageList.value))
 }
 
+// Watch imageList changes to auto-save
+watch(imageList, () => {
+  updateValue()
+}, { deep: true })
+
 // Upload state
 const uploading = ref(false)
 
@@ -347,14 +352,19 @@ const handleUpload = async (file) => {
     const res = await post('/api/media/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-    const url = res.data?.url || res.data?.path
+    // 兼容多种响应格式
+    const url = res?.data?.url || res?.data?.path || res?.url || res?.path
     if (url) {
       imageList.value.push({ url, title: '', link: '' })
       updateValue()
+      const idx = uploadQueue.value.findIndex(t => t.id === taskId)
+      if (idx > -1) uploadQueue.value.splice(idx, 1)
+    } else {
+      throw new Error('服务器返回格式异常')
     }
-    task.status = 'done'
   } catch (error) {
-    task.status = 'error'
+    const idx = uploadQueue.value.findIndex(t => t.id === taskId)
+    if (idx > -1) uploadQueue.value.splice(idx, 1, { ...uploadQueue.value[idx], status: 'error' })
   }
   return false
 }

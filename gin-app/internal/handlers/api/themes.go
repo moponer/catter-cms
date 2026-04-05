@@ -668,8 +668,10 @@ func GetPageTemplates(c *gin.Context) {
 			return
 		}
 		SuccessResponse(c, gin.H{
-			"templates":    activeTheme.PageTemplates,
-			"templateMap": buildTemplateMap(activeTheme.PageTemplates),
+			"templates":           activeTheme.PageTemplates,
+			"templateMap":          buildTemplateMap(activeTheme.PageTemplates),
+			"sidebarModules":       activeTheme.SidebarModules,
+			"templateSidebarDefaults": activeTheme.TemplateSidebarDefaults,
 		})
 		return
 	}
@@ -681,8 +683,10 @@ func GetPageTemplates(c *gin.Context) {
 	}
 
 	SuccessResponse(c, gin.H{
-		"templates":    theme.PageTemplates,
-		"templateMap": buildTemplateMap(theme.PageTemplates),
+		"templates":           theme.PageTemplates,
+		"templateMap":        buildTemplateMap(theme.PageTemplates),
+		"sidebarModules":     theme.SidebarModules,
+		"templateSidebarDefaults": theme.TemplateSidebarDefaults,
 	})
 }
 

@@ -13,6 +13,7 @@
             :preview-src-list="[currentTheme.thumbnail]"
             fit="cover"
             preview-teleported
+            :preview-z-index="9999"
           >
             <template #error>
               <div class="theme-thumbnail-placeholder"><i class="fa-solid fa-image"></i></div>

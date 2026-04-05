@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    {{ if .site.favicon }}
+    <link rel="icon" href="{{ .site.favicon }}">
+    {{ end }}
+    <title>{{ .post.Title }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ .post.MetaDescription }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/sidebar.css" }}">
+    {{ if getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" }}
+    {{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+{{ $heroBg := getConfig "heroBgImage" "" }}
+{{ if $heroBg }}
+<div class="page-banner" style="background-image:url('{{ $heroBg }}')">
+{{ else }}
+<div class="page-banner">
+{{ end }}
+    <h1 class="page-banner-title">{{ .post.Title }}</h1>
+    <div class="page-banner-breadcrumb">
+        <a href="/">首页</a><span>›</span><a href="/article">新闻资讯</a><span>›</span>{{ .post.Title }}
+    </div>
+</div>
+
+{{/* 获取侧边栏配置（.td 可能为 nil） */}}
+{{ $td := .td }}
+{{ if not $td }}{{ $td = dict }}{{ end }}
+{{ $sidebarCfg := index $td "sidebar" }}
+{{ $pageData := dict "template_type" "article_show" "sidebar" $sidebarCfg }}
+{{ $sidebarEnabled := sidebarEnabled $pageData }}
+{{ $sidebarPosition := sidebarPosition $pageData }}
+{{ $sidebarModules := getSidebarModules $pageData }}
+
+<main class="main-wrapper">
+    <div class="container">
+        {{/* 根据侧边栏状态选择不同布局 */}}
+        {{ if and $sidebarEnabled $sidebarModules }}
+        <div class="with-sidebar" style="display:flex;gap:var(--space-xl);align-items:flex-start;">
+            <article class="article-content-wrap" style="flex:1;max-width:100%;margin:0;">
+        {{ else }}
+        <div class="article-content-wrap" style="max-width:860px;margin:0 auto;">
+        {{ end }}
+
+                <div class="article-meta">
+                    {{ with .post.Category }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
+                    {{ range .post.Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
+                    <span class="article-meta-item"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" .post.PublishedAt }}</span>
+                </div>
+                {{ if .post.Cover }}
+                <img src="{{ .post.Cover }}" alt="{{ .post.Title }}" class="article-cover">
+                {{ end }}
+                <div class="article-body">{{ markdownHTML .post.Content }}</div>
+
+                {{ if or .prevPost .nextPost }}
+                <div class="article-nav">
+                    {{ with .prevPost }}
+                    <a href="/article/{{ .Slug }}" class="article-nav-item prev">
+                        <div class="article-nav-label">上一篇</div>
+                        <div class="article-nav-title">{{ .Title }}</div>
+                    </a>
+                    {{ end }}
+                    {{ with .nextPost }}
+                    <a href="/article/{{ .Slug }}" class="article-nav-item next">
+                        <div class="article-nav-label">下一篇</div>
+                        <div class="article-nav-title">{{ .Title }}</div>
+                    </a>
+                    {{ end }}
+                </div>
+                {{ end }}
+
+        {{ if and $sidebarEnabled $sidebarModules }}
+            </article>
+            {{ template "sidebar" dict "modules" $sidebarModules "position" $sidebarPosition }}
+        </div>
+        {{ else }}
+        </div>
+        {{ end }}
+    </div>
+</main>
+
+{{ template "footer" . }}
+</body>
+</html>

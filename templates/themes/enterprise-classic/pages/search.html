@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    {{ if .site.favicon }}
+    <link rel="icon" href="{{ .site.favicon }}">
+    {{ end }}
+    <title>搜索：{{ .query }} - {{ .site.title }}</title>
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    {{ if getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" }}
+    {{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+{{ $heroBg := getConfig "heroBgImage" "" }}
+{{ if $heroBg }}
+<div class="page-banner" style="background-image:url('{{ $heroBg }}')">
+{{ else }}
+<div class="page-banner">
+{{ end }}
+    <h1 class="page-banner-title">搜索结果</h1>
+    <div class="page-banner-breadcrumb">
+        <a href="/">首页</a><span>›</span>搜索：{{ .query }}
+    </div>
+</div>
+
+<main class="main-wrapper">
+    <div class="container">
+        <p class="search-count-text">
+            共找到 <strong style="color:var(--primary)">{{ .count }}</strong> 条与 "<strong>{{ .query }}</strong>" 相关的结果
+        </p>
+        {{ range .posts }}
+        <a href="/article/{{ .Slug }}" class="news-list-item-row">
+            {{ if .Cover }}
+            <img src="{{ .Cover }}" alt="{{ .Title }}" class="news-list-thumb">
+            {{ else }}
+            <div class="news-list-thumb-placeholder"><i class="fa-regular fa-newspaper"></i></div>
+            {{ end }}
+            <div class="news-list-body">
+                <div class="news-list-meta">
+                    <span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span>
+                </div>
+                <div class="news-list-item-title">{{ .Title }}</div>
+                <p class="news-list-excerpt">{{ .Excerpt }}</p>
+            </div>
+        </a>
+        {{ else }}
+        <div class="search-no-results">
+            <div class="search-no-results-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <p class="search-no-results-title">未找到相关结果</p>
+            <p class="search-no-results-link">请尝试其他关键词，或<a href="/article">浏览全部文章</a></p>
+        </div>
+        {{ end }}
+    </div>
+</main>
+
+{{ template "footer" . }}
+</body>
+</html>

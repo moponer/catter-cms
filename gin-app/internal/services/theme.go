@@ -18,6 +18,7 @@ import (
 	"catter-cms-gin/config"
 	"catter-cms-gin/internal/models"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/yuin/goldmark"
 	"gopkg.in/yaml.v3"
 )
@@ -41,7 +42,32 @@ type PageTemplate struct {
 	Type        string  `yaml:"type" json:"type"`
 	Icon        string  `yaml:"icon" json:"icon"`
 	Description string  `yaml:"description" json:"description"`
+	HasSidebar  bool    `yaml:"hasSidebar" json:"hasSidebar"` // 是否支持侧边栏
 	Fields      []Field `yaml:"fields" json:"fields"`
+}
+
+// SidebarModule 侧边栏模块定义
+type SidebarModule struct {
+	ID          string      `yaml:"id" json:"id"`
+	Name        string      `yaml:"name" json:"name"`
+	Icon        string      `yaml:"icon" json:"icon"`
+	Limit       int         `yaml:"limit" json:"limit"`
+	ShowCount   bool        `yaml:"show_count" json:"show_count"`
+	HTMLContent string      `yaml:"html_content" json:"html_content"`
+}
+
+// SidebarModuleItem 页面中配置的侧边栏模块项
+type SidebarModuleItem struct {
+	ID      string `yaml:"id" json:"id"`
+	Enabled  bool   `yaml:"enabled" json:"enabled"`
+	Sort     int    `yaml:"sort" json:"sort"`
+}
+
+// TemplateSidebarConfig 模板的默认侧边栏配置
+type TemplateSidebarConfig struct {
+	Enabled   bool                `yaml:"enabled" json:"enabled"`
+	Position  string              `yaml:"position" json:"position"` // left / right
+	Modules   []SidebarModuleItem `yaml:"modules" json:"modules"`
 }
 
 // UnmarshalYAML 兼容多种 YAML 格式
@@ -172,16 +198,18 @@ func flattenRecursive(m map[string]interface{}, prefix string, result map[string
 
 // Theme 主题结构
 type Theme struct {
-	Name             string                 `yaml:"name"`
-	Version          string                 `yaml:"version"`
-	Description      string                 `yaml:"description"`
-	Author           string                 `yaml:"author"`
-	Screenshots      []string               `yaml:"screenshots"`
-	Thumbnail        string                 `yaml:"thumbnail"`
-	Path             string                 // 主题路径
-	Config           map[string]interface{} `yaml:"config"`
-	ConfigDefinition []ConfigSection        `yaml:"configDefinition"`
-	PageTemplates    []PageTemplate         `yaml:"pageTemplates"`
+	Name                    string                 `yaml:"name"`
+	Version                 string                 `yaml:"version"`
+	Description             string                 `yaml:"description"`
+	Author                  string                 `yaml:"author"`
+	Screenshots             []string               `yaml:"screenshots"`
+	Thumbnail               string                 `yaml:"thumbnail"`
+	Path                    string                 // 主题路径
+	Config                  map[string]interface{} `yaml:"config"`
+	ConfigDefinition        []ConfigSection        `yaml:"configDefinition"`
+	PageTemplates           []PageTemplate         `yaml:"pageTemplates"`
+	SidebarModules          []SidebarModule        `yaml:"sidebarModules"`
+	TemplateSidebarDefaults map[string]TemplateSidebarConfig `yaml:"templateSidebarDefaults"`
 }
 
 // TemplateSet 模板集 - 存储组合后的所有模板
@@ -198,6 +226,12 @@ type ThemeService struct {
 	themesPath    string
 	templateMu    sync.RWMutex
 	templateCache map[string]*TemplateSet // 模板缓存: "themeName" -> *TemplateSet
+	// 热加载相关
+	themesMu        sync.RWMutex          // 保护 themes map
+	stopChan        chan struct{}          // 优雅关闭信号
+	watcher         *fsnotify.Watcher      // 文件监控器
+	debounceTimers  map[string]*time.Timer // 每个主题的防抖定时器
+	debounceMu      sync.Mutex             // 保护防抖定时器
 }
 
 // 全局主题服务
@@ -243,6 +277,8 @@ func InitThemeService() error {
 		themes:        make(map[string]*Theme),
 		themesPath:    themesPath,
 		templateCache: make(map[string]*TemplateSet),
+		stopChan:       make(chan struct{}),
+		debounceTimers: make(map[string]*time.Timer),
 	}
 
 	// 加载主题
@@ -269,11 +305,21 @@ func InitThemeService() error {
 		}
 	}
 
+	// 启动主题热加载 watcher
+	themeService.StartThemeWatcher()
+
 	return nil
 }
 
-// LoadThemes 加载所有主题
+// LoadThemes 加载所有主题（加写锁版本）
 func (s *ThemeService) LoadThemes(themesPath string) error {
+	s.themesMu.Lock()
+	defer s.themesMu.Unlock()
+	return s.LoadThemesLocked(themesPath)
+}
+
+// LoadThemesLocked 加载所有主题（内部无锁版本，需调用方持有写锁）
+func (s *ThemeService) LoadThemesLocked(themesPath string) error {
 	// 检查目录是否存在
 	if _, err := os.Stat(themesPath); os.IsNotExist(err) {
 		return fmt.Errorf("themes directory not found: %s", themesPath)
@@ -380,11 +426,14 @@ func (s *ThemeService) SetActiveTheme(name string) error {
 	log.Printf("[DEBUG] SetActiveTheme called with: %s", name)
 	log.Printf("[DEBUG] Currently loaded themes: %v", getLoadedThemeNames())
 
+	s.themesMu.Lock()
+	defer s.themesMu.Unlock()
+
 	theme, ok := s.themes[name]
 	if !ok {
 		// 主题不在内存中，尝试重新加载所有主题
 		log.Printf("[WARN] Theme %s not found in memory, reloading themes...", name)
-		if err := s.LoadThemes(s.themesPath); err != nil {
+		if err := s.LoadThemesLocked(s.themesPath); err != nil {
 			return fmt.Errorf("failed to reload themes: %v", err)
 		}
 		theme, ok = s.themes[name]
@@ -427,6 +476,180 @@ func (s *ThemeService) SetActiveTheme(name string) error {
 	}
 
 	return nil
+}
+
+// StopThemeWatcher 停止文件监控（供外部调用优雅关闭）
+func (s *ThemeService) StopThemeWatcher() {
+	select {
+	case <-s.stopChan:
+		// 已关闭
+		return
+	default:
+		close(s.stopChan)
+	}
+}
+
+// StartThemeWatcher 启动主题文件监控 goroutine
+// 监控 templates/themes/ 目录，增量热更新主题
+func (s *ThemeService) StartThemeWatcher() {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Printf("[WARN] Failed to create theme watcher: %v", err)
+		return
+	}
+	s.watcher = watcher
+
+	// 监听主题目录（不递归，因为每个主题有自己的子目录）
+	if err := watcher.Add(s.themesPath); err != nil {
+		log.Printf("[WARN] Failed to watch themes directory: %v", err)
+		watcher.Close()
+		return
+	}
+
+	go s.watchLoop()
+
+	log.Printf("[INFO] Theme watcher started, monitoring: %s", s.themesPath)
+}
+
+// watchLoop 文件监控事件处理循环
+func (s *ThemeService) watchLoop() {
+	defer func() {
+		if s.watcher != nil {
+			s.watcher.Close()
+		}
+	}()
+
+	for {
+		select {
+		case <-s.stopChan:
+			log.Printf("[INFO] Theme watcher stopped")
+			return
+		case event, ok := <-s.watcher.Events:
+			if !ok {
+				return
+			}
+			s.handleWatchEvent(event)
+		case err, ok := <-s.watcher.Errors:
+			if !ok {
+				return
+			}
+			log.Printf("[WARN] Theme watcher error: %v", err)
+		}
+	}
+}
+
+// handleWatchEvent 处理文件监控事件，带防抖
+func (s *ThemeService) handleWatchEvent(event fsnotify.Event) {
+	// 只关注主题目录下的直接子目录（主题文件夹）内的变更
+	// 忽略 themesPath 本身的事件
+	if event.Name == s.themesPath || event.Name == s.themesPath+string(os.PathSeparator) {
+		return
+	}
+
+	// 获取所属主题名（themesPath/theme-name/...）
+	rel, err := filepath.Rel(s.themesPath, event.Name)
+	if err != nil {
+		return
+	}
+	parts := strings.SplitN(rel, string(os.PathSeparator), 2)
+	if len(parts) < 1 {
+		return
+	}
+	themeName := parts[0]
+	if themeName == "" || themeName == "." {
+		return
+	}
+
+	// 过滤不关心的操作
+	switch {
+	case event.Op&fsnotify.Create == fsnotify.Create:
+		log.Printf("[WATCH] New theme folder detected: %s", themeName)
+	case event.Op&fsnotify.Write == fsnotify.Write,
+		event.Op&fsnotify.Rename == fsnotify.Rename,
+		event.Op&fsnotify.Remove == fsnotify.Remove:
+		log.Printf("[WATCH] Theme changed: %s (%s)", themeName, event.Op)
+	default:
+		return
+	}
+
+	// 防抖：同一主题 500ms 内的多次变更只处理一次
+	s.debounceMu.Lock()
+	if t, ok := s.debounceTimers[themeName]; ok {
+		t.Stop()
+	}
+	s.debounceTimers[themeName] = time.AfterFunc(500*time.Millisecond, func() {
+		s.debounceMu.Lock()
+		delete(s.debounceTimers, themeName)
+		s.debounceMu.Unlock()
+		s.reloadThemeSafely(themeName)
+	})
+	s.debounceMu.Unlock()
+}
+
+// reloadThemeSafely 安全重载单个主题（在线程池执行）
+func (s *ThemeService) reloadThemeSafely(themeName string) {
+	go func() {
+		s.themesMu.Lock()
+		defer s.themesMu.Unlock()
+
+		themePath := filepath.Join(s.themesPath, themeName)
+		themeYml := filepath.Join(themePath, "theme.yml")
+
+		// 检查主题是否仍然存在
+		if _, err := os.Stat(themeYml); err != nil {
+			// 主题被删除了，从 map 中移除
+			if _, existed := s.themes[themeName]; existed {
+				delete(s.themes, themeName)
+				// 清理模板缓存
+				s.templateMu.Lock()
+				delete(s.templateCache, themeName)
+				s.templateMu.Unlock()
+				// 如果是激活主题，尝试切换到其他主题
+				if s.activeTheme != nil && s.activeTheme.Name == themeName {
+					if len(s.themes) > 0 {
+						for name := range s.themes {
+							log.Printf("[WATCH] Switching to fallback theme: %s", name)
+							s.activeTheme = s.themes[name]
+							models.SetActiveTheme(name)
+							break
+						}
+					}
+				}
+				log.Printf("[WATCH] Theme removed from memory: %s", themeName)
+			}
+			return
+		}
+
+		// 新增或修改主题：通过 LoadTheme 验证（可能加载失败，log 并跳过）
+		theme, err := s.LoadTheme(themeName, themePath)
+		if err != nil {
+			log.Printf("[WARN] Theme %s invalid (reload skipped): %v", themeName, err)
+			return
+		}
+
+		s.themes[themeName] = theme
+		// 清理模板缓存，下次渲染会自动重新解析
+		s.templateMu.Lock()
+		delete(s.templateCache, themeName)
+		s.templateMu.Unlock()
+
+		// 如果是激活主题，更新指针并预加载模板
+		if s.activeTheme != nil && s.activeTheme.Name == themeName {
+			s.activeTheme = theme
+			if err := s.preloadAllTemplates(theme); err != nil {
+				log.Printf("[WARN] Failed to preload templates for %s: %v", themeName, err)
+			}
+		}
+
+		log.Printf("[WATCH] Theme reloaded: %s", themeName)
+	}()
+}
+
+// StopThemeWatcher 停止主题文件监控（包级别导出函数，供外部优雅关闭）
+func StopThemeWatcher() {
+	if themeService != nil {
+		themeService.StopThemeWatcher()
+	}
 }
 
 // getLoadedThemeNames 辅助函数，用于日志
@@ -550,6 +773,8 @@ func GetTheme(name string) *Theme {
 	if themeService == nil {
 		return nil
 	}
+	themeService.themesMu.RLock()
+	defer themeService.themesMu.RUnlock()
 	return themeService.themes[name]
 }
 
@@ -566,7 +791,13 @@ func GetAllThemes() map[string]*Theme {
 	if themeService == nil {
 		return nil
 	}
-	return themeService.themes
+	themeService.themesMu.RLock()
+	defer themeService.themesMu.RUnlock()
+	result := make(map[string]*Theme)
+	for k, v := range themeService.themes {
+		result[k] = v
+	}
+	return result
 }
 
 // ReloadTheme 重新加载指定主题（用于配置更新后）
@@ -574,6 +805,9 @@ func ReloadTheme(name string) error {
 	if themeService == nil {
 		return fmt.Errorf("theme service not initialized")
 	}
+
+	themeService.themesMu.Lock()
+	defer themeService.themesMu.Unlock()
 
 	themePath := filepath.Join(themeService.themesPath, name)
 	theme, err := themeService.LoadTheme(name, themePath)
@@ -1241,6 +1475,179 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 			}
 			return result
 		},
+
+		// ===== 侧边栏相关模板函数 =====
+
+		// sidebarEnabled - 判断当前页面是否启用侧边栏
+		// 优先级：页面template_data.sidebar_enabled > 模板默认配置
+		"sidebarEnabled": func(pageData map[string]interface{}) bool {
+			// 1. 优先使用页面级别的配置
+			if sidebarCfg, ok := pageData["sidebar"]; ok {
+				if cfgMap, ok := sidebarCfg.(map[string]interface{}); ok {
+					if enabled, ok := cfgMap["enabled"]; ok {
+						if b, ok := enabled.(bool); ok {
+							return b
+						}
+						// 如果是其他类型（如 number 0/1），也尝试转换
+						if n, ok := enabled.(int); ok {
+							return n != 0
+						}
+					}
+				}
+			}
+			// 2. 如果没有页面配置，尝试获取模板默认配置
+			if theme != nil && theme.TemplateSidebarDefaults != nil {
+				if templateType, ok := pageData["template_type"].(string); ok {
+					if cfg, ok := theme.TemplateSidebarDefaults[templateType]; ok {
+						return cfg.Enabled
+					}
+				}
+			}
+			return false
+		},
+
+		// sidebarPosition - 获取侧边栏位置（left 或 right）
+		"sidebarPosition": func(pageData map[string]interface{}) string {
+			// 1. 优先使用页面级别的配置
+			if sidebarCfg, ok := pageData["sidebar"]; ok {
+				if cfgMap, ok := sidebarCfg.(map[string]interface{}); ok {
+					if pos, ok := cfgMap["position"]; ok {
+						if s, ok := pos.(string); ok {
+							return s
+						}
+					}
+				}
+			}
+			// 2. 如果没有页面配置，尝试获取模板默认配置
+			if theme != nil && theme.TemplateSidebarDefaults != nil {
+				if templateType, ok := pageData["template_type"].(string); ok {
+					if cfg, ok := theme.TemplateSidebarDefaults[templateType]; ok {
+						return cfg.Position
+					}
+				}
+			}
+			return "right"
+		},
+
+		// getSidebarModules - 获取当前页面启用的侧边栏模块列表（带数据）
+		"getSidebarModules": func(pageData map[string]interface{}) []map[string]interface{} {
+			var result []map[string]interface{}
+
+			// 获取启用的模块ID列表和排序
+			enabledModules := make(map[string]int) // moduleID -> sort
+			moduleConfigs := make(map[string]map[string]interface{}) // moduleID -> config
+
+			// 1. 优先使用页面级别的模块配置
+			if sidebarCfg, ok := pageData["sidebar"]; ok {
+				if cfgMap, ok := sidebarCfg.(map[string]interface{}); ok {
+					if modules, ok := cfgMap["modules"]; ok {
+						if modList, ok := modules.([]interface{}); ok {
+							for _, m := range modList {
+								if modMap, ok := m.(map[string]interface{}); ok {
+									if id, ok := modMap["id"].(string); ok {
+										if enabled, ok := modMap["enabled"].(bool); ok && enabled {
+											sort := 999
+											if s, ok := modMap["sort"].(int); ok {
+												sort = s
+											}
+											enabledModules[id] = sort
+										}
+										moduleConfigs[id] = modMap
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// 2. 如果没有页面配置，使用模板默认配置
+			if len(enabledModules) == 0 && theme != nil && theme.TemplateSidebarDefaults != nil {
+				if templateType, ok := pageData["template_type"].(string); ok {
+					if cfg, ok := theme.TemplateSidebarDefaults[templateType]; ok {
+						for _, mod := range cfg.Modules {
+							if mod.Enabled {
+								enabledModules[mod.ID] = mod.Sort
+							}
+						}
+					}
+				}
+			}
+
+			// 3. 获取主题定义的模块信息
+			themeModules := make(map[string]SidebarModule)
+			if theme != nil {
+				for _, sm := range theme.SidebarModules {
+					themeModules[sm.ID] = sm
+				}
+			}
+
+			// 4. 根据排序生成结果
+			type sortItem struct {
+				sort int
+				id   string
+			}
+			var sorted []sortItem
+			for id := range enabledModules {
+				sorted = append(sorted, sortItem{sort: enabledModules[id], id: id})
+			}
+			// 按 sort 排序
+			for i := 0; i < len(sorted)-1; i++ {
+				for j := i + 1; j < len(sorted); j++ {
+					if sorted[j].sort < sorted[i].sort {
+						sorted[i], sorted[j] = sorted[j], sorted[i]
+					}
+				}
+			}
+
+			for _, item := range sorted {
+				moduleID := item.id
+				moduleInfo, hasInfo := themeModules[moduleID]
+
+				// 构建模块数据
+				moduleData := map[string]interface{}{
+					"id":    moduleID,
+					"name":  moduleID,
+					"icon":  "fa-solid fa-square",
+					"data":  []interface{}{},
+				}
+
+				if hasInfo {
+					moduleData["name"] = moduleInfo.Name
+					moduleData["icon"] = moduleInfo.Icon
+				}
+
+				// 根据模块ID获取对应的数据
+				switch moduleID {
+				case "recent_posts":
+					moduleData["data"] = getRecentPosts(moduleInfo.Limit)
+				case "hot_posts":
+					moduleData["data"] = getHotPosts(moduleInfo.Limit)
+				case "categories":
+					moduleData["data"] = getCategoriesWithCount(moduleInfo.ShowCount)
+				case "tags":
+					moduleData["data"] = getTagsWithLimit(moduleInfo.Limit)
+				case "site_info":
+					moduleData["data"] = getSiteInfo()
+				case "search":
+					moduleData["data"] = map[string]interface{}{}
+				case "social_links":
+					moduleData["data"] = getSocialLinks()
+				case "custom_html":
+					if hasInfo {
+						moduleData["data"] = moduleInfo.HTMLContent
+					}
+				case "recent_comments":
+					moduleData["data"] = getRecentComments(moduleInfo.Limit)
+				case "links":
+					moduleData["data"] = getLinks()
+				}
+
+				result = append(result, moduleData)
+			}
+
+			return result
+		},
 	}
 }
 
@@ -1371,6 +1778,142 @@ func GetThemePath() string {
 	return theme.Path
 }
 
+// ===== 侧边栏模块数据获取函数 =====
+
+// getRecentPosts 获取最新文章
+func getRecentPosts(limit int) []map[string]interface{} {
+	if limit <= 0 {
+		limit = 5
+	}
+	var posts []models.Post
+	models.DB.Where("status = ?", "published").Order("published_at DESC").Limit(limit).Find(&posts)
+
+	result := make([]map[string]interface{}, len(posts))
+	for i, p := range posts {
+		result[i] = map[string]interface{}{
+			"id":    p.ID,
+			"title": p.Title,
+			"slug":  p.Slug,
+			"date":  p.PublishedAt.Format("2006-01-02"),
+		}
+	}
+	return result
+}
+
+// getHotPosts 获取热门文章（按浏览量排序）
+func getHotPosts(limit int) []map[string]interface{} {
+	if limit <= 0 {
+		limit = 5
+	}
+	var posts []models.Post
+	models.DB.Where("status = ?", "published").Order("views DESC").Limit(limit).Find(&posts)
+
+	result := make([]map[string]interface{}, len(posts))
+	for i, p := range posts {
+		result[i] = map[string]interface{}{
+			"id":    p.ID,
+			"title": p.Title,
+			"slug":  p.Slug,
+			"views": p.Views,
+		}
+	}
+	return result
+}
+
+// getCategoriesWithCount 获取分类列表（带文章数量）
+func getCategoriesWithCount(showCount bool) []map[string]interface{} {
+	var categories []models.Category
+	models.DB.Order("name ASC").Find(&categories)
+
+	result := make([]map[string]interface{}, len(categories))
+	for i, c := range categories {
+		item := map[string]interface{}{
+			"id":   c.ID,
+			"name": c.Name,
+			"slug": c.Slug,
+		}
+		if showCount {
+			var count int64
+			models.DB.Model(&models.Post{}).Where("category_id = ? AND status = ?", c.ID, "published").Count(&count)
+			item["count"] = count
+		}
+		result[i] = item
+	}
+	return result
+}
+
+// getTagsWithLimit 获取标签列表
+func getTagsWithLimit(limit int) []map[string]interface{} {
+	if limit <= 0 {
+		limit = 20
+	}
+	var tags []models.Tag
+	models.DB.Order("name ASC").Limit(limit).Find(&tags)
+
+	result := make([]map[string]interface{}, len(tags))
+	for i, t := range tags {
+		result[i] = map[string]interface{}{
+			"id":   t.ID,
+			"name": t.Name,
+			"slug": t.Slug,
+		}
+	}
+	return result
+}
+
+// getSiteInfo 获取站点信息
+func getSiteInfo() map[string]interface{} {
+	title := models.GetSettingAsString("site_title")
+	description := models.GetSettingAsString("site_description")
+	logo := models.GetSettingAsString("logo")
+
+	return map[string]interface{}{
+		"title":       title,
+		"description": description,
+		"logo":        logo,
+	}
+}
+
+// getSocialLinks 获取社交链接（从主题配置中读取）
+func getSocialLinks() []map[string]interface{} {
+	theme := GetActiveTheme()
+	if theme == nil {
+		return []map[string]interface{}{}
+	}
+
+	// 从主题配置的 custom 或其他字段中读取社交链接
+	// 这里简单返回空，实际可以从 theme.Config 中读取
+	return []map[string]interface{}{}
+}
+
+// getRecentComments 获取最新评论
+func getRecentComments(limit int) []map[string]interface{} {
+	if limit <= 0 {
+		limit = 5
+	}
+	var comments []models.Comment
+	models.DB.Where("status = ?", "approved").Order("created_at DESC").Limit(limit).Find(&comments)
+
+	result := make([]map[string]interface{}, len(comments))
+	for i, c := range comments {
+		result[i] = map[string]interface{}{
+			"id":      c.ID,
+			"author":  c.AuthorName,
+			"content": c.Content,
+			"date":    c.CreatedAt.Format("2006-01-02"),
+		}
+	}
+	return result
+}
+
+// getLinks 获取友情链接
+func getLinks() []map[string]interface{} {
+	// TODO: 如果有独立的 links 表或配置，可以从这里读取
+	// 目前返回空
+	return []map[string]interface{}{}
+}
+
+
 // GetThemeFullConfig 获取主题的完整配置（包含数据库中的配置）
 func GetThemeFullConfig(themeName string) (map[string]interface{}, error) {
 	theme := GetTheme(themeName)
@@ -1433,7 +1976,9 @@ func ClearThemeCache(themeName string) error {
 	themeService.templateMu.Unlock()
 	log.Printf("[INFO] Cleared template cache for theme: %s", themeName)
 
-	// 2. 重新加载主题配置
+	// 2. 重新加载主题配置（加写锁）
+	themeService.themesMu.Lock()
+	defer themeService.themesMu.Unlock()
 	themePath := filepath.Join(themeService.themesPath, themeName)
 	theme, err := themeService.LoadTheme(themeName, themePath)
 	if err != nil {

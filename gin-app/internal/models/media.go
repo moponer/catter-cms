@@ -40,13 +40,15 @@ func (m *Media) BeforeCreate(tx *gorm.DB) error {
 // getFileType 根据文件名获取文件类型
 func getFileType(filename string) string {
 	ext := ""
-	if len(filename) > 4 {
-		ext = filename[len(filename)-4:]
+	if len(filename) > 5 {
+		ext = filename[len(filename)-5:]
 	}
 	switch ext {
-	case ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp":
+	case ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg":
 		return "image"
-	case ".mp4", ".webm":
+	case ".jpg":
+		return "image"
+	case ".mp4", ".webm", ".avi", ".mov":
 		return "video"
 	case ".mp3", ".wav", ".ogg":
 		return "audio"

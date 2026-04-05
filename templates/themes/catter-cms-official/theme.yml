@@ -37,12 +37,6 @@ config:
   showcaseScrollSections: "[]"
 
   # ===== Footer =====
-  showcaseEnabled: true
-  showcaseTitle: "界面预览"
-  showcaseDescription: "管理后台截图展示"
-  showcaseImages: "[]"
-
-  # ===== Footer =====
   footerEnabled: true
   footerCopyright: "2026 Catter CMS. All rights reserved."
   footerICP: ""

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    {{ if .site.favicon }}
+    <link rel="icon" href="{{ .site.favicon }}">
+    {{ end }}
+    <title>{{ .page.Title }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ .page.MetaDescription }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/sidebar.css" }}">
+    {{ if getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" }}
+    {{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+{{ $heroBg := getConfig "heroBgImage" "" }}
+{{ if $heroBg }}
+<div class="page-banner" style="background-image:url('{{ $heroBg }}')">
+{{ else }}
+<div class="page-banner">
+{{ end }}
+    <h1 class="page-banner-title">{{ .page.Title }}</h1>
+    <div class="page-banner-breadcrumb">
+        <a href="/">首页</a><span>›</span>{{ .page.Title }}
+    </div>
+</div>
+
+{{/* 获取侧边栏配置（.td 可能为 nil） */}}
+{{ $td := .td }}
+{{ if not $td }}{{ $td = dict }}{{ end }}
+{{ $sidebarCfg := index $td "sidebar" }}
+{{ $pageData := dict "template_type" "page" "sidebar" $sidebarCfg }}
+{{ $sidebarEnabled := sidebarEnabled $pageData }}
+{{ $sidebarPosition := sidebarPosition $pageData }}
+{{ $sidebarModules := getSidebarModules $pageData }}
+
+<main class="main-wrapper">
+    <div class="container">
+        {{ if and $sidebarEnabled $sidebarModules }}
+        <div class="with-sidebar" style="display:flex;gap:var(--space-xl);align-items:flex-start;">
+        {{ end }}
+
+            <div class="article-content-wrap" {{ if and $sidebarEnabled $sidebarModules }}style="flex:1;"{{ else }}style="max-width:860px;margin:0 auto;"{{ end }}>
+                <div class="article-body">{{ markdownHTML .page.Content }}</div>
+            </div>
+
+        {{ if and $sidebarEnabled $sidebarModules }}
+            {{ template "sidebar" dict "modules" $sidebarModules "position" $sidebarPosition }}
+        </div>
+        {{ end }}
+    </div>
+</main>
+
+{{ template "footer" . }}
+</body>
+</html>

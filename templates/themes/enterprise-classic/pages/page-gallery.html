@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    {{ if .site.favicon }}
+    <link rel="icon" href="{{ .site.favicon }}">
+    {{ end }}
+    <title>{{ .page.Title }} - {{ .site.title }}</title>
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/gallery.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/sidebar.css" }}">
+</head>
+<body>
+
+{{ template "header" . }}
+
+{{ $heroBg := getConfig "heroBgImage" "" }}
+{{ if $heroBg }}
+<div class="page-banner" style="background-image:url('{{ $heroBg }}')">
+{{ else }}
+<div class="page-banner">
+{{ end }}
+    <h1 class="page-banner-title">{{ .page.Title }}</h1>
+    <div class="page-banner-breadcrumb">
+        <a href="/">首页</a><span>›</span>{{ .page.Title }}
+    </div>
+</div>
+
+{{/* 获取侧边栏配置（.td 可能为 nil） */}}
+{{ $td := .td }}
+{{ if not $td }}{{ $td = dict }}{{ end }}
+{{ $sidebarCfg := index $td "sidebar" }}
+{{ $pageData := dict "template_type" "page-gallery" "sidebar" $sidebarCfg }}
+{{ $sidebarEnabled := sidebarEnabled $pageData }}
+{{ $sidebarPosition := sidebarPosition $pageData }}
+{{ $sidebarModules := getSidebarModules $pageData }}
+
+<main class="main-wrapper">
+    <div class="container">
+        {{ if and $sidebarEnabled $sidebarModules }}
+        <div class="with-sidebar" style="display:flex;gap:var(--space-xl);align-items:flex-start;">
+        {{ end }}
+
+            <div {{ if and $sidebarEnabled $sidebarModules }}style="flex:1;"{{ else }}style="max-width:100%;"{{ end }}>
+                {{ if .page.Content }}
+                <div class="gallery-intro">
+                    {{ markdownHTML .page.Content }}
+                </div>
+                {{ end }}
+
+                <div class="gallery-grid gallery-cols-{{ .td.columns }}">
+                    {{ if .td.images }}
+                        {{ range $img := .td.images }}
+                    <div class="gallery-item">
+                        <a href="{{ $img.url }}" class="gallery-link" data-lightbox="gallery" data-title="{{ $img.title }}">
+                            <img src="{{ $img.url }}" alt="{{ if $img.title }}{{ $img.title }}{{ else }}{{ .page.Title }}{{ end }}" loading="lazy">
+                            <div class="gallery-overlay">
+                                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                            </div>
+                        </a>
+                        <div class="gallery-caption">{{ if $img.title }}{{ $img.title }}{{ else }}{{ .page.Title }}{{ end }}</div>
+                    </div>
+                        {{ end }}
+                    {{ else }}
+                    <div class="gallery-empty">
+                        <i class="fa-solid fa-images"></i>
+                        <p>暂无图片，请前往后台添加图片</p>
+                    </div>
+                    {{ end }}
+                </div>
+            </div>
+
+        {{ if and $sidebarEnabled $sidebarModules }}
+            {{ template "sidebar" dict "modules" $sidebarModules "position" $sidebarPosition }}
+        </div>
+        {{ end }}
+    </div>
+</main>
+
+{{ template "footer" . }}
+
+{{ if .td.images }}
+<script>
+// 简单灯箱效果
+document.addEventListener('DOMContentLoaded', function() {
+    const gallery = document.querySelector('.gallery-grid');
+    if (!gallery) return;
+    
+    // 创建灯箱容器
+    const lightbox = document.createElement('div');
+    lightbox.id = 'gallery-lightbox';
+    lightbox.innerHTML = '<div class="lightbox-content"><img src="" alt=""><span class="lightbox-caption"></span><button class="lightbox-close">&times;</button><button class="lightbox-prev"><i class="fa-solid fa-chevron-left"></i></button><button class="lightbox-next"><i class="fa-solid fa-chevron-right"></i></button></div>';
+    document.body.appendChild(lightbox);
+    
+    const lightboxImg = lightbox.querySelector('img');
+    const lightboxCaption = lightbox.querySelector('.lightbox-caption');
+    const closeBtn = lightbox.querySelector('.lightbox-close');
+    const prevBtn = lightbox.querySelector('.lightbox-prev');
+    const nextBtn = lightbox.querySelector('.lightbox-next');
+    
+    const items = gallery.querySelectorAll('.gallery-link');
+    let currentIndex = 0;
+    
+    // 点击图片打开灯箱
+    items.forEach((item, index) => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentIndex = index;
+            showImage(index);
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+    
+    function showImage(index) {
+        const img = items[index].querySelector('img');
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt;
+        lightboxCaption.textContent = img.alt || '';
+    }
+    
+    // 关闭灯箱
+    closeBtn.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function(e) {
+        if (e.target === lightbox) closeLightbox();
+    });
+    
+    function closeLightbox() {
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    // 上一张/下一张
+    prevBtn.addEventListener('click', function() {
+        currentIndex = (currentIndex - 1 + items.length) % items.length;
+        showImage(currentIndex);
+    });
+    
+    nextBtn.addEventListener('click', function() {
+        currentIndex = (currentIndex + 1) % items.length;
+        showImage(currentIndex);
+    });
+    
+    // 键盘导航
+    document.addEventListener('keydown', function(e) {
+        if (!lightbox.classList.contains('active')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') prevBtn.click();
+        if (e.key === 'ArrowRight') nextBtn.click();
+    });
+});
+</script>
+{{ end }}
+
+</body>
+</html>

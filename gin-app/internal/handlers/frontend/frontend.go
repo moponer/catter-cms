@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -285,47 +286,53 @@ func PageShowHandler(c *gin.Context) {
 		}
 	}
 
-	if content, err := services.RenderTemplate(templateName, data); err == nil {
+	var renderErr error
+	var content template.HTML
+	if content, renderErr = services.RenderTemplate(templateName, data); renderErr == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
 	}
 
-	if templateName != "page" {
-		if content, err := services.RenderTemplate("page", data); err == nil {
-			c.Header("Content-Type", "text/html; charset=utf-8")
-			c.String(http.StatusOK, string(content))
-			return
-		}
-	}
+	// 模板渲染失败，显示详细错误信息（不回退）
+	log.Printf("[ERROR] PageHandler: template %s render failed: %v", templateName, renderErr)
 
-	defaultHTML := fmt.Sprintf(`<!DOCTYPE html>
+	errMsg := fmt.Sprintf(`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>%s - Catter CMS</title>
+    <title>模板错误 - %s</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-               background: #f5f5f5; min-height: 100vh; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; margin-bottom: 20px; }
-        .content { line-height: 1.8; color: #555; }
+        body { font-family: Consolas, 'Courier New', monospace; background: #1a1a1a; color: #e0e0e0; min-height: 100vh; padding: 20px; }
+        .error-container { max-width: 1000px; margin: 40px auto; background: #2d2d2d; border-radius: 8px; padding: 30px; border: 1px solid #ff4444; }
+        h1 { color: #ff4444; margin-bottom: 20px; font-size: 24px; }
+        .error-block { background: #1a1a1a; padding: 20px; border-radius: 4px; margin: 10px 0; }
+        .error-block h3 { color: #ffaa00; margin: 0 0 10px 0; font-size: 14px; }
+        .error-block pre { margin: 0; white-space: pre-wrap; word-break: break-all; color: #ff6666; font-size: 13px; }
+        .template-name { color: #4fc3f7; }
+        .page-title { color: #81c784; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>%s</h1>
-        <div class="content">%s</div>
+    <div class="error-container">
+        <h1>⚠ 模板渲染失败</h1>
+        <p class="page-title">页面: %s (模板: <span class="template-name">%s</span>)</p>
+        <div class="error-block">
+            <h3>错误信息:</h3>
+            <pre>%v</pre>
+        </div>
+        <div class="error-block">
+            <h3>可能的原因:</h3>
+            <pre>1. 模板中使用了未定义的函数（如 isset）
+2. 模板语法错误
+3. 缺少必要的模块文件</pre>
+        </div>
     </div>
 </body>
-</html>`,
-		html.EscapeString(page.Title),
-		html.EscapeString(page.Title),
-		html.EscapeString(page.Content))
-
+</html>`, html.EscapeString(page.Title), templateName, renderErr)
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	c.String(http.StatusOK, defaultHTML)
+	c.String(http.StatusInternalServerError, errMsg)
 }
 
 // CategoryHandler 分类页

@@ -29,6 +29,7 @@
             :preview-src-list="[theme.thumbnail]"
             fit="contain"
             preview-teleported
+            :preview-z-index="9999"
             class="theme-thumbnail-img"
             @click.stop
           />

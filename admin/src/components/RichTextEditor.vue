@@ -79,11 +79,13 @@ let currentMeta = null
 
 // TinyMCE 配置
 const editorConfig = computed(() => ({
+  base_url: '/admin/themes',
+  suffix: '.min',
   height: props.height,
   promotion: false,
   branding: false,
-  // 添加空许可证密钥以禁用警告（社区版功能仍然可用）
-  license_key: '',
+  // 添加 GPL 许可证密钥以启用所有社区版功能
+  license_key: 'gpl',
   menubar: 'file edit view insert format tools table help',
   menu: {
     file: { title: '文件', items: 'newdocument restoredraft | preview' },

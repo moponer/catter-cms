@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    {{ if .site.favicon }}
+    <link rel="icon" href="{{ .site.favicon }}">
+    {{ end }}
+    <title>{{ .site.title }} - {{ .site.description }}</title>
+    <meta name="description" content="{{ .site.description }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    {{ if getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" }}
+    {{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+{{ if getConfig "heroEnabled" true }}
+<section class="hero">
+    {{ $heroBg := getConfig "heroBgImage" "" }}
+    {{ if $heroBg }}
+    <div class="hero-bg" style="background-image:url('{{ $heroBg }}')"></div>
+    <div class="hero-overlay"></div>
+    {{ end }}
+    <div class="hero-content">
+        <h1 class="hero-title">{{ getConfig "heroTitle" "专业、创新、值得信赖" }}</h1>
+        <p class="hero-subtitle">{{ getConfig "heroSubtitle" "为您提供优质的行业解决方案" }}</p>
+        {{ $btnText := getConfig "heroBtnText" "" }}
+        {{ if $btnText }}
+        <a href="{{ getConfig "heroBtnLink" "#" }}" class="hero-btn">{{ $btnText }}</a>
+        {{ end }}
+    </div>
+</section>
+{{ end }}
+
+{{ if getConfig "aboutEnabled" true }}
+<section class="about-section">
+    <div class="container">
+        <h2 class="section-title">{{ getConfig "aboutTitle" "关于我们" }}</h2>
+        <div class="about-layout">
+            <div class="about-image">
+                {{ $aboutSingle := getConfig "aboutImage" "" }}
+                {{ $aboutImgs := getConfig "aboutImages" (ensureSlice nil) }}
+                {{ $hasSingle := ne $aboutSingle "" }}
+                {{ $hasMulti := gt (len $aboutImgs) 0 }}
+                {{ if or $hasSingle $hasMulti }}
+                <div class="about-carousel" id="aboutCarousel">
+                    <div class="about-carousel-track">
+                        {{ if $hasMulti }}
+                            {{ range $idx, $img := $aboutImgs }}
+                            <div class="about-carousel-slide{{ if eq $idx 0 }} active{{ end }}">
+                                <img src="{{ $img.url }}" alt="{{ getConfig "aboutTitle" "关于我们" }}">
+                            </div>
+                            {{ end }}
+                        {{ else }}
+                            <div class="about-carousel-slide active">
+                                <img src="{{ $aboutSingle }}" alt="{{ getConfig "aboutTitle" "关于我们" }}">
+                            </div>
+                        {{ end }}
+                    </div>
+                    <div class="about-carousel-dots">
+                        <span class="about-carousel-dot active" data-index="0"></span>
+                    </div>
+                    <button class="about-carousel-btn prev" id="aboutCarouselPrev"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="about-carousel-btn next" id="aboutCarouselNext"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                {{ else }}
+                <div class="about-placeholder"><i class="fa-regular fa-image"></i> 暂无图片</div>
+                {{ end }}
+            </div>
+            <div class="about-text">
+                <div class="about-content">{{ getConfig "aboutContent" "这是一段公司简介，请前往后台编辑。" | safe }}</div>
+            </div>
+        </div>
+    </div>
+</section>
+{{ end }}
+
+{{/* ===== 服务项目模块 ===== */}}
+{{ if getConfig "servicesEnabled" true }}
+<section class="services-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">{{ getConfig "servicesTitle" "服务项目" }}</h2>
+            <p class="section-subtitle">{{ getConfig "servicesSubtitle" "为客户提供全方位的专业服务" }}</p>
+        </div>
+        <div class="services-grid">
+            {{ $services := getConfig "servicesList" "" }}
+            {{ if $services }}
+                {{ range $services }}
+                <div class="service-card">
+                    <div class="service-card-icon">
+                        {{ if .icon }}
+                        <i class="{{ .icon }}"></i>
+                        {{ else }}
+                        <i class="fa-solid fa-star"></i>
+                        {{ end }}
+                    </div>
+                    <div class="service-card-body">
+                        <h3 class="service-card-title">{{ .title }}</h3>
+                        <p class="service-card-desc">{{ .description }}</p>
+                    </div>
+                </div>
+                {{ end }}
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+
+{{ if getConfig "showcaseEnabled" true }}
+<section class="showcase-section">
+    <div class="container">
+        <h2 class="section-title">{{ getConfig "showcaseTitle" "产品展示" }}</h2>
+        <div class="showcase-layout">
+            {{ $categories := getConfig "showcaseCategories" "" }}
+            {{ $items := getConfig "showcaseItems" "" }}
+            {{ if $categories }}
+            <div class="showcase-sidebar">
+                <ul class="showcase-menu" id="showcaseMenu">
+                    {{ range $i, $cat := $categories }}
+                    <li class="showcase-menu-item{{ if eq $i 0 }} active{{ end }}" data-category="{{ .name }}">{{ .name }}</li>
+                    {{ end }}
+                </ul>
+            </div>
+            {{ end }}
+            <div class="showcase-grid" id="showcaseGrid">
+                {{ if $items }}
+                    {{ range $items }}
+                    <div class="showcase-card" data-category="{{ .category }}">
+                        <div class="showcase-card-image">
+                            {{ if .image }}
+                            <img src="{{ .image }}" alt="{{ .title }}">
+                            {{ else }}
+                            <div class="showcase-card-placeholder"><i class="fa-regular fa-image"></i></div>
+                            {{ end }}
+                        </div>
+                        <div class="showcase-card-body">
+                            <h3 class="showcase-card-title">{{ .title }}</h3>
+                            <p class="showcase-card-desc">{{ .description }}</p>
+                        </div>
+                    </div>
+                    {{ end }}
+                {{ else }}
+                <div class="showcase-empty"><i class="fa-regular fa-folder-open"></i> 暂无产品</div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</section>
+{{ end }}
+
+{{ if getConfig "newsEnabled" true }}
+<section class="news-section">
+    <div class="container">
+        <h2 class="section-title">{{ getConfig "newsTitle" "新闻资讯" }}</h2>
+        <div class="news-layout">
+            <!-- 左侧：列表 -->
+            <div class="news-list">
+                {{ $allCats := $.categories }}
+                {{ if $.posts }}
+                <div class="news-tab-bar" id="newsTabBar">
+                    <button class="news-tab-btn active" data-category="all">全部</button>
+                    {{ range $cat := $allCats }}
+                    <button class="news-tab-btn" data-category="{{ $cat.Slug }}">{{ $cat.Name }}</button>
+                    {{ end }}
+                </div>
+                <div id="newsListContainer">
+                    {{ range $index, $post := $.posts }}
+                    {{ if lt $index 5 }}
+                    <a href="/article/{{ $post.Slug }}" class="news-list-link news-list-item" data-category="{{ if $post.Category }}{{ $post.Category.Slug }}{{ end }}">
+                        <span class="news-list-title-row">
+                            <span class="news-list-title-text">{{ $post.Title }}</span>
+                            {{ $date := $post.PublishedAt }}{{ if not $date }}{{ $date = $post.CreatedAt }}{{ end }}
+                            {{ if $date }}
+                            <span class="news-list-date-text"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" $date }}</span>
+                            {{ end }}
+                        </span>
+                    </a>
+                    {{ end }}
+                    {{ end }}
+                </div>
+                {{ else }}
+                <div class="news-list-empty">暂无文章</div>
+                {{ end }}
+                <div class="section-more" style="margin-top: 20px;">
+                    <a href="/article" class="btn-more">查看更多 <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <!-- 右侧：轮播 -->
+            <div class="news-carousel" id="newsCarousel">
+                {{ if $.posts }}
+                    {{ $slides := first 3 $.posts }}
+                    {{ $slideCount := len $slides }}
+                    {{ range $index, $post := $slides }}
+                    <a href="/article/{{ $post.Slug }}" class="news-slide{{ if eq $index 0 }} active{{ end }}">
+                        {{ if $post.Cover }}
+                        <img src="{{ $post.Cover }}" alt="{{ $post.Title }}">
+                        {{ else }}
+                        <div class="news-slide-placeholder"><i class="fa-regular fa-newspaper"></i> 暂无图片</div>
+                        {{ end }}
+                        <div class="news-slide-title">{{ $post.Title }}</div>
+                    </a>
+                    {{ end }}
+                    {{ if gt $slideCount 1 }}
+                    <div class="carousel-dots">
+                        {{ range $index2, $post2 := $slides }}
+                        <span class="carousel-dot{{ if eq $index2 0 }} active{{ end }}" data-index="{{ $index2 }}"></span>
+                        {{ end }}
+                    </div>
+                    {{ end }}
+                {{ else }}
+                <div class="news-slide active">
+                    <div class="news-slide-placeholder"><i class="fa-regular fa-newspaper"></i> 暂无文章</div>
+                    <div class="news-slide-title"></div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</section>
+{{ end }}
+
+{{ template "footer" . }}
+
+<script>
+(function() {
+    // 新闻分类 Tab 切换
+    var tabBar = document.getElementById('newsTabBar');
+    if (tabBar) {
+        var tabs = tabBar.querySelectorAll('.news-tab-btn');
+        var items = document.querySelectorAll('.news-list-item');
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                this.classList.add('active');
+                var cat = this.getAttribute('data-category');
+                items.forEach(function(item) {
+                    if (cat === 'all') {
+                        item.classList.remove('hidden');
+                    } else {
+                        var cats = item.getAttribute('data-category') || '';
+                        item.classList.toggle('hidden', !cats.split(' ').includes(cat));
+                    }
+                });
+            });
+        });
+    }
+
+    // 关于我们图片轮播
+    var carousel = document.getElementById('aboutCarousel');
+    if (carousel) {
+        var slides = carousel.querySelectorAll('.about-carousel-slide');
+        var dotsContainer = carousel.querySelector('.about-carousel-dots');
+        var prevBtn = document.getElementById('aboutCarouselPrev');
+        var nextBtn = document.getElementById('aboutCarouselNext');
+
+        // 单张图片隐藏轮播控件
+        if (slides.length <= 1) {
+            if (dotsContainer) dotsContainer.style.display = 'none';
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+        } else {
+            // 动态生成导航点
+            if (dotsContainer) {
+                dotsContainer.innerHTML = '';
+                slides.forEach(function(_, i) {
+                    var dot = document.createElement('span');
+                    dot.className = 'about-carousel-dot' + (i === 0 ? ' active' : '');
+                    dot.setAttribute('data-index', i);
+                    dotsContainer.appendChild(dot);
+                });
+            }
+            var dots = carousel.querySelectorAll('.about-carousel-dot');
+            var current = 0;
+            var timer = null;
+
+            function goTo(idx) {
+                slides[current].classList.remove('active');
+                dots[current].classList.remove('active');
+                current = (idx + slides.length) % slides.length;
+                slides[current].classList.add('active');
+                dots[current].classList.add('active');
+            }
+
+            function startTimer() { timer = setInterval(function() { goTo(current + 1); }, 4000); }
+            function stopTimer() { clearInterval(timer); }
+
+            if (prevBtn) prevBtn.addEventListener('click', function() { stopTimer(); goTo(current - 1); startTimer(); });
+            if (nextBtn) nextBtn.addEventListener('click', function() { stopTimer(); goTo(current + 1); startTimer(); });
+            dots.forEach(function(dot, i) {
+                dot.addEventListener('click', function() { stopTimer(); goTo(i); startTimer(); });
+            });
+            carousel.addEventListener('mouseenter', stopTimer);
+            carousel.addEventListener('mouseleave', startTimer);
+            startTimer();
+        }
+    }
+})();
+</script>
+</body>
+</html>

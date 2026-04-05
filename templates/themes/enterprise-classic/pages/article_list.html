@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    {{ if .site.favicon }}
+    <link rel="icon" href="{{ .site.favicon }}">
+    {{ end }}
+    <title>新闻资讯 - {{ .site.title }}</title>
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    {{ if getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" }}
+    {{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+{{ $heroBg := getConfig "heroBgImage" "" }}
+{{ if $heroBg }}
+<div class="page-banner" style="background-image:url('{{ $heroBg }}')">
+{{ else }}
+<div class="page-banner">
+{{ end }}
+    <h1 class="page-banner-title">新闻资讯</h1>
+    <div class="page-banner-breadcrumb">
+        <a href="/">首页</a><span>›</span>新闻资讯
+    </div>
+</div>
+
+<main class="main-wrapper">
+    <div class="container">
+        <div class="category-filter">
+            <span class="category-filter-label">分类：</span>
+            <a href="/article-list" class="active">全部</a>
+            {{ range .categories }}
+            <a href="/category/{{ .Slug }}">{{ .Name }}</a>
+            {{ end }}
+            <a href="/article">文章列表</a>
+        </div>
+
+        {{ range .posts }}
+        <a href="/article/{{ .Slug }}" class="news-list-item-row">
+            {{ if .Cover }}
+            <img src="{{ .Cover }}" alt="{{ .Title }}" class="news-list-thumb">
+            {{ else }}
+            <div class="news-list-thumb-placeholder"><i class="fa-regular fa-newspaper"></i></div>
+            {{ end }}
+            <div class="news-list-body">
+                <div class="news-list-meta">
+                    {{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
+                </div>
+                <div class="news-list-title-row">
+                    <div class="news-list-item-title">{{ .Title }}</div>
+                    {{ $date := .PublishedAt }}{{ if not $date }}{{ $date = .CreatedAt }}{{ end }}
+                    {{ if $date }}
+                    <span class="news-list-date-text"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" $date }}</span>
+                    {{ end }}
+                </div>
+                <p class="news-list-excerpt">{{ .Excerpt }}</p>
+            </div>
+        </a>
+        {{ end }}
+
+        {{ if gt .pagination.totalPages 1 }}
+        <div class="pagination">
+            {{ if gt .pagination.page 1 }}
+            <a href="/article?page={{ sub .pagination.page 1 }}">&laquo;</a>
+            {{ end }}
+            {{ range $i := iterate .pagination.totalPages }}
+            {{ $p := add $i 1 }}
+            {{ if eq $p $.pagination.page }}
+            <span class="current">{{ $p }}</span>
+            {{ else }}
+            <a href="/article?page={{ $p }}">{{ $p }}</a>
+            {{ end }}
+            {{ end }}
+            {{ if lt .pagination.page .pagination.totalPages }}
+            <a href="/article?page={{ add .pagination.page 1 }}">&raquo;</a>
+            {{ end }}
+        </div>
+        {{ end }}
+    </div>
+</main>
+
+{{ template "footer" . }}
+</body>
+</html>

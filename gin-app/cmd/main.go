@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -430,14 +434,41 @@ func main() {
 	})
 
 	// ========================================
-	// 启动服务器
+	// 启动服务器（Graceful Shutdown）
 	// ========================================
 	addr := cfg.GetFullPort()
-	log.Printf("Starting Catter CMS (%s) on %s", cfg.Env, addr)
-	log.Printf("Admin panel: http://localhost:%s/admin", cfg.Server.Port)
-	log.Printf("API: http://localhost:%s/api", cfg.Server.Port)
-
-	if err := r.Run(addr); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
 	}
+
+	// 启动服务器 goroutine
+	go func() {
+		log.Printf("Starting Catter CMS (%s) on %s", cfg.Env, addr)
+		log.Printf("Admin panel: http://localhost:%s/admin", cfg.Server.Port)
+		log.Printf("API: http://localhost:%s/api", cfg.Server.Port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	// 等待 SIGINT / SIGTERM 信号
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server...")
+
+	// 停止主题文件监控 watcher
+	services.StopThemeWatcher()
+
+	// 给正在处理的请求最多 5 秒完成
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server exited")
 }
