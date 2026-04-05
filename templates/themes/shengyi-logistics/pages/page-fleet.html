@@ -16,12 +16,17 @@
 
 {{ template "header" . }}
 
+<!-- 提取 td 并判空 -->
+{{ $td := .td }}
+{{ if not $td }}{{ $td = dict }}{{ end }}
+
 <!-- ====== 页面 Banner ====== -->
 <section class="fleet-banner">
     <div class="container">
         <h1 class="fleet-banner-title">{{ .page.Title }}</h1>
         <p class="fleet-banner-sub">
-            {{ if .td.fleetTitle }}{{ .td.fleetTitle }}{{ else }}专业车队，安全运输{{ end }}
+            {{ $fleetTitle := index $td "fleetTitle" }}
+            {{ if $fleetTitle }}{{ $fleetTitle }}{{ else }}专业车队，安全运输{{ end }}
         </p>
         <div class="fleet-banner-breadcrumb">
             <a href="/">首页</a>
@@ -45,7 +50,7 @@
 <!-- ====== 车辆展示网格 ====== -->
 <section class="fleet-section">
     <div class="container">
-        {{ $vehicles := ensureSlice (index .td "vehicles") }}
+        {{ $vehicles := ensureSlice (index $td "vehicles") }}
         {{ if $vehicles }}
         <!-- 统计栏 -->
         <div class="fleet-stats">

@@ -27,6 +27,9 @@
 </section>
 
 <!-- ====== 相册内容 ====== -->
+{{ $td := .td }}
+{{ if not $td }}{{ $td = dict }}{{ end }}
+
 <section class="gallery-section">
     <div class="container">
         {{ if .page.Content }}
@@ -36,9 +39,12 @@
         {{ end }}
 
         <!-- 图片网格 - 从 .td.images 获取 -->
-        <div class="gallery-grid" id="galleryGrid" data-columns="{{ .td.columns }}">
-            {{ if .td.images }}
-                {{ range $img := .td.images }}
+        {{ $images := ensureSlice (index $td "images") }}
+        {{ $columns := index $td "columns" }}
+        {{ if not $columns }}{{ $columns = "3" }}{{ end }}
+        <div class="gallery-grid" id="galleryGrid" data-columns="{{ $columns }}">
+            {{ if $images }}
+                {{ range $img := $images }}
                 <div class="gallery-item">
                     <!-- 图片区 -->
                     <div class="gallery-item-inner">

@@ -51,9 +51,12 @@
                 </div>
                 {{ end }}
 
-                <div class="gallery-grid gallery-cols-{{ .td.columns }}">
-                    {{ if .td.images }}
-                        {{ range $img := .td.images }}
+                {{ $images := ensureSlice (index $td "images") }}
+                {{ $columns := index $td "columns" }}
+                {{ if not $columns }}{{ $columns = "3" }}{{ end }}
+                <div class="gallery-grid gallery-cols-{{ $columns }}">
+                    {{ if $images }}
+                        {{ range $img := $images }}
                     <div class="gallery-item">
                         <a href="{{ $img.url }}" class="gallery-link" data-lightbox="gallery" data-title="{{ $img.title }}">
                             <img src="{{ $img.url }}" alt="{{ if $img.title }}{{ $img.title }}{{ else }}{{ .page.Title }}{{ end }}">
@@ -82,7 +85,7 @@
 
 {{ template "footer" . }}
 
-{{ if .td.images }}
+{{ if $images }}
 <script>
 // 简单灯箱效果
 document.addEventListener('DOMContentLoaded', function() {

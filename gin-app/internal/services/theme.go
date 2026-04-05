@@ -1256,15 +1256,18 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 		// markdownHTML函数 - 将 Markdown 转换为 HTML
 		// 如果内容已经是 HTML（以 < 开头），则直接输出
 		"markdownHTML": func(content string) template.HTML {
-			// 检测是否已经是 HTML 内容
 			trimmed := strings.TrimSpace(content)
+			if trimmed == "" {
+				return ""
+			}
+			// 检测是否已经是 HTML 内容（以 < 开头）
 			if strings.HasPrefix(trimmed, "<") {
-				// 已经是 HTML，直接返回
 				return template.HTML(content)
 			}
 			// 是 Markdown，转换为 HTML
 			var buf bytes.Buffer
 			if err := goldmark.Convert([]byte(content), &buf); err != nil {
+				// 转换失败，返回原始内容
 				return template.HTML(content)
 			}
 			return template.HTML(buf.String())
