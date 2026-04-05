@@ -50,8 +50,10 @@ export default defineConfig({
     // 代码分割优化
     rollupOptions: {
       output: {
-        // 使用默认的分块策略，避免循环依赖问题
-        manualChunks: undefined,
+        // 强制将 md-editor-v3 单独打包
+        manualChunks: {
+          'md-editor': ['md-editor-v3'],
+        },
       },
     },
     // 启用 gzip 压缩大小报告
@@ -61,6 +63,6 @@ export default defineConfig({
   },
   // 优化依赖预构建
   optimizeDeps: {
-    include: ['vue', 'vue-router', 'pinia', 'element-plus', 'axios'],
+    include: ['vue', 'vue-router', 'pinia', 'element-plus', 'axios', 'md-editor-v3'],
   },
 })

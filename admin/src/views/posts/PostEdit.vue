@@ -3,6 +3,9 @@
     <div class="page-header">
       <h1>{{ isEdit ? '编辑文章' : '新建文章' }}</h1>
       <div class="header-actions">
+        <el-button @click="previewMode = !previewMode">
+          {{ previewMode ? '编辑模式' : '预览模式' }}
+        </el-button>
         <el-button @click="$router.back()">取消</el-button>
         <el-button type="info" @click="handleSaveDraft" :loading="saving">
           保存草稿
@@ -35,11 +38,14 @@
             </el-form-item>
 
             <el-form-item prop="content">
-              <TiptapEditor
-                ref="editorRef"
+              <MdEditor
                 v-model="form.content"
-                placeholder="请输入文章内容..."
-                :height="500"
+                :preview="previewMode"
+                :toolbarsExclude="['github']"
+                language="zh-CN"
+                :height="editorHeight"
+                placeholder="请输入文章内容，支持 Markdown 语法..."
+                @save="handleSave"
               />
             </el-form-item>
           </el-form>
@@ -147,7 +153,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import TiptapEditor from '@/components/TiptapEditor.vue'
+import { MdEditor } from 'md-editor-v3'
+import 'md-editor-v3/lib/style.css'
+import { formatMarkdown } from '@/utils/markdownFormat'
 import { get, post, put } from '@/utils/request'
 
 const route = useRoute()
@@ -158,6 +166,11 @@ const editorRef = ref(null)
 const saving = ref(false)
 const categories = ref([])
 const tags = ref([])
+const previewMode = ref(false)
+
+const editorHeight = computed(() => {
+  return window.innerHeight - 420
+})
 
 const isEdit = computed(() => !!route.params.id)
 
@@ -209,7 +222,7 @@ const loadPost = async () => {
     Object.assign(form, {
       title: data.title || '',
       slug: data.slug || '',
-      content: data.content || '',
+      content: formatMarkdown(data.content) || '',
       excerpt: data.excerpt || '',
       status: data.status || 'draft',
       category_id: data.category_id || data.CategoryID || null,
