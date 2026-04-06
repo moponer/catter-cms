@@ -19,24 +19,68 @@
 
 {{ template "header" . }}
 
+{{/* ===== Hero 横幅（沉浸式大图 + 轮播） ===== */}}
 {{ if getConfig "heroEnabled" true }}
 <section class="hero">
-    {{ $heroBg := getConfig "heroBgImage" "" }}
-    {{ if $heroBg }}
-    <div class="hero-bg" style="background-image:url('{{ $heroBg }}')"></div>
+    {{ $heroSingle := getConfig "heroBgImage" "" }}
+    {{ $heroImgs := getConfig "heroBgImages" (ensureSlice nil) }}
+    {{ $hasSingle := ne $heroSingle "" }}
+    {{ $hasMulti := gt (len $heroImgs) 0 }}
+    {{ if or $hasSingle $hasMulti }}
+    <div class="hero-bg-carousel" id="heroBgCarousel">
+        <div class="hero-bg-track">
+            {{ if $hasMulti }}
+                {{ range $idx, $img := $heroImgs }}
+                <div class="hero-bg-slide{{ if eq $idx 0 }} active{{ end }}">
+                    <img src="{{ $img.url }}" alt="" loading="eager">
+                </div>
+                {{ end }}
+            {{ else }}
+                <div class="hero-bg-slide active">
+                    <img src="{{ $heroSingle }}" alt="" loading="eager">
+                </div>
+            {{ end }}
+        </div>
+    </div>
     <div class="hero-overlay"></div>
+    {{ else }}
+    <div class="hero-overlay hero-overlay-solid"></div>
     {{ end }}
     <div class="hero-content">
         <h1 class="hero-title">{{ getConfig "heroTitle" "专业、创新、值得信赖" }}</h1>
         <p class="hero-subtitle">{{ getConfig "heroSubtitle" "为您提供优质的行业解决方案" }}</p>
-        {{ $btnText := getConfig "heroBtnText" "" }}
-        {{ if $btnText }}
-        <a href="{{ getConfig "heroBtnLink" "#" }}" class="hero-btn">{{ $btnText }}</a>
+        <div class="hero-actions">
+            {{ $btnText := getConfig "heroBtnText" "" }}
+            {{ if $btnText }}
+            <a href="{{ getConfig "heroBtnLink" "#" }}" class="hero-btn hero-btn-primary">{{ $btnText }}</a>
+            {{ end }}
+            {{ $btn2Text := getConfig "heroBtn2Text" "" }}
+            {{ if $btn2Text }}
+            <a href="{{ getConfig "heroBtn2Link" "#" }}" class="hero-btn hero-btn-outline">{{ $btn2Text }}</a>
+            {{ end }}
+        </div>
+        {{ $badges := getConfig "heroBadges" "" }}
+        {{ if $badges }}
+        <div class="hero-badges">
+            {{ range $badges }}
+            <span class="hero-badge">
+                {{ if .icon }}<i class="{{ .icon }}"></i> {{ end }}{{ .text }}
+            </span>
+            {{ end }}
+        </div>
         {{ end }}
     </div>
+    {{ if and $hasMulti (gt (len $heroImgs) 1) }}
+    <div class="hero-carousel-dots" id="heroCarouselDots">
+        {{ range $idx, $img := $heroImgs }}
+        <span class="hero-carousel-dot{{ if eq $idx 0 }} active{{ end }}" data-index="{{ $idx }}"></span>
+        {{ end }}
+    </div>
+    {{ end }}
 </section>
 {{ end }}
 
+{{/* ===== 关于我们 ===== */}}
 {{ if getConfig "aboutEnabled" true }}
 <section class="about-section">
     <div class="container">
@@ -62,9 +106,13 @@
                             </div>
                         {{ end }}
                     </div>
-                    <div class="about-carousel-dots">
-                        <span class="about-carousel-dot active" data-index="0"></span>
+                    {{ if and $hasMulti (gt (len $aboutImgs) 1) }}
+                    <div class="about-carousel-dots" id="aboutCarouselDots">
+                        {{ range $idx, $img := $aboutImgs }}
+                        <span class="about-carousel-dot{{ if eq $idx 0 }} active{{ end }}" data-index="{{ $idx }}"></span>
+                        {{ end }}
                     </div>
+                    {{ end }}
                     <button class="about-carousel-btn prev" id="aboutCarouselPrev"><i class="fa-solid fa-chevron-left"></i></button>
                     <button class="about-carousel-btn next" id="aboutCarouselNext"><i class="fa-solid fa-chevron-right"></i></button>
                 </div>
@@ -80,7 +128,26 @@
 </section>
 {{ end }}
 
-{{/* ===== 服务项目模块 ===== */}}
+{{/* ===== 数据统计 ===== */}}
+{{ if getConfig "statsEnabled" true }}
+{{ $statsItems := getConfig "statsItems" "" }}
+{{ if $statsItems }}
+<section class="stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            {{ range $statsItems }}
+            <div class="stat-item">
+                <div class="stat-number"><span class="stat-value" data-target="{{ .value }}">0</span><span class="stat-suffix">{{ .suffix }}</span></div>
+                <div class="stat-label">{{ .label }}</div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+{{ end }}
+
+{{/* ===== 服务项目（网格 + 悬停展开） ===== */}}
 {{ if getConfig "servicesEnabled" true }}
 <section class="services-section">
     <div class="container">
@@ -103,6 +170,16 @@
                     <div class="service-card-body">
                         <h3 class="service-card-title">{{ .title }}</h3>
                         <p class="service-card-desc">{{ .description }}</p>
+                        {{ $features := .features }}
+                        {{ if $features }}
+                        <div class="service-card-features">
+                            <ul class="service-features-list">
+                                {{ range split $features "\n" }}
+                                {{ if . }}<li><i class="fa-solid fa-check"></i> {{ . }}</li>{{ end }}
+                                {{ end }}
+                            </ul>
+                        </div>
+                        {{ end }}
                     </div>
                 </div>
                 {{ end }}
@@ -112,10 +189,13 @@
 </section>
 {{ end }}
 
+{{/* ===== 产品展示 ===== */}}
 {{ if getConfig "showcaseEnabled" true }}
 <section class="showcase-section">
     <div class="container">
-        <h2 class="section-title">{{ getConfig "showcaseTitle" "产品展示" }}</h2>
+        <div class="section-header">
+            <h2 class="section-title">{{ getConfig "showcaseTitle" "产品展示" }}</h2>
+        </div>
         <div class="showcase-layout">
             {{ $categories := getConfig "showcaseCategories" "" }}
             {{ $items := getConfig "showcaseItems" "" }}
@@ -154,6 +234,7 @@
 </section>
 {{ end }}
 
+{{/* ===== 新闻资讯（列表 + 轮播） ===== */}}
 {{ if getConfig "newsEnabled" true }}
 <section class="news-section">
     <div class="container">
@@ -161,7 +242,6 @@
             <h2 class="section-title">{{ getConfig "newsTitle" "新闻资讯" }}</h2>
         </div>
         <div class="news-layout">
-            <!-- 左侧：列表 -->
             <div class="news-list">
                 {{ $allCats := $.categories }}
                 {{ if $.posts }}
@@ -173,7 +253,7 @@
                 </div>
                 <div id="newsListContainer">
                     {{ range $index, $post := $.posts }}
-                    {{ if lt $index 5 }}
+                    {{ if lt $index 6 }}
                     <a href="/article/{{ $post.Slug }}" class="news-list-link news-list-item" data-category="{{ if $post.Category }}{{ $post.Category.Slug }}{{ end }}">
                         <span class="news-list-title-row">
                             <span class="news-list-title-text">{{ $post.Title }}</span>
@@ -193,7 +273,6 @@
                     <a href="/article" class="btn-more">查看更多 <i class="fa-solid fa-arrow-right"></i></a>
                 </div>
             </div>
-            <!-- 右侧：轮播 -->
             <div class="news-carousel" id="newsCarousel">
                 {{ if $.posts }}
                     {{ $slides := first 3 $.posts }}
@@ -231,7 +310,31 @@
 
 <script>
 (function() {
-    // 新闻分类 Tab 切换
+    /* ===== Hero 背景轮播 ===== */
+    var heroCarousel = document.getElementById('heroBgCarousel');
+    if (heroCarousel) {
+        var heroSlides = heroCarousel.querySelectorAll('.hero-bg-slide');
+        var heroDots = document.querySelectorAll('.hero-carousel-dot');
+        if (heroSlides.length > 1) {
+            var heroCurrent = 0;
+            var heroTimer = null;
+            function heroGoTo(idx) {
+                heroSlides[heroCurrent].classList.remove('active');
+                if (heroDots[heroCurrent]) heroDots[heroCurrent].classList.remove('active');
+                heroCurrent = (idx + heroSlides.length) % heroSlides.length;
+                heroSlides[heroCurrent].classList.add('active');
+                if (heroDots[heroCurrent]) heroDots[heroCurrent].classList.add('active');
+            }
+            function heroStart() { heroTimer = setInterval(function() { heroGoTo(heroCurrent + 1); }, 5000); }
+            function heroStop() { clearInterval(heroTimer); }
+            heroDots.forEach(function(dot, i) {
+                dot.addEventListener('click', function() { heroStop(); heroGoTo(i); heroStart(); });
+            });
+            heroStart();
+        }
+    }
+
+    /* ===== 新闻分类 Tab 切换 ===== */
     var tabBar = document.getElementById('newsTabBar');
     if (tabBar) {
         var tabs = tabBar.querySelectorAll('.news-tab-btn');
@@ -253,30 +356,19 @@
         });
     }
 
-    // 关于我们图片轮播
+    /* ===== 关于我们图片轮播 ===== */
     var carousel = document.getElementById('aboutCarousel');
     if (carousel) {
         var slides = carousel.querySelectorAll('.about-carousel-slide');
-        var dotsContainer = carousel.querySelector('.about-carousel-dots');
+        var dotsContainer = document.getElementById('aboutCarouselDots');
         var prevBtn = document.getElementById('aboutCarouselPrev');
         var nextBtn = document.getElementById('aboutCarouselNext');
 
-        // 单张图片隐藏轮播控件
         if (slides.length <= 1) {
             if (dotsContainer) dotsContainer.style.display = 'none';
             if (prevBtn) prevBtn.style.display = 'none';
             if (nextBtn) nextBtn.style.display = 'none';
         } else {
-            // 动态生成导航点
-            if (dotsContainer) {
-                dotsContainer.innerHTML = '';
-                slides.forEach(function(_, i) {
-                    var dot = document.createElement('span');
-                    dot.className = 'about-carousel-dot' + (i === 0 ? ' active' : '');
-                    dot.setAttribute('data-index', i);
-                    dotsContainer.appendChild(dot);
-                });
-            }
             var dots = carousel.querySelectorAll('.about-carousel-dot');
             var current = 0;
             var timer = null;
@@ -302,7 +394,8 @@
             startTimer();
         }
     }
-    // 新闻轮播自动播放
+
+    /* ===== 新闻轮播自动播放 ===== */
     var newsCarousel = document.getElementById('newsCarousel');
     if (newsCarousel) {
         var newsSlides = newsCarousel.querySelectorAll('.news-slide');
@@ -331,7 +424,68 @@
         }
     }
 
-    // 懒加载图片淡入
+    /* ===== 数字计数动画 ===== */
+    var statValues = document.querySelectorAll('.stat-value[data-target]');
+    if (statValues.length > 0) {
+        var statsAnimated = false;
+        function animateStats() {
+            if (statsAnimated) return;
+            var statsSection = document.querySelector('.stats-section');
+            if (!statsSection) return;
+            var rect = statsSection.getBoundingClientRect();
+            if (rect.top < window.innerHeight * 0.85) {
+                statsAnimated = true;
+                statValues.forEach(function(el) {
+                    var target = parseInt(el.getAttribute('data-target')) || 0;
+                    var duration = 1500;
+                    var start = 0;
+                    var startTime = null;
+                    function step(timestamp) {
+                        if (!startTime) startTime = timestamp;
+                        var progress = Math.min((timestamp - startTime) / duration, 1);
+                        var eased = 1 - Math.pow(1 - progress, 3);
+                        el.textContent = Math.floor(eased * target);
+                        if (progress < 1) {
+                            requestAnimationFrame(step);
+                        } else {
+                            el.textContent = target;
+                        }
+                    }
+                    requestAnimationFrame(step);
+                });
+            }
+        }
+        window.addEventListener('scroll', animateStats);
+        animateStats();
+    }
+
+    /* ===== 滚动渐入动画 ===== */
+    var fadeEls = document.querySelectorAll('.about-section, .services-section, .showcase-section, .news-section, .stats-section');
+    if (fadeEls.length > 0) {
+        fadeEls.forEach(function(el) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        });
+        function checkFade() {
+            fadeEls.forEach(function(el) {
+                var rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.88) {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }
+            });
+            if (Array.from(fadeEls).every(function(el) {
+                return el.style.opacity === '1';
+            })) {
+                window.removeEventListener('scroll', checkFade);
+            }
+        }
+        window.addEventListener('scroll', checkFade);
+        checkFade();
+    }
+
+    /* ===== 懒加载图片淡入 ===== */
     document.querySelectorAll('img[loading="lazy"]').forEach(function(img) {
         if (img.complete) {
             img.classList.add('loaded');

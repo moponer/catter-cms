@@ -6,57 +6,49 @@
 </footer>
 <script>
 (function(){
+    // Header 滚动效果
+    var header = document.getElementById('siteHeader');
+    if (header) {
+        var scrolled = false;
+        window.addEventListener('scroll', function() {
+            var y = window.scrollY || window.pageYOffset;
+            if (y > 60 && !scrolled) {
+                header.classList.add('scrolled');
+                scrolled = true;
+            } else if (y <= 60 && scrolled) {
+                header.classList.remove('scrolled');
+                scrolled = false;
+            }
+        });
+    }
+
     // 移动端菜单
     var toggle = document.getElementById('headerToggle');
     var menu = document.getElementById('headerMenu');
-    if(toggle && menu){
-        toggle.addEventListener('click', function(){
+    if (toggle && menu) {
+        toggle.addEventListener('click', function() {
             menu.classList.toggle('open');
             toggle.classList.toggle('active');
         });
     }
 
-    // 新闻轮播
-    var carousel = document.getElementById('newsCarousel');
-    if(carousel){
-        var slides = carousel.querySelectorAll('.news-slide');
-        var dots = carousel.querySelectorAll('.carousel-dot');
-        var current = 0;
-        var total = slides.length;
-        if(total > 1){
-            function goTo(index){
-                slides[current].classList.remove('active');
-                if(dots[current]) dots[current].classList.remove('active');
-                current = index;
-                slides[current].classList.add('active');
-                if(dots[current]) dots[current].classList.add('active');
-            }
-            setInterval(function(){ goTo((current + 1) % total); }, 5000);
-            for(var i = 0; i < dots.length; i++){
-                dots[i].addEventListener('click', function(){
-                    goTo(parseInt(this.getAttribute('data-index')));
-                });
-            }
-        }
-    }
-
     // 展示模块分类筛选
     var showcaseMenu = document.getElementById('showcaseMenu');
     var showcaseGrid = document.getElementById('showcaseGrid');
-    if(showcaseMenu && showcaseGrid){
+    if (showcaseMenu && showcaseGrid) {
         var items = showcaseGrid.querySelectorAll('.showcase-card');
         var menuItems = showcaseMenu.querySelectorAll('.showcase-menu-item');
-        menuItems[0].addEventListener('click', function(){
-            menuItems.forEach(function(m){ m.classList.remove('active'); });
+        menuItems[0].addEventListener('click', function() {
+            menuItems.forEach(function(m) { m.classList.remove('active'); });
             this.classList.add('active');
-            items.forEach(function(c){ c.style.display = ''; });
+            items.forEach(function(c) { c.style.display = ''; });
         });
-        for(var i = 1; i < menuItems.length; i++){
-            menuItems[i].addEventListener('click', function(){
+        for (var i = 1; i < menuItems.length; i++) {
+            menuItems[i].addEventListener('click', function() {
                 var cat = this.getAttribute('data-category');
-                menuItems.forEach(function(m){ m.classList.remove('active'); });
+                menuItems.forEach(function(m) { m.classList.remove('active'); });
                 this.classList.add('active');
-                items.forEach(function(c){
+                items.forEach(function(c) {
                     c.style.display = (c.getAttribute('data-category') === cat) ? '' : 'none';
                 });
             });
