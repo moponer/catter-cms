@@ -963,6 +963,14 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 					if val, ok := current[key]; ok {
 						// 如果值是字符串，尝试解析为 JSON（支持 repeater 类型字段）
 						if strVal, ok := val.(string); ok {
+							// 特殊处理布尔字符串：数据库可能存储 "true"/"false" 字符串
+							// 必须在 JSON 解析前处理，否则 json.Unmarshal("false") 会失败
+							if strVal == "true" {
+								return true
+							}
+							if strVal == "false" {
+								return false
+							}
 							// 尝试解析 JSON 数组或对象
 							var parsed interface{}
 							if err := json.Unmarshal([]byte(strVal), &parsed); err == nil {
