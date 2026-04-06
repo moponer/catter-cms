@@ -695,13 +695,9 @@ func markdownToHTML(content string) string {
 	if content == "" {
 		return ""
 	}
-	// 检测是否已经是 HTML 内容
-	trimmed := strings.TrimSpace(content)
-	if strings.HasPrefix(trimmed, "<") {
-		return content
-	}
 	var buf bytes.Buffer
 	if err := goldmark.Convert([]byte(content), &buf); err != nil {
+		// 转换失败，返回原始内容
 		return content
 	}
 	return buf.String()
