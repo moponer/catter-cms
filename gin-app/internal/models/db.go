@@ -5,7 +5,7 @@ import (
 
 	"catter-cms-gin/config"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -17,7 +17,7 @@ func InitDB(cfg *config.DatabaseConfig) error {
 	var err error
 
 	DB, err = gorm.Open(sqlite.Open(cfg.Database), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Warn),
 	})
 	if err != nil {
 		return err
