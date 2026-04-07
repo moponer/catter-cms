@@ -147,27 +147,87 @@ database:
 ### 3. 构建
 
 ```bash
-# 构建后端
-cd gin-app
-go build -o catter-cms.exe ./cmd
-
-# 构建前端
-cd ../admin
+# 构建前端（必须先构建前端）
+cd admin
 npm install
 npm run build
+
+# 构建后端 — 根据目标平台选择对应命令：
+cd ../gin-app
+
+# Windows 本地运行
+go build -o catter-cms.exe ./cmd
+
+# Linux 服务器部署（x86_64 / amd64）—— 交叉编译
+# Windows PowerShell:
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o catter-cms-linux ./cmd
+# Linux/Mac:
+GOOS=linux GOARCH=amd64 go build -o catter-cms-linux ./cmd
+
+# Linux ARM64（如鲲鹏、树莓派等 ARM 服务器）
+# Windows PowerShell:
+$env:GOOS="linux"; $env:GOARCH="arm64"; go build -o catter-cms-linux-arm64 ./cmd
+# Linux/Mac:
+GOOS=linux GOARCH=arm64 go build -o catter-cms-linux-arm64 ./cmd
 ```
 
-### 4. 运行
+> ⚠️ **交叉编译注意事项**（Windows PowerShell 用户请务必阅读）：
+> - 必须使用 `$env:VAR="value"` 语法设置环境变量，**不能**用 `set VAR=value`（set 不会影响当前 shell 的环境变量，导致编译产物仍然是 Windows PE 格式）
+> - 编译后可用以下命令验证二进制格式是否正确（Python）：
+>   ```powershell
+>   python -c "f=open('catter-cms-linux','rb'); print('ELF(Linux)' if f.read(4)==b'\x7fELF' else 'PE(Windows)')" 
+>   ```
+> - 或在 Linux 服务器上用 `file catter-cms-linux` 确认显示 `ELF ... x86-64`
 
+### 4. 部署运行
+
+**本地开发（Windows）：**
 ```bash
-# Windows
+# 方式一：使用启动脚本
 .\run.bat
 
-# 或直接运行
+# 方式二：直接运行
 ./gin-app/catter-cms.exe
 ```
 
-访问 `http://localhost:3000/admin` 进入管理后台。
+**Linux 服务器部署：**
+```bash
+# 1. 上传文件到服务器
+scp catter-cms-linux config.yaml user@server:/www/wwwroot/catter-cms/
+scp -r templates/ admin/dist/ user@server:/www/wwwroot/catter-cms/
+
+# 2. SSH 登录服务器
+ssh user@server
+
+# 3. 赋予执行权限 + 启动
+cd /www/wwwroot/catter-cms
+chmod +x catter-cms-linux
+./catter-cms-linux
+
+# 或使用 systemd 托管（推荐生产环境）
+sudo tee /etc/systemd/system/catter-cms.service << 'EOF'
+[Unit]
+Description=Catter CMS
+After=network.target
+
+[Service]
+Type=simple
+User=www
+WorkingDirectory=/www/wwwroot/catter-cms
+ExecStart=/www/wwwroot/catter-cms/catter-cms-linux
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable catter-cms
+sudo systemctl start catter-cms
+```
+
+访问 `http://your-server:3000/admin` 进入管理后台。
 
 ### 5. 开发模式
 
