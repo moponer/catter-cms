@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/disintegration/imaging"
@@ -147,16 +148,32 @@ func UploadMedia(c *gin.Context) {
 		InternalError(c, "保存文件失败")
 		return
 	}
+	out.Close()
 
-	// 生成 URL
+	// 图片压缩处理
+	finalPath := filePath
+	finalSize := header.Size
 	url := "/uploads/" + filename
+
+	if cfg.Upload.ImageCompress && isImageFile(ext) {
+		compressedPath, compressedSize, compressErr := compressImage(filePath, ext, cfg.Upload.MaxWidth, cfg.Upload.JPEGQuality)
+		if compressErr == nil && compressedPath != "" {
+			// 压缩成功，删除原文件
+			os.Remove(filePath)
+			finalPath = compressedPath
+			finalSize = compressedSize
+			filename = filepath.Base(compressedPath)
+			url = "/uploads/" + filename
+		}
+		// 压缩失败时静默使用原图，不阻断上传流程
+	}
 
 	// 创建媒体记录
 	media := models.Media{
 		Filename:   header.Filename,
-		Path:       filePath,
+		Path:       finalPath,
 		URL:        url,
-		FileSize:   header.Size,
+		FileSize:   finalSize,
 		UploadedBy: currentUser.ID,
 	}
 
@@ -265,10 +282,22 @@ func UploadCover(c *gin.Context) {
 		return
 	}
 
-	// 缩放图片：宽度最大 1200px，保持比例
-	maxWidth := 1200
-	if img.Bounds().Dx() > maxWidth {
-		img = imaging.Resize(img, maxWidth, 0, imaging.Lanczos)
+	// 缩放图片：使用配置的最大宽度
+	coverMaxWidth := cfg.Upload.MaxWidth
+	if coverMaxWidth <= 0 {
+		coverMaxWidth = 1920
+	}
+	if img.Bounds().Dx() > coverMaxWidth {
+		img = imaging.Resize(img, coverMaxWidth, 0, imaging.Lanczos)
+	}
+
+	// JPEG 质量
+	jpegQ := cfg.Upload.JPEGQuality
+	if jpegQ < 60 {
+		jpegQ = 85
+	}
+	if jpegQ > 100 {
+		jpegQ = 85
 	}
 
 	// 生成唯一文件名（统一保存为 jpg 格式以获得更好的压缩）
@@ -283,8 +312,8 @@ func UploadCover(c *gin.Context) {
 	}
 	defer out.Close()
 
-	// 以 85% 质量编码为 JPEG
-	if err := jpeg.Encode(out, img, &jpeg.Options{Quality: 85}); err != nil {
+	// 以配置质量编码为 JPEG
+	if err := jpeg.Encode(out, img, &jpeg.Options{Quality: jpegQ}); err != nil {
 		InternalError(c, "图片压缩失败")
 		return
 	}
@@ -361,4 +390,83 @@ func trim(s string) string {
 		end--
 	}
 	return s[start:end]
+}
+
+// isImageFile 判断文件扩展名是否为图片格式
+func isImageFile(ext string) bool {
+	switch strings.ToLower(ext) {
+	case ".jpg", ".jpeg", ".png", ".webp":
+		return true
+	default:
+		return false
+	}
+}
+
+// compressImage 压缩图片：超宽缩放 + JPEG 质量压缩
+// 返回压缩后的路径、大小、错误（如果不需要压缩则返回原路径和 nil）
+func compressImage(srcPath, ext string, maxWidth, quality int) (string, int64, error) {
+	// 打开原文件
+	f, err := os.Open(srcPath)
+	if err != nil {
+		return srcPath, 0, fmt.Errorf("open file: %w", err)
+	}
+	defer f.Close()
+
+	// 解码图片
+	var img image.Image
+	switch strings.ToLower(ext) {
+	case ".jpg", ".jpeg":
+		img, err = jpeg.Decode(f)
+	case ".png":
+		img, err = png.Decode(f)
+	default:
+		img, _, err = image.Decode(f)
+	}
+	if err != nil {
+		return srcPath, 0, fmt.Errorf("decode image: %w", err)
+	}
+
+	originalW := img.Bounds().Dx()
+	needsResize := maxWidth > 0 && originalW > maxWidth
+
+	// 缩放（如果需要）
+	if needsResize {
+		img = imaging.Resize(img, maxWidth, 0, imaging.Lanczos)
+	}
+
+	// 质量校验
+	if quality < 60 {
+		quality = 60
+	}
+	if quality > 100 {
+		quality = 100
+	}
+
+	// 生成输出路径（统一保存为 jpg 以获得最佳压缩）
+	outExt := ".jpg"
+	outPath := srcPath
+	if strings.ToLower(ext) != ".jpg" && strings.ToLower(ext) != ".jpeg" {
+		outPath = strings.TrimSuffix(srcPath, ext) + outExt
+	}
+
+	// 创建输出文件
+	out, err := os.Create(outPath)
+	if err != nil {
+		return srcPath, 0, fmt.Errorf("create output: %w", err)
+	}
+	defer out.Close()
+
+	// 编码为 JPEG
+	if err := jpeg.Encode(out, img, &jpeg.Options{Quality: quality}); err != nil {
+		os.Remove(outPath) // 清理失败文件
+		return srcPath, 0, fmt.Errorf("encode jpeg: %w", err)
+	}
+
+	// 获取压缩后文件信息
+	info, err := os.Stat(outPath)
+	if err != nil {
+		return outPath, 0, nil
+	}
+
+	return outPath, info.Size(), nil
 }

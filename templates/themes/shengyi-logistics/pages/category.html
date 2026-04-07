@@ -23,6 +23,19 @@
 
 <main class="main-wrapper">
     <div class="container">
+        <!-- 分类筛选 -->
+        <div class="category-filter">
+            <span class="category-filter-label">分类：</span>
+            <a href="/article">全部</a>
+            {{ range $cat := $.categories }}
+            {{ if eq $cat.Slug $.category.Slug }}
+            <a href="/category/{{ $cat.Slug }}" class="active">{{ $cat.Name }}</a>
+            {{ else }}
+            <a href="/category/{{ $cat.Slug }}">{{ $cat.Name }}</a>
+            {{ end }}
+            {{ end }}
+        </div>
+
         {{ if .category.Description }}<p class="category-desc">{{ .category.Description }}</p>{{ end }}
         {{ range .posts }}
         <a href="/article/{{ .Slug }}" class="news-list-item-row">

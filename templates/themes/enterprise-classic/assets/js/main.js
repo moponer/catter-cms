@@ -1,0 +1,56 @@
+/**
+ * Enterprise Classic - Main JS
+ * 全局功能：Header 滚动效果、移动端菜单、展示模块分类筛选
+ */
+(function() {
+    'use strict';
+
+    /* ===== Header 滚动效果 ===== */
+    var header = document.getElementById('siteHeader');
+    if (header) {
+        var scrolled = false;
+        window.addEventListener('scroll', function() {
+            var y = window.scrollY || window.pageYOffset;
+            if (y > 60 && !scrolled) {
+                header.classList.add('scrolled');
+                scrolled = true;
+            } else if (y <= 60 && scrolled) {
+                header.classList.remove('scrolled');
+                scrolled = false;
+            }
+        });
+    }
+
+    /* ===== 移动端菜单 ===== */
+    var toggle = document.getElementById('headerToggle');
+    var menu = document.getElementById('headerMenu');
+    if (toggle && menu) {
+        toggle.addEventListener('click', function() {
+            menu.classList.toggle('open');
+            toggle.classList.toggle('active');
+        });
+    }
+
+    /* ===== 展示模块分类筛选 ===== */
+    var showcaseMenu = document.getElementById('showcaseMenu');
+    var showcaseGrid = document.getElementById('showcaseGrid');
+    if (showcaseMenu && showcaseGrid) {
+        var items = showcaseGrid.querySelectorAll('.showcase-card');
+        var menuItems = showcaseMenu.querySelectorAll('.showcase-menu-item');
+        menuItems[0].addEventListener('click', function() {
+            menuItems.forEach(function(m) { m.classList.remove('active'); });
+            this.classList.add('active');
+            items.forEach(function(c) { c.style.display = ''; });
+        });
+        for (var i = 1; i < menuItems.length; i++) {
+            menuItems[i].addEventListener('click', function() {
+                var cat = this.getAttribute('data-category');
+                menuItems.forEach(function(m) { m.classList.remove('active'); });
+                this.classList.add('active');
+                items.forEach(function(c) {
+                    c.style.display = (c.getAttribute('data-category') === cat) ? '' : 'none';
+                });
+            });
+        }
+    }
+})();

@@ -16,15 +16,10 @@
 
 {{ template "header" . }}
 
-<!-- ====== 页面标题 ====== -->
-<section class="page-header">
-    <div class="container">
-        <h1 class="page-title">{{ .page.Title }}</h1>
-        {{ if .page.Excerpt }}
-        <p class="page-desc">{{ .page.Excerpt }}</p>
-        {{ end }}
-    </div>
-</section>
+<div class="page-banner">
+    <h1 class="page-banner-title">{{ .page.Title }}</h1>
+    <div class="page-banner-breadcrumb"><a href="/">首页</a><span>›</span>{{ .page.Title }}</div>
+</div>
 
 <!-- ====== 相册内容 ====== -->
 {{ $td := .td }}

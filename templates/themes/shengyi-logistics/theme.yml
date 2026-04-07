@@ -64,16 +64,22 @@ configDefinition:
         type: "text"
         default: "安全·高效·专业 | 全国道路危险货物运输资质认证"
       - name: "heroBgImage"
-        label: "背景图"
+        label: "背景图（单张）"
         type: "image"
         default: ""
+        description: "单张背景图，建议改用「背景轮播」获得更好效果"
+      - name: "heroBgImages"
+        label: "背景轮播（推荐）"
+        type: "image-list"
+        default: []
+        description: "支持多张图片自动轮播，带 Ken Burns 推镜效果"
       - name: "heroBgOpacity"
         label: "背景透明度"
         type: "slider"
-        min: 0
-        max: 100
+        min: 20
+        max: 80
         step: 5
-        default: 25
+        default: 55
       - name: "heroCta1Text"
         label: "按钮1文字"
         type: "text"

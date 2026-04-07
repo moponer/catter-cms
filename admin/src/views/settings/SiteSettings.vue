@@ -124,6 +124,43 @@
           </el-form>
         </el-card>
       </el-tab-pane>
+
+      <!-- 上传设置 -->
+      <el-tab-pane label="上传设置" name="upload">
+        <el-card>
+          <el-form :model="settings.upload" label-width="140px">
+            <el-form-item label="图片压缩">
+              <el-switch v-model="settings.upload.image_compress" />
+              <div class="form-hint">开启后自动压缩上传的图片，减小文件体积</div>
+            </el-form-item>
+            <el-form-item label="最大宽度（像素）">
+              <el-input-number v-model="settings.upload.max_width" :min="400" :max="8000" :step="100" />
+              <div class="form-hint">图片宽度超过此值时自动缩放。0 表示不限制</div>
+            </el-form-item>
+            <el-form-item label="JPEG 压缩质量">
+              <el-slider v-model="settings.upload.jpeg_quality" :min="60" :max="100" :show-tooltip="true" style="max-width: 300px;" />
+              <div class="form-hint">质量越高文件越大，推荐 85。60-100 范围内调节</div>
+            </el-form-item>
+            <el-divider content-position="left">当前效果预览</el-divider>
+            <div class="upload-preview">
+              <div class="preview-item">
+                <span class="preview-label">压缩开关：</span>
+                <el-tag :type="settings.upload.image_compress ? 'success' : 'info'">
+                  {{ settings.upload.image_compress ? '已开启' : '已关闭' }}
+                </el-tag>
+              </div>
+              <div class="preview-item">
+                <span class="preview-label">最大宽度：</span>
+                <span class="preview-value">{{ settings.upload.max_width }}px</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-label">JPEG 质量：</span>
+                <span class="preview-value">{{ settings.upload.jpeg_quality }}%</span>
+              </div>
+            </div>
+          </el-form>
+        </el-card>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -162,6 +199,11 @@ const settings = reactive({
     smtp_password: '',
     sender_name: '',
     encryption: 'tls'
+  },
+  upload: {
+    image_compress: true,
+    max_width: 1920,
+    jpeg_quality: 85
   }
 })
 
@@ -194,6 +236,11 @@ const loadSettings = async () => {
     if (data.smtp_password !== undefined) settings.email.smtp_password = data.smtp_password
     if (data.sender_name !== undefined) settings.email.sender_name = data.sender_name
     if (data.encryption !== undefined) settings.email.encryption = data.encryption
+
+    // upload
+    if (data.image_compress !== undefined) settings.upload.image_compress = Boolean(data.image_compress)
+    if (data.max_width !== undefined) settings.upload.max_width = Number(data.max_width)
+    if (data.jpeg_quality !== undefined) settings.upload.jpeg_quality = Number(data.jpeg_quality)
   } catch (error) {
     ElMessage.error('加载设置失败')
   }
@@ -227,7 +274,8 @@ const handleSave = async () => {
     const allSettings = {
       ...settings.basic,
       ...settings.seo,
-      ...settings.email
+      ...settings.email,
+      ...settings.upload
     }
     await put('/api/settings', allSettings)
     ElMessage.success('设置保存成功')
@@ -329,5 +377,32 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
   font-size: 12px;
   margin-top: 4px;
+}
+
+.upload-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--el-fill-color-lighter);
+  border-radius: 8px;
+}
+
+.preview-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.preview-label {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  min-width: 100px;
+}
+
+.preview-value {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--el-color-primary);
 }
 </style>

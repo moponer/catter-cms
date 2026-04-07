@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/fontawesome/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="preload" href="/fontawesome/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
@@ -13,13 +13,18 @@
     <link rel="stylesheet" href="{{ asset_path "assets/css/gallery.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/sidebar.css" }}">
 </head>
-<body>
+<body data-color-scheme="{{ getConfig "colorScheme" "default" }}">
 
 {{ template "header" . }}
 
-{{ $heroBg := getConfig "heroBgImage" "" }}
-{{ if $heroBg }}
-<div class="page-banner" style="background-image:url('{{ $heroBg }}')">
+{{/* 横幅背景：优先使用轮播图第一张，其次单张，最后纯色 */}}
+{{ $heroImgs := getConfig "heroBgImages" (ensureSlice nil) }}
+{{ $heroSingle := getConfig "heroBgImage" "" }}
+{{ $hasMulti := gt (len $heroImgs) 0 }}
+{{ if $hasMulti }}
+<div class="page-banner" style="background-image:url('{{ (index $heroImgs 0).url }}')">
+{{ else if $heroSingle }}
+<div class="page-banner" style="background-image:url('{{ $heroSingle }}')">
 {{ else }}
 <div class="page-banner">
 {{ end }}
@@ -86,76 +91,10 @@
 {{ template "footer" . }}
 
 {{ if $images }}
-<script>
-// 简单灯箱效果
-document.addEventListener('DOMContentLoaded', function() {
-    const gallery = document.querySelector('.gallery-grid');
-    if (!gallery) return;
-    
-    // 创建灯箱容器
-    const lightbox = document.createElement('div');
-    lightbox.id = 'gallery-lightbox';
-    lightbox.innerHTML = '<div class="lightbox-content"><img src="" alt=""><span class="lightbox-caption"></span><button class="lightbox-close">&times;</button><button class="lightbox-prev"><i class="fa-solid fa-chevron-left"></i></button><button class="lightbox-next"><i class="fa-solid fa-chevron-right"></i></button></div>';
-    document.body.appendChild(lightbox);
-    
-    const lightboxImg = lightbox.querySelector('img');
-    const lightboxCaption = lightbox.querySelector('.lightbox-caption');
-    const closeBtn = lightbox.querySelector('.lightbox-close');
-    const prevBtn = lightbox.querySelector('.lightbox-prev');
-    const nextBtn = lightbox.querySelector('.lightbox-next');
-    
-    const items = gallery.querySelectorAll('.gallery-link');
-    let currentIndex = 0;
-    
-    // 点击图片打开灯箱
-    items.forEach((item, index) => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            currentIndex = index;
-            showImage(index);
-            lightbox.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-    });
-    
-    function showImage(index) {
-        const img = items[index].querySelector('img');
-        lightboxImg.src = img.src;
-        lightboxImg.alt = img.alt;
-        lightboxCaption.textContent = img.alt || '';
-    }
-    
-    // 关闭灯箱
-    closeBtn.addEventListener('click', closeLightbox);
-    lightbox.addEventListener('click', function(e) {
-        if (e.target === lightbox) closeLightbox();
-    });
-    
-    function closeLightbox() {
-        lightbox.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    
-    // 上一张/下一张
-    prevBtn.addEventListener('click', function() {
-        currentIndex = (currentIndex - 1 + items.length) % items.length;
-        showImage(currentIndex);
-    });
-    
-    nextBtn.addEventListener('click', function() {
-        currentIndex = (currentIndex + 1) % items.length;
-        showImage(currentIndex);
-    });
-    
-    // 键盘导航
-    document.addEventListener('keydown', function(e) {
-        if (!lightbox.classList.contains('active')) return;
-        if (e.key === 'Escape') closeLightbox();
-        if (e.key === 'ArrowLeft') prevBtn.click();
-        if (e.key === 'ArrowRight') nextBtn.click();
-    });
-});
-</script>
+<script src="{{ asset_path "assets/js/main.js" }}"></script>
+<script src="{{ asset_path "assets/js/gallery.js" }}"></script>
+{{ else }}
+<script src="{{ asset_path "assets/js/main.js" }}"></script>
 {{ end }}
 
 </body>

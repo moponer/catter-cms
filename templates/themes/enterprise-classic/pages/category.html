@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/fontawesome/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="preload" href="/fontawesome/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
@@ -14,13 +14,18 @@
     {{ getConfig "customHead" "" }}
     {{ end }}
 </head>
-<body>
+<body data-color-scheme="{{ getConfig "colorScheme" "default" }}">
 
 {{ template "header" . }}
 
-{{ $heroBg := getConfig "heroBgImage" "" }}
-{{ if $heroBg }}
-<div class="page-banner" style="background-image:url('{{ $heroBg }}')">
+{{/* 横幅背景：优先使用轮播图第一张，其次单张，最后纯色 */}}
+{{ $heroImgs := getConfig "heroBgImages" (ensureSlice nil) }}
+{{ $heroSingle := getConfig "heroBgImage" "" }}
+{{ $hasMulti := gt (len $heroImgs) 0 }}
+{{ if $hasMulti }}
+<div class="page-banner" style="background-image:url('{{ (index $heroImgs 0).url }}')">
+{{ else if $heroSingle }}
+<div class="page-banner" style="background-image:url('{{ $heroSingle }}')">
 {{ else }}
 <div class="page-banner">
 {{ end }}
@@ -59,5 +64,7 @@
 </main>
 
 {{ template "footer" . }}
+
+<script src="{{ asset_path "assets/js/main.js" }}"></script>
 </body>
 </html>

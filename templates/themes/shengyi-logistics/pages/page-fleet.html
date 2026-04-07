@@ -20,21 +20,10 @@
 {{ $td := .td }}
 {{ if not $td }}{{ $td = dict }}{{ end }}
 
-<!-- ====== 页面 Banner ====== -->
-<section class="fleet-banner">
-    <div class="container">
-        <h1 class="fleet-banner-title">{{ .page.Title }}</h1>
-        <p class="fleet-banner-sub">
-            {{ $fleetTitle := index $td "fleetTitle" }}
-            {{ if $fleetTitle }}{{ $fleetTitle }}{{ else }}专业车队，安全运输{{ end }}
-        </p>
-        <div class="fleet-banner-breadcrumb">
-            <a href="/">首页</a>
-            <span><i class="fa-solid fa-chevron-right"></i></span>
-            {{ .page.Title }}
-        </div>
-    </div>
-</section>
+<div class="page-banner">
+    <h1 class="page-banner-title">{{ .page.Title }}</h1>
+    <div class="page-banner-breadcrumb"><a href="/">首页</a><span>›</span>{{ .page.Title }}</div>
+</div>
 
 <!-- ====== 页面简介 ====== -->
 {{ if .page.Content }}

@@ -44,11 +44,14 @@ type JWTConfig struct {
 
 // UploadConfig 上传配置
 type UploadConfig struct {
-	MaxSize     int64  `yaml:"max_size"`
-	Path        string `yaml:"path"`
-	AllowedExt  string `yaml:"allowed_ext"`
-	StorageType string `yaml:"storage_type"` // local, oss, s3
-	OSSConfig   OSSConfig `yaml:"oss_config,omitempty"`
+	MaxSize       int64  `yaml:"max_size"`
+	Path          string `yaml:"path"`
+	AllowedExt    string `yaml:"allowed_ext"`
+	StorageType   string `yaml:"storage_type"` // local, oss, s3
+	OSSConfig     OSSConfig `yaml:"oss_config,omitempty"`
+	ImageCompress bool   `yaml:"image_compress"`    // 图片压缩开关，默认 true
+	MaxWidth      int    `yaml:"max_width"`         // 最大宽度，默认 1920
+	JPEGQuality   int    `yaml:"jpeg_quality"`       // JPEG 质量，默认 85（60-100）
 }
 
 // OSSConfig OSS配置
@@ -194,10 +197,14 @@ func (c *Config) GetAdminDistPath() string {
 		"../admin/dist",
 		"./admin/dist",
 		filepath.Join(GetAppRoot(), "admin/dist"),
+		// 兼容直接将 dist 内容复制到 admin/ 下的部署方式
+		"../admin",
+		"./admin",
+		filepath.Join(GetAppRoot(), "admin"),
 	}
 
 	for _, p := range paths {
-		if _, err := os.Stat(p); err == nil {
+		if _, err := os.Stat(filepath.Join(p, "index.html")); err == nil {
 			return p
 		}
 	}
@@ -281,9 +288,12 @@ func LoadFromEnv() *Config {
 			Expire: 24,
 		},
 		Upload: UploadConfig{
-			MaxSize:    10 * 1024 * 1024,
-			Path:       getEnvOrDefault("UPLOAD_PATH", "uploads"),
-			AllowedExt: ".jpg,.jpeg,.png,.gif,.webp",
+			MaxSize:       10 * 1024 * 1024,
+			Path:          getEnvOrDefault("UPLOAD_PATH", "uploads"),
+			AllowedExt:    ".jpg,.jpeg,.png,.gif,.webp",
+			ImageCompress: true,
+			MaxWidth:      1920,
+			JPEGQuality:   85,
 		},
 		Env: getEnvOrDefault("APP_ENV", "production"),
 	}
@@ -345,9 +355,12 @@ func defaultConfig() *Config {
 			Expire: 24,
 		},
 		Upload: UploadConfig{
-			MaxSize:    10 * 1024 * 1024, // 10MB
-			Path:       "uploads",
-			AllowedExt: ".jpg,.jpeg,.png,.gif,.webp",
+			MaxSize:       10 * 1024 * 1024, // 10MB
+			Path:          "uploads",
+			AllowedExt:    ".jpg,.jpeg,.png,.gif,.webp",
+			ImageCompress: true,
+			MaxWidth:      1920,
+			JPEGQuality:   85,
 		},
 		Security: SecurityConfig{
 			AllowOrigins: []string{"*"},

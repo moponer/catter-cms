@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"catter-cms-gin/config"
 )
 
 // SecurityHeaders 安全头中间件
@@ -43,13 +44,18 @@ func SecurityHeaders() gin.HandlerFunc {
 
 // getCSPHeader 根据环境获取 CSP 头
 func getCSPHeader(c *gin.Context) string {
-	// 开发环境使用宽松的 CSP
+	// 如果 CSP 被显式禁用，不发送 CSP 头
+	cfg := config.Get()
+	if cfg != nil && !cfg.Security.EnableCSP {
+		return ""
+	}
+
 	if gin.Mode() == gin.DebugMode {
 		return "default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' ws: wss: http: https:;"
 	}
 
-	// 生产环境使用严格的 CSP
-	return "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+	// 生产环境：允许内联脚本和样式（主题模板大量使用内联 JS/CSS）
+	return "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http:; font-src 'self' data: https:; connect-src 'self' http: https: ws: wss:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
 }
 
 // CacheHeaders 缓存头中间件
