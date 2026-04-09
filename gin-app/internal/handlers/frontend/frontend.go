@@ -24,6 +24,27 @@ func parseJSON(jsonStr string) (map[string]interface{}, error) {
 	return result, nil
 }
 
+// getSidebarData 获取侧边栏通用数据（recentPosts / categories / tags）
+func getSidebarData() map[string]interface{} {
+	var recentPosts []models.Post
+	models.DB.Where("status = ?", "published").
+		Order("COALESCE(published_at, created_at) DESC").
+		Limit(5).
+		Find(&recentPosts)
+
+	var categories []models.Category
+	models.DB.Find(&categories)
+
+	var tags []models.Tag
+	models.DB.Find(&tags)
+
+	return map[string]interface{}{
+		"recentPosts": recentPosts,
+		"categories":  categories,
+		"tags":        tags,
+	}
+}
+
 // getSiteData 获取站点基础数据
 func getSiteData() map[string]interface{} {
 	siteTitle := models.GetSettingAsString("site_title")
@@ -68,26 +89,15 @@ func HomeHandler(c *gin.Context) {
 		Limit(10).
 		Find(&posts)
 
-	var recentPosts []models.Post
-	models.DB.Where("status = ?", "published").
-		Order("COALESCE(published_at, created_at) DESC").
-		Limit(5).
-		Find(&recentPosts)
-
-	var categories []models.Category
-	models.DB.Find(&categories)
-
-	var tags []models.Tag
-	models.DB.Find(&tags)
-
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
 		"site":        siteData,
 		"pageTitle":   "首页",
 		"posts":       posts,
-		"recentPosts": recentPosts,
-		"categories":  categories,
-		"tags":        tags,
+		"recentPosts": sidebarData["recentPosts"],
+		"categories":  sidebarData["categories"],
+		"tags":        sidebarData["tags"],
 	}
 
 	theme := services.GetActiveTheme()
@@ -130,25 +140,15 @@ func ArticleShowHandler(c *gin.Context) {
 
 	models.DB.Model(&post).Update("views", post.Views+1)
 
-	var categories []models.Category
-	models.DB.Find(&categories)
-	var tags []models.Tag
-	models.DB.Find(&tags)
-
-	var recentPosts []models.Post
-	models.DB.Where("status = ?", "published").
-		Order("COALESCE(published_at, created_at) DESC").
-		Limit(5).
-		Find(&recentPosts)
-
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
 		"site":        siteData,
 		"pageTitle":   post.Title,
 		"post":        post,
-		"categories":  categories,
-		"tags":        tags,
-		"recentPosts": recentPosts,
+		"categories":  sidebarData["categories"],
+		"tags":        sidebarData["tags"],
+		"recentPosts": sidebarData["recentPosts"],
 	}
 
 	content, renderErr := services.RenderTemplate("article_show", data)
@@ -221,18 +221,15 @@ func ArticleListHandler(c *gin.Context) {
 		Find(&posts)
 	models.DB.Model(&models.Post{}).Where("status = ?", "published").Count(&total)
 
-	var categories []models.Category
-	var tags []models.Tag
-	models.DB.Find(&categories)
-	models.DB.Find(&tags)
-
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
 		"site":       siteData,
 		"pageTitle":  "文章",
 		"posts":      posts,
-		"categories": categories,
-		"tags":       tags,
+		"categories": sidebarData["categories"],
+		"tags":       sidebarData["tags"],
+		"recentPosts": sidebarData["recentPosts"],
 		"pagination": map[string]interface{}{
 			"page":       page,
 			"pageSize":   pageSize,
@@ -264,13 +261,8 @@ func PageShowHandler(c *gin.Context) {
 
 	models.DB.Model(&page).Update("views", page.Views+1)
 
-	var recentPosts []models.Post
-	models.DB.Where("status = ?", "published").
-		Order("COALESCE(published_at, created_at) DESC").
-		Limit(5).
-		Find(&recentPosts)
-
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	// 页面内容是 HTML（富文本编辑器产出），需要标记为 template.HTML 避免模板引擎转义
 	pageData := map[string]interface{}{
 		"ID":              page.ID,
@@ -290,7 +282,9 @@ func PageShowHandler(c *gin.Context) {
 		"site":        siteData,
 		"pageTitle":   page.Title,
 		"page":        pageData,
-		"recentPosts": recentPosts,
+		"recentPosts": sidebarData["recentPosts"],
+		"categories":  sidebarData["categories"],
+		"tags":        sidebarData["tags"],
 	}
 
 	templateName := "page"
@@ -372,19 +366,16 @@ func CategoryHandler(c *gin.Context) {
 		Order("COALESCE(published_at, created_at) DESC").
 		Find(&posts)
 
-	var categories []models.Category
-	models.DB.Find(&categories)
-	var tags []models.Tag
-	models.DB.Find(&tags)
-
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
-		"site":       siteData,
-		"pageTitle":  category.Name,
-		"category":   category,
-		"posts":      posts,
-		"categories": categories,
-		"tags":       tags,
+		"site":        siteData,
+		"pageTitle":   category.Name,
+		"category":    category,
+		"posts":       posts,
+		"categories":  sidebarData["categories"],
+		"tags":        sidebarData["tags"],
+		"recentPosts": sidebarData["recentPosts"],
 	}
 
 	if content, err := services.RenderTemplate("category", data); err == nil {
@@ -456,10 +447,13 @@ func CategoriesListHandler(c *gin.Context) {
 	}
 
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
-		"site":       siteData,
-		"pageTitle":  "分类",
-		"categories": categoriesWithCount,
+		"site":        siteData,
+		"pageTitle":   "分类",
+		"categories":  categoriesWithCount,
+		"recentPosts": sidebarData["recentPosts"],
+		"tags":        sidebarData["tags"],
 	}
 
 	if content, err := services.RenderTemplate("categories", data); err == nil {
@@ -491,10 +485,13 @@ func TagsListHandler(c *gin.Context) {
 	}
 
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
-		"site":      siteData,
-		"pageTitle": "标签",
-		"tags":      tagsWithCount,
+		"site":        siteData,
+		"pageTitle":   "标签",
+		"tags":        tagsWithCount,
+		"recentPosts": sidebarData["recentPosts"],
+		"categories":  sidebarData["categories"],
 	}
 
 	if content, err := services.RenderTemplate("tags", data); err == nil {
@@ -524,11 +521,15 @@ func TagHandler(c *gin.Context) {
 		Find(&posts)
 
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
-		"site":      siteData,
-		"pageTitle": tag.Name,
-		"tag":       tag,
-		"posts":     posts,
+		"site":        siteData,
+		"pageTitle":   tag.Name,
+		"tag":         tag,
+		"posts":       posts,
+		"recentPosts": sidebarData["recentPosts"],
+		"categories":  sidebarData["categories"],
+		"tags":        sidebarData["tags"],
 	}
 
 	if content, err := services.RenderTemplate("tag", data); err == nil {
@@ -558,11 +559,15 @@ func ArchivesHandler(c *gin.Context) {
 	}
 
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
-		"site":      siteData,
-		"pageTitle": "文章归档",
-		"archives":  archives,
-		"posts":     posts,
+		"site":        siteData,
+		"pageTitle":   "文章归档",
+		"archives":    archives,
+		"posts":       posts,
+		"recentPosts": sidebarData["recentPosts"],
+		"categories":  sidebarData["categories"],
+		"tags":        sidebarData["tags"],
 	}
 
 	if content, err := services.RenderTemplate("archives", data); err == nil {
@@ -590,12 +595,16 @@ func SearchHandler(c *gin.Context) {
 	}
 
 	siteData := getSiteData()
+	sidebarData := getSidebarData()
 	data := map[string]interface{}{
-		"site":      siteData,
-		"pageTitle": "搜索",
-		"query":     query,
-		"posts":     posts,
-		"count":     len(posts),
+		"site":        siteData,
+		"pageTitle":   "搜索",
+		"query":       query,
+		"posts":       posts,
+		"count":       len(posts),
+		"recentPosts": sidebarData["recentPosts"],
+		"categories":  sidebarData["categories"],
+		"tags":        sidebarData["tags"],
 	}
 
 	if content, err := services.RenderTemplate("search", data); err == nil {

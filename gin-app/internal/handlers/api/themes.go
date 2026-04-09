@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -173,6 +174,38 @@ func GetThemeConfigFull(c *gin.Context) {
 	SuccessResponse(c, result)
 }
 
+// normalizeIconClass 递归遍历配置值，自动给 fa- 开头但不含样式族前缀的图标类名补全
+// 旧格式 "fa-truck" → "fa-solid fa-truck"
+// 已有前缀 "fa-solid fa-truck" / "fa-brands fa-weixin" 保持不变
+func normalizeIconClass(v interface{}) interface{} {
+	switch val := v.(type) {
+	case string:
+		if strings.HasPrefix(val, "fa-") &&
+			!strings.HasPrefix(val, "fa-solid ") &&
+			!strings.HasPrefix(val, "fa-regular ") &&
+			!strings.HasPrefix(val, "fa-brands ") &&
+			!strings.HasPrefix(val, "fa-light ") &&
+			!strings.HasPrefix(val, "fa-duotone ") {
+			return "fa-solid " + val
+		}
+		return val
+	case map[string]interface{}:
+		result := make(map[string]interface{}, len(val))
+		for k, v := range val {
+			result[k] = normalizeIconClass(v)
+		}
+		return result
+	case []interface{}:
+		result := make([]interface{}, len(val))
+		for i, v := range val {
+			result[i] = normalizeIconClass(v)
+		}
+		return result
+	default:
+		return v
+	}
+}
+
 // SaveThemeConfigFull 保存主题完整配置
 func SaveThemeConfigFull(c *gin.Context) {
 	slug := c.Param("slug")
@@ -189,6 +222,9 @@ func SaveThemeConfigFull(c *gin.Context) {
 		BadRequest(c, "请求参数错误")
 		return
 	}
+
+	// 自动补全图标类名前缀（兼容旧数据）
+	config = normalizeIconClass(config).(map[string]interface{})
 
 	// 保存配置到数据库
 	if err := services.UpdateThemeConfig(slug, config); err != nil {

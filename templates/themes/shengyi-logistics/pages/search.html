@@ -20,25 +20,35 @@
 
 <main class="main-wrapper">
     <div class="container">
-        <p class="search-count-text">
-            共找到 <strong style="color:var(--primary)">{{ .count }}</strong> 条与 "<strong>{{ .query }}</strong>" 相关的结果
-        </p>
-        {{ range .posts }}
-        <a href="/article/{{ .Slug }}" class="news-list-item-row">
-            {{ if .Cover }}<img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="news-list-thumb">{{ else }}<div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>{{ end }}
-            <div class="news-list-body">
-                <div class="news-list-meta">{{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}<span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span></div>
-                <div class="news-list-item-title">{{ .Title }}</div>
-                <p class="news-list-excerpt">{{ .Excerpt }}</p>
+        {{ $sbEnabled := getConfig "sidebarEnabled" true }}
+        {{ $sbPosition := getConfig "sidebarPosition" "right" }}
+        <div class="layout-with-sidebar{{ if eq $sbPosition "left" }} sidebar-left{{ end }}">
+            <!-- 主内容 -->
+            <div>
+                <p class="search-count-text">
+                    共找到 <strong style="color:var(--primary)">{{ .count }}</strong> 条与 "<strong>{{ .query }}</strong>" 相关的结果
+                </p>
+                {{ range .posts }}
+                <a href="/article/{{ .Slug }}" class="news-list-item-row">
+                    {{ if .Cover }}<img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="news-list-thumb">{{ else }}<div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>{{ end }}
+                    <div class="news-list-body">
+                        <div class="news-list-meta">{{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}<span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span></div>
+                        <div class="news-list-item-title">{{ .Title }}</div>
+                        <p class="news-list-excerpt">{{ .Excerpt }}</p>
+                    </div>
+                </a>
+                {{ else }}
+                <div class="search-no-results">
+                    <div class="search-no-results-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <p class="search-no-results-title">未找到相关结果</p>
+                    <p class="search-no-results-link">请尝试其他关键词，或<a href="/article" style="color:var(--primary)">浏览全部文章</a></p>
+                </div>
+                {{ end }}
             </div>
-        </a>
-        {{ else }}
-        <div class="search-no-results">
-            <div class="search-no-results-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-            <p class="search-no-results-title">未找到相关结果</p>
-            <p class="search-no-results-link">请尝试其他关键词，或<a href="/article" style="color:var(--primary)">浏览全部文章</a></p>
+
+            <!-- 侧边栏 -->
+            {{ template "sidebar" . }}
         </div>
-        {{ end }}
     </div>
 </main>
 

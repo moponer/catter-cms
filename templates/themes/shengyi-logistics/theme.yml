@@ -356,6 +356,106 @@ configDefinition:
             label: 链接地址
             default: "#"
 
+  # ========== 侧边栏设置 ==========
+  - section: "sidebar"
+    label: "侧边栏设置"
+    icon: "columns"
+    description: "配置全局侧边栏的显示位置和模块内容"
+    fields:
+      - name: "sidebarEnabled"
+        label: "启用侧边栏"
+        type: "switch"
+        default: true
+      - name: "sidebarPosition"
+        label: "侧边栏位置"
+        type: "select"
+        default: "right"
+        options:
+          - value: "right"
+            label: "右侧"
+          - value: "left"
+            label: "左侧"
+      - name: "sidebarModules"
+        label: "侧边栏模块"
+        type: "repeater"
+        itemTitle: "type"
+        default:
+          - type: "contact"
+          - type: "recent"
+        description: "拖拽排序决定模块显示顺序，可选模块：contact（联系咨询）、recent（最新动态）、categories（分类导航）、tags（标签云）、custom（自定义内容）"
+        fields:
+          - name: "type"
+            label: "模块类型"
+            type: "select"
+            options:
+              - value: "contact"
+                label: "联系咨询"
+              - value: "recent"
+                label: "最新动态"
+              - value: "categories"
+                label: "分类导航"
+              - value: "tags"
+                label: "标签云"
+              - value: "custom"
+                label: "自定义内容"
+            default: "contact"
+
+      # 联系咨询模块配置
+      - name: "sidebarContactTagline"
+        label: "联系咨询 - 副标题"
+        type: "text"
+        default: "专业服务，值得信赖"
+        show_if: "sidebarEnabled == true"
+      - name: "sidebarContactBtnText"
+        label: "联系咨询 - 按钮文字"
+        type: "text"
+        default: "在线咨询"
+        show_if: "sidebarEnabled == true"
+      - name: "sidebarContactLink"
+        label: "联系咨询 - 按钮链接"
+        type: "text"
+        default: "/page/contact"
+        show_if: "sidebarEnabled == true"
+
+      # 最新动态模块配置
+      - name: "sidebarRecentTitle"
+        label: "最新动态 - 标题"
+        type: "text"
+        default: "最新动态"
+        show_if: "sidebarEnabled == true"
+      - name: "sidebarRecentCount"
+        label: "最新动态 - 显示条数"
+        type: "number"
+        default: "5"
+        show_if: "sidebarEnabled == true"
+
+      # 分类导航模块配置
+      - name: "sidebarCategoriesTitle"
+        label: "分类导航 - 标题"
+        type: "text"
+        default: "文章分类"
+        show_if: "sidebarEnabled == true"
+
+      # 标签云模块配置
+      - name: "sidebarTagsTitle"
+        label: "标签云 - 标题"
+        type: "text"
+        default: "热门标签"
+        show_if: "sidebarEnabled == true"
+
+      # 自定义内容模块配置
+      - name: "sidebarCustomTitle"
+        label: "自定义内容 - 标题"
+        type: "text"
+        default: "相关信息"
+        show_if: "sidebarEnabled == true"
+      - name: "sidebarCustomContent"
+        label: "自定义内容 - HTML"
+        type: "code"
+        language: "html"
+        default: ""
+        show_if: "sidebarEnabled == true"
+
   # ========== 自定义代码 ==========
   - section: "custom"
     label: "自定义代码"

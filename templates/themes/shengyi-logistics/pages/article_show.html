@@ -23,7 +23,9 @@
 
 <main class="main-wrapper">
     <div class="container">
-        <div class="layout-with-sidebar">
+        {{ $sbEnabled := getConfig "sidebarEnabled" true }}
+        {{ $sbPosition := getConfig "sidebarPosition" "right" }}
+        <div class="layout-with-sidebar{{ if eq $sbPosition "left" }} sidebar-left{{ end }}">
             <!-- 主内容 -->
             <div>
                 <div class="article-content-wrap">
@@ -56,24 +58,7 @@
             </div>
 
             <!-- 侧边栏 -->
-            <aside class="sidebar">
-                <div class="sidebar-widget sidebar-contact">
-                    <h4><i class="fa-solid fa-phone"></i> 立即咨询</h4>
-                    <div class="phone-big">{{ getConfig "phone" "" }}</div>
-                    <p class="sidebar-contact-tagline">危化品运输请认准专业资质</p>
-                    <a href="/page/contact" class="btn btn-primary btn-full">在线咨询</a>
-                </div>
-
-                <div class="sidebar-widget">
-                    <div class="sidebar-widget-title"><i class="fa-solid fa-list"></i> 最新动态</div>
-                    {{ range $i, $p := .recentPosts }}{{ if lt $i 5 }}
-                    <div class="sidebar-news-item">
-                        <div class="sidebar-news-date"><div class="month">{{ dateFormat "01-02" $p.PublishedAt }}</div></div>
-                        <div class="sidebar-news-title"><a href="/article/{{ $p.Slug }}">{{ $p.Title }}</a></div>
-                    </div>
-                    {{ end }}{{ end }}
-                </div>
-            </aside>
+            {{ template "sidebar" . }}
         </div>
     </div>
 </main>

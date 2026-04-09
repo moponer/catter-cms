@@ -23,53 +23,63 @@
 
 <main class="main-wrapper">
     <div class="container">
-        <!-- 分类筛选 -->
-        <div class="category-filter">
-            <span class="category-filter-label">分类：</span>
-            <a href="/article" class="active">全部</a>
-            {{ range .categories }}
-            <a href="/category/{{ .Slug }}">{{ .Name }}</a>
-            {{ end }}
-        </div>
-
-        <!-- 文章列表 -->
-        {{ range .posts }}
-        <a href="/article/{{ .Slug }}" class="news-list-item-row">
-            {{ if .Cover }}
-            <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="news-list-thumb">
-            {{ else }}
-            <div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>
-            {{ end }}
-            <div class="news-list-body">
-                <div class="news-list-meta">
-                    {{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
-                    <span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span>
+        {{ $sbEnabled := getConfig "sidebarEnabled" true }}
+        {{ $sbPosition := getConfig "sidebarPosition" "right" }}
+        <div class="layout-with-sidebar{{ if eq $sbPosition "left" }} sidebar-left{{ end }}">
+            <!-- 主内容 -->
+            <div>
+                <!-- 分类筛选 -->
+                <div class="category-filter">
+                    <span class="category-filter-label">分类：</span>
+                    <a href="/article" class="active">全部</a>
+                    {{ range .categories }}
+                    <a href="/category/{{ .Slug }}">{{ .Name }}</a>
+                    {{ end }}
                 </div>
-                <div class="news-list-item-title">{{ .Title }}</div>
-                <p class="news-list-excerpt">{{ .Excerpt }}</p>
-            </div>
-        </a>
-        {{ end }}
 
-        <!-- 分页 -->
-        {{ if gt .pagination.totalPages 1 }}
-        <div class="pagination">
-            {{ if gt .pagination.page 1 }}
-            <a href="/article?page={{ sub .pagination.page 1 }}">&laquo;</a>
-            {{ end }}
-            {{ range $i := iterate .pagination.totalPages }}
-            {{ $p := add $i 1 }}
-            {{ if eq $p $.pagination.page }}
-            <span class="current">{{ $p }}</span>
-            {{ else }}
-            <a href="/article?page={{ $p }}">{{ $p }}</a>
-            {{ end }}
-            {{ end }}
-            {{ if lt .pagination.page .pagination.totalPages }}
-            <a href="/article?page={{ add .pagination.page 1 }}">&raquo;</a>
-            {{ end }}
+                <!-- 文章列表 -->
+                {{ range .posts }}
+                <a href="/article/{{ .Slug }}" class="news-list-item-row">
+                    {{ if .Cover }}
+                    <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="news-list-thumb">
+                    {{ else }}
+                    <div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>
+                    {{ end }}
+                    <div class="news-list-body">
+                        <div class="news-list-meta">
+                            {{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
+                            <span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span>
+                        </div>
+                        <div class="news-list-item-title">{{ .Title }}</div>
+                        <p class="news-list-excerpt">{{ .Excerpt }}</p>
+                    </div>
+                </a>
+                {{ end }}
+
+                <!-- 分页 -->
+                {{ if gt .pagination.totalPages 1 }}
+                <div class="pagination">
+                    {{ if gt .pagination.page 1 }}
+                    <a href="/article?page={{ sub .pagination.page 1 }}">&laquo;</a>
+                    {{ end }}
+                    {{ range $i := iterate .pagination.totalPages }}
+                    {{ $p := add $i 1 }}
+                    {{ if eq $p $.pagination.page }}
+                    <span class="current">{{ $p }}</span>
+                    {{ else }}
+                    <a href="/article?page={{ $p }}">{{ $p }}</a>
+                    {{ end }}
+                    {{ end }}
+                    {{ if lt .pagination.page .pagination.totalPages }}
+                    <a href="/article?page={{ add .pagination.page 1 }}">&raquo;</a>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+
+            <!-- 侧边栏 -->
+            {{ template "sidebar" . }}
         </div>
-        {{ end }}
     </div>
 </main>
 

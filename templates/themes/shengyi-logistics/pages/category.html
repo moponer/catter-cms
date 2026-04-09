@@ -23,30 +23,40 @@
 
 <main class="main-wrapper">
     <div class="container">
-        <!-- 分类筛选 -->
-        <div class="category-filter">
-            <span class="category-filter-label">分类：</span>
-            <a href="/article">全部</a>
-            {{ range $cat := $.categories }}
-            {{ if eq $cat.Slug $.category.Slug }}
-            <a href="/category/{{ $cat.Slug }}" class="active">{{ $cat.Name }}</a>
-            {{ else }}
-            <a href="/category/{{ $cat.Slug }}">{{ $cat.Name }}</a>
-            {{ end }}
-            {{ end }}
-        </div>
+        {{ $sbEnabled := getConfig "sidebarEnabled" true }}
+        {{ $sbPosition := getConfig "sidebarPosition" "right" }}
+        <div class="layout-with-sidebar{{ if eq $sbPosition "left" }} sidebar-left{{ end }}">
+            <!-- 主内容 -->
+            <div>
+                <!-- 分类筛选 -->
+                <div class="category-filter">
+                    <span class="category-filter-label">分类：</span>
+                    <a href="/article">全部</a>
+                    {{ range $cat := $.categories }}
+                    {{ if eq $cat.Slug $.category.Slug }}
+                    <a href="/category/{{ $cat.Slug }}" class="active">{{ $cat.Name }}</a>
+                    {{ else }}
+                    <a href="/category/{{ $cat.Slug }}">{{ $cat.Name }}</a>
+                    {{ end }}
+                    {{ end }}
+                </div>
 
-        {{ if .category.Description }}<p class="category-desc">{{ .category.Description }}</p>{{ end }}
-        {{ range .posts }}
-        <a href="/article/{{ .Slug }}" class="news-list-item-row">
-            {{ if .Cover }}<img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="news-list-thumb">{{ else }}<div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>{{ end }}
-            <div class="news-list-body">
-                <div class="news-list-meta">{{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}<span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span></div>
-                <div class="news-list-item-title">{{ .Title }}</div>
-                <p class="news-list-excerpt">{{ .Excerpt }}</p>
+                {{ if .category.Description }}<p class="category-desc">{{ .category.Description }}</p>{{ end }}
+                {{ range .posts }}
+                <a href="/article/{{ .Slug }}" class="news-list-item-row">
+                    {{ if .Cover }}<img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="news-list-thumb">{{ else }}<div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>{{ end }}
+                    <div class="news-list-body">
+                        <div class="news-list-meta">{{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}<span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span></div>
+                        <div class="news-list-item-title">{{ .Title }}</div>
+                        <p class="news-list-excerpt">{{ .Excerpt }}</p>
+                    </div>
+                </a>
+                {{ end }}
             </div>
-        </a>
-        {{ end }}
+
+            <!-- 侧边栏 -->
+            {{ template "sidebar" . }}
+        </div>
     </div>
 </main>
 

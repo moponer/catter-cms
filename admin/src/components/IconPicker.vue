@@ -2,7 +2,7 @@
   <div class="icon-picker">
     <!-- 当前选中的图标显示 -->
     <div class="icon-preview" @click="dialogVisible = true">
-      <i v-if="modelValue" :class="modelValue"></i>
+      <i v-if="displayClass" :class="displayClass"></i>
       <span v-else class="placeholder-text">点击选择图标</span>
     </div>
 
@@ -55,7 +55,7 @@
       <template #footer>
         <div class="dialog-footer">
           <span v-if="modelValue" class="selected-info">
-            当前: <i :class="modelValue"></i> {{ modelValue }}
+            当前: <i :class="displayClass"></i> {{ modelValue }}
           </span>
           <el-button @click="dialogVisible = false">关闭</el-button>
         </div>
@@ -81,6 +81,22 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
+// 确保图标 class 始终有样式族前缀（兼容旧数据 fa-xxx → fa-solid fa-xxx）
+const displayClass = computed(() => {
+  if (!props.modelValue) return ''
+  const val = props.modelValue
+  // 已经有前缀的完整格式
+  if (val.startsWith('fa-solid ') || val.startsWith('fa-regular ') || val.startsWith('fa-brands ')) {
+    return val
+  }
+  // 旧格式 fa-xxx → 补上 fa-solid 前缀
+  if (val.startsWith('fa-')) {
+    return `fa-solid ${val}`
+  }
+  // 无 fa- 前缀（极旧的格式）
+  return `fa-solid fa-${val}`
+})
+
 const dialogVisible = ref(false)
 const searchKeyword = ref('')
 const selectedCategory = ref('常用')
@@ -102,14 +118,15 @@ const getIconClass = (iconId) => {
   return `fa-solid fa-${iconId}`
 }
 
-// 判断 modelValue 是否选中（兼容普通 fa-xxx 和品牌 fa-brands fa-xxx 格式）
+// 判断 modelValue 是否选中（兼容完整格式 fa-solid fa-xxx / fa-brands fa-xxx 和旧格式 fa-xxx）
 const isIconSelected = (iconId) => {
   if (isBrandIcon(iconId)) {
-    // brands/weixin → 比较 fa-brands fa-weixin
-    return props.modelValue === `fa-brands ${iconId.replace('brands/', 'fa-')}`
+    const fullClass = `fa-brands ${iconId.replace('brands/', 'fa-')}`
+    return props.modelValue === fullClass
   }
-  // 普通 → 比较 fa-xxx
-  return props.modelValue === `fa-${iconId}`
+  const fullClass = `fa-solid fa-${iconId}`
+  const shortClass = `fa-${iconId}`
+  return props.modelValue === fullClass || props.modelValue === shortClass
 }
 
 // 分类列表
@@ -174,8 +191,8 @@ const selectIcon = (icon) => {
     // brands/xxx → 输出 fa-brands fa-xxx（完整格式，模板中可直接用作 class）
     emit('update:modelValue', `fa-brands ${icon.id.replace('brands/', 'fa-')}`)
   } else {
-    // 普通 → 输出 fa-xxx（保持向后兼容）
-    emit('update:modelValue', `fa-${icon.id}`)
+    // 普通 → 输出 fa-solid fa-xxx（完整格式，FontAwesome 6 必须有样式族前缀）
+    emit('update:modelValue', `fa-solid fa-${icon.id}`)
   }
   dialogVisible.value = false
   searchKeyword.value = ''
