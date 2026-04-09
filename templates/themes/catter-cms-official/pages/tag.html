@@ -38,7 +38,7 @@
                 {{ range .posts }}
                 <article class="article-card">
                     {{ if .Cover }}
-                    <img src="{{ .Cover }}" alt="{{ .Title }}" class="article-cover">
+                    <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="article-cover">
                     {{ end }}
                     <div>
                         <h2 class="article-title">

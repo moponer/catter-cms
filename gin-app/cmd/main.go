@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"catter-cms-gin/config"
+	"catter-cms-gin/internal/cache"
 	"catter-cms-gin/internal/handlers/api"
 	"catter-cms-gin/internal/handlers/frontend"
 	"catter-cms-gin/internal/middleware"
@@ -67,6 +68,9 @@ func main() {
 		log.Printf("Warning: Failed to auto migrate: %v", err)
 	}
 
+	// 修复历史数据：已发布但 PublishedAt 为空的文章，用 created_at 回填
+	models.DB.Exec("UPDATE posts SET published_at = created_at WHERE status = ? AND published_at IS NULL", "published")
+
 	// 创建默认管理员用户
 	if err := models.CreateDefaultAdmin(); err != nil {
 		log.Printf("Warning: Failed to create default admin: %v", err)
@@ -93,6 +97,20 @@ func main() {
 		log.Printf("Warning: Failed to init theme service: %v", err)
 	} else {
 		log.Println("Theme service initialized")
+	}
+
+	// 初始化存储服务
+	uploadsPath := cfg.GetUploadsPath()
+	if err := api.InitStorage(cfg, uploadsPath); err != nil {
+		log.Fatalf("Failed to initialize storage: %v", err)
+	}
+	log.Printf("Storage initialized: %s", api.GetStorage().Type())
+
+	// 初始化 Redis 缓存
+	if err := cache.Init(cfg.Redis); err != nil {
+		log.Printf("Warning: Redis init failed (caching disabled): %v", err)
+	} else if cfg.Redis.Enabled {
+		log.Println("Redis cache initialized")
 	}
 
 	// 启动任务调度器
@@ -176,6 +194,7 @@ func main() {
 			protected.POST("/categories", api.CreateCategory)
 			protected.PUT("/categories/:id", api.UpdateCategory)
 			protected.DELETE("/categories/:id", api.DeleteCategory)
+			protected.DELETE("/categories/batch", api.BatchDeleteCategories)
 
 			// 标签 API
 			protected.GET("/tags", api.ListTags)
@@ -183,6 +202,7 @@ func main() {
 			protected.POST("/tags", api.CreateTag)
 			protected.PUT("/tags/:id", api.UpdateTag)
 			protected.DELETE("/tags/:id", api.DeleteTag)
+			protected.DELETE("/tags/batch", api.BatchDeleteTags)
 
 			// 媒体 API
 			protected.GET("/media", api.ListMedia)
@@ -190,6 +210,7 @@ func main() {
 			protected.POST("/media/upload", api.UploadMedia)
 			protected.POST("/media/upload-cover", api.UploadCover) // 封面图上传（自动压缩）
 			protected.DELETE("/media/:id", api.DeleteMedia)
+			protected.POST("/media/batch-delete", api.BatchDeleteMedia)
 
 			// 主题 API
 			protected.GET("/themes", api.ListThemes)
@@ -227,6 +248,7 @@ func main() {
 			protected.POST("/pages", api.CreatePage)
 			protected.PUT("/pages/:id", api.UpdatePage)
 			protected.DELETE("/pages/:id", api.DeletePage)
+			protected.DELETE("/pages/batch", api.BatchDeletePages)
 
 			// 用户 API
 			protected.GET("/users", api.ListUsers)
@@ -234,10 +256,12 @@ func main() {
 			protected.POST("/users", api.CreateUser)
 			protected.PUT("/users/:id", api.UpdateUser)
 			protected.DELETE("/users/:id", api.DeleteUser)
+			protected.POST("/users/:id/reset-password", api.ResetUserPassword)
 
 			// 评论管理 API
 			protected.GET("/admin/comments", api.ListComments)
 			protected.DELETE("/admin/comments/:id", api.DeleteComment)
+			protected.PUT("/admin/comments/:id", api.UpdateComment)
 			protected.POST("/admin/comments/:id/approve", api.ApproveComment)
 			protected.POST("/admin/comments/:id/reject", api.RejectComment)
 			protected.POST("/admin/comments/batch/delete", api.BatchDeleteComments)
@@ -257,6 +281,16 @@ func main() {
 			// 设置 API
 			protected.GET("/settings", api.GetSettings)
 			protected.PUT("/settings", api.SaveSettings)
+
+			// 存储配置 API
+			protected.GET("/storage/config", api.GetStorageConfig)
+			protected.PUT("/storage/config", api.SaveStorageConfig)
+			protected.POST("/storage/config/test", api.TestStorageConnection)
+
+			// Redis 缓存配置 API
+			protected.GET("/redis/config", api.GetRedisConfig)
+			protected.PUT("/redis/config", api.SaveRedisConfig)
+			protected.POST("/redis/config/test", api.TestRedisConnection)
 
 			// 定时任务 API
 			protected.GET("/admin/scheduled-tasks", api.ListScheduledTasks)
@@ -384,7 +418,6 @@ func main() {
 	r.Static("/fontawesome", fontawesomePath)
 
 	// Uploads
-	uploadsPath := cfg.GetUploadsPath()
 	if _, err := os.Stat(uploadsPath); err != nil {
 		uploadsPath = "../uploads"
 	}
@@ -461,6 +494,9 @@ func main() {
 
 	// 停止主题文件监控 watcher
 	services.StopThemeWatcher()
+
+	// 关闭 Redis 连接
+	cache.Close()
 
 	// 给正在处理的请求最多 5 秒完成
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

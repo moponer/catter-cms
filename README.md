@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Version-1.0.0-brightgreen?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License">
-  <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" alt="Go">
+  <img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat-square&logo=go" alt="Go">
   <img src="https://img.shields.io/badge/Vue-3-4FC08D?style=flat-square&logo=vue.js" alt="Vue">
   <img src="https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite" alt="SQLite">
 </p>
@@ -36,34 +36,40 @@ Catter CMS 是一款基于 **Go + Vue 3** 构建的轻量级内容管理系统�
 
 ## 界面预览
 
-<p align="center">
-  <img src="public/login.jpeg" alt="管理后台登录" width="800">
-  <br><em>管理后台 · 三套主题自由切换</em>
-</p>
-
-<p align="center">
-  <img src="public/1.jpeg" alt="仪表盘" width="800">
-</p>
-
-<p align="center">
-  <img src="public/2.jpeg" alt="内容管理" width="800">
-</p>
-
-<p align="center">
-  <img src="public/3.jpeg" alt="主题管理" width="800">
-</p>
-
-<p align="center">
-  <img src="public/4.jpeg" alt="媒体库" width="800">
-</p>
-
-<p align="center">
-  <img src="public/5.jpeg" alt="AI 设置" width="800">
-</p>
-
-<p align="center">
-  <img src="public/6.jpeg" alt="系统设置" width="800">
-</p>
+<table>
+  <tr>
+    <td><img src="public/admin-login.jpeg" alt="管理后台登录" width="400"></td>
+    <td><img src="public/admin-dashboard.jpeg" alt="仪表盘" width="400"></td>
+  </tr>
+  <tr>
+    <td align="center">登录页 · 三套主题自由切换</td>
+    <td align="center">仪表盘 · 数据一目了然</td>
+  </tr>
+  <tr>
+    <td><img src="public/admin-content.jpeg" alt="内容管理" width="400"></td>
+    <td><img src="public/admin-themes.jpeg" alt="主题管理" width="400"></td>
+  </tr>
+  <tr>
+    <td align="center">内容管理 · 文章 / 页面 / 分类 / 标签</td>
+    <td align="center">主题管理 · 可视化配置 / 一键切换</td>
+  </tr>
+  <tr>
+    <td><img src="public/admin-media.jpeg" alt="媒体库" width="400"></td>
+    <td><img src="public/admin-ai-settings.jpeg" alt="AI 设置" width="400"></td>
+  </tr>
+  <tr>
+    <td align="center">媒体库 · 拖拽上传 / 多存储后端</td>
+    <td align="center">AI 集成 · API Key / 权限 / 审计日志</td>
+  </tr>
+  <tr>
+    <td><img src="public/admin-system-settings.jpeg" alt="系统设置" width="400"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="center">系统设置 · 站点 / SEO / 菜单 / 安全</td>
+    <td></td>
+  </tr>
+</table>
 
 ---
 
@@ -111,7 +117,7 @@ AI 就能自动帮你写文章、改页面、管分类、传图片，还支持**
 
 | 软件 | 版本 |
 |------|------|
-| Go | 1.22+ |
+| Go | 1.25+ |
 | Node.js | 18+ |
 | npm / yarn | 最新稳定版 |
 
@@ -160,15 +166,15 @@ go build -o catter-cms.exe ./cmd
 
 # Linux 服务器部署（x86_64 / amd64）—— 交叉编译
 # Windows PowerShell:
-$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o catter-cms-linux ./cmd
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -ldflags="-s -w" -o catter-cms-linux ./cmd
 # Linux/Mac:
-GOOS=linux GOARCH=amd64 go build -o catter-cms-linux ./cmd
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o catter-cms-linux ./cmd
 
 # Linux ARM64（如鲲鹏、树莓派等 ARM 服务器）
 # Windows PowerShell:
-$env:GOOS="linux"; $env:GOARCH="arm64"; go build -o catter-cms-linux-arm64 ./cmd
+$env:GOOS="linux"; $env:GOARCH="arm64"; go build -ldflags="-s -w" -o catter-cms-linux-arm64 ./cmd
 # Linux/Mac:
-GOOS=linux GOARCH=arm64 go build -o catter-cms-linux-arm64 ./cmd
+GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o catter-cms-linux-arm64 ./cmd
 ```
 
 > ⚠️ **交叉编译注意事项**（Windows PowerShell 用户请务必阅读）：
@@ -306,7 +312,7 @@ npm run dev
 
 | 层级 | 技术 | 说明 |
 |------|------|------|
-| 后端 | Go 1.22 + Gin + GORM | 高性能 HTTP 服务 |
+| 后端 | Go 1.25 + Gin + GORM | 高性能 HTTP 服务 |
 | 数据库 | SQLite | 零配置，单文件 |
 | 前端 | Vue 3 + Vite + Element Plus | 现代化管理后台 |
 | 模板引擎 | Go html/template | 服务端渲染（SSR） |

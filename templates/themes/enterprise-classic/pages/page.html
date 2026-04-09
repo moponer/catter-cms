@@ -53,7 +53,7 @@
         {{ end }}
 
             <div class="article-content-wrap" {{ if and $sidebarEnabled $sidebarModules }}style="flex:1;"{{ else }}style="max-width:860px;margin:0 auto;"{{ end }}>
-                <div class="article-body">{{ markdownHTML .page.Content }}</div>
+                <div class="article-body">{{ .page.Content }}</div>
             </div>
 
         {{ if and $sidebarEnabled $sidebarModules }}

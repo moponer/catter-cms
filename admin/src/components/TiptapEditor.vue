@@ -105,10 +105,25 @@
           ⫸
         </button>
       </div>
+    <!-- 源码/可视化切换 -->
+    <div class="toolbar-spacer"></div>
+    <div class="toolbar-group">
+      <button type="button" @click="toggleSourceMode" :class="{ active: sourceMode }" :title="sourceMode ? '可视化编辑' : '源码编辑'">
+        {{ sourceMode ? '&lt;/&gt; 可视化' : '&lt;/&gt; 源码' }}
+      </button>
     </div>
+  </div>
 
-    <!-- 编辑器内容区 -->
-    <EditorContent :editor="editor" class="editor-content" />
+    <!-- 编辑器内容区 / 源码区 -->
+    <EditorContent v-show="!sourceMode" :editor="editor" class="editor-content" />
+    <textarea
+      v-if="sourceMode"
+      v-model="sourceCode"
+      class="source-editor"
+      :style="{ minHeight: height + 'px', maxHeight: (height * 1.5) + 'px' }"
+      spellcheck="false"
+      placeholder="在此编辑 HTML 源码..."
+    />
 
     <!-- 隐藏的图片上传输入 -->
     <input
@@ -186,6 +201,21 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
+// 源码模式
+const sourceMode = ref(false)
+const sourceCode = ref('')
+
+// 清理内容中的 AI 引用标记（如 [1](@context-ref?id=0)）和多余空白
+const sanitizeContent = (html) => {
+  if (!html) return html
+  return html
+    .replace(/\[\d+\]\(@context-ref\?id=\d+\)/g, '')
+    .replace(/\[1\]\(@context-ref\?id=0\)/g, '')
+    .replace(/ style="list-style-type:\s*[^"]*"/g, '')
+    .replace(/ style="padding-left:\s*[^"]*"/g, '')
+    .replace(/ style="border:\s*[^"]*"/g, '')
+}
+
 const imageInput = ref(null)
 const linkDialogVisible = ref(false)
 const mediaPickerVisible = ref(false)
@@ -196,7 +226,7 @@ const linkForm = ref({
 
 // 创建编辑器
 const editor = useEditor({
-  content: props.modelValue,
+  content: sanitizeContent(props.modelValue),
   editable: !props.disabled,
   extensions: [
     StarterKit.configure({
@@ -255,8 +285,11 @@ const editor = useEditor({
 
 // 监听外部值变化
 watch(() => props.modelValue, (newVal) => {
-  if (editor.value && newVal !== editor.value.getHTML()) {
-    editor.value.commands.setContent(newVal, false)
+  if (!editor.value) return
+  const cleaned = sanitizeContent(newVal)
+  const current = editor.value.getHTML()
+  if (cleaned && cleaned !== current) {
+    editor.value.commands.setContent(cleaned, false)
   }
 })
 
@@ -264,6 +297,31 @@ watch(() => props.modelValue, (newVal) => {
 watch(() => props.disabled, (newVal) => {
   if (editor.value) {
     editor.value.setEditable(!newVal)
+  }
+})
+
+// 切换源码模式
+const toggleSourceMode = () => {
+  if (!sourceMode.value) {
+    // 进入源码模式：把编辑器 HTML 取出来
+    sourceCode.value = editor.value ? editor.value.getHTML() : props.modelValue
+    sourceMode.value = true
+  } else {
+    // 退出源码模式：把源码写回编辑器
+    if (editor.value && sourceCode.value) {
+      editor.value.commands.setContent(sanitizeContent(sourceCode.value), false)
+      emit('update:modelValue', editor.value.getHTML())
+      emit('change', editor.value.getHTML())
+    }
+    sourceMode.value = false
+  }
+}
+
+// 监听源码变化，同步到外部
+watch(sourceCode, (val) => {
+  if (sourceMode.value) {
+    emit('update:modelValue', val)
+    emit('change', val)
   }
 })
 
@@ -340,7 +398,7 @@ defineExpose({
   getContent: () => editor.value?.getHTML() || '',
   setContent: (content) => {
     if (editor.value) {
-      editor.value.commands.setContent(content, false)
+      editor.value.commands.setContent(sanitizeContent(content), false)
     }
   },
   focus: () => editor.value?.commands.focus()
@@ -583,6 +641,29 @@ defineExpose({
 }
 
 /* 表格样式 */
+.toolbar-spacer {
+  flex: 1;
+}
+
+.source-editor {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e5e7eb;
+  background: #1f2937;
+  border-radius: 0 0 8px 8px;
+  box-sizing: border-box;
+}
+
+.source-editor::placeholder {
+  color: #6b7280;
+}
+
 .editor-content :deep(.ProseMirror table) {
   border-collapse: collapse;
   width: 100%;

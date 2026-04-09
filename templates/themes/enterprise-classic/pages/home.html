@@ -280,7 +280,7 @@
                     {{ range $index, $post := $slides }}
                     <a href="/article/{{ $post.Slug }}" class="news-slide{{ if eq $index 0 }} active{{ end }}">
                         {{ if $post.Cover }}
-                        <img src="{{ $post.Cover }}" alt="{{ $post.Title }}">
+                        <img src="{{ thumbnailURL $post.Cover }}" alt="{{ $post.Title }}">
                         {{ else }}
                         <div class="news-slide-placeholder"><i class="fa-regular fa-newspaper"></i> 暂无图片</div>
                         {{ end }}

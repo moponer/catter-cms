@@ -178,3 +178,29 @@ func DeleteTag(c *gin.Context) {
 
 	SuccessWithMessage(c, "标签删除成功", nil)
 }
+
+// BatchDeleteTags 批量删除标签
+func BatchDeleteTags(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		BadRequest(c, "请选择要删除的标签")
+		return
+	}
+
+	if err := models.DB.Where("id IN ?", req.IDs).Delete(&models.Tag{}).Error; err != nil {
+		InternalError(c, "批量删除标签失败")
+		return
+	}
+
+	// 清理标签关联
+	models.DB.Where("tag_id IN ?", req.IDs).Delete(&models.PostTag{})
+
+	SuccessWithMessage(c, "批量删除成功", gin.H{"deleted_count": len(req.IDs)})
+}

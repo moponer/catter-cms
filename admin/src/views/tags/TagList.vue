@@ -2,10 +2,21 @@
   <div class="page-container">
     <div class="page-header">
       <h1>标签管理</h1>
-      <el-button type="primary" @click="openDialog()">新建标签</el-button>
+      <div style="display:flex;gap:8px">
+        <el-button type="primary" @click="openDialog()">新建标签</el-button>
+        <el-button
+          v-if="selectedIds.length > 0"
+          type="danger"
+          @click="handleBatchDelete"
+        >
+          <el-icon><Delete /></el-icon>
+          批量删除 ({{ selectedIds.length }})
+        </el-button>
+      </div>
     </div>
     <el-card>
-      <el-table :data="tags" style="width: 100%" v-loading="loading">
+      <el-table :data="tags" style="width: 100%" v-loading="loading" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="45" />
         <el-table-column prop="name" label="名称" />
         <el-table-column prop="slug" label="别名" />
         <el-table-column prop="created_at" label="创建时间" width="180">
@@ -48,11 +59,17 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { get, post, put, del } from '@/utils/request'
+import { get, post, put, del, delBody } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Delete } from '@element-plus/icons-vue'
 
 const tags = ref([])
 const loading = ref(false)
+const selectedIds = ref([])
+
+const handleSelectionChange = (selection) => {
+  selectedIds.value = selection.map(item => item.id)
+}
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
@@ -134,6 +151,24 @@ const handleDelete = async (tag) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
+    }
+  }
+}
+
+// 批量删除标签
+const handleBatchDelete = async () => {
+  if (selectedIds.value.length === 0) return
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 个标签吗？`, '批量删除', {
+      type: 'warning'
+    })
+    await delBody('/api/tags/batch', { ids: selectedIds.value })
+    ElMessage.success('批量删除成功')
+    selectedIds.value = []
+    loadTags()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('批量删除失败')
     }
   }
 }

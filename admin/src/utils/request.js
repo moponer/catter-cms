@@ -187,12 +187,26 @@ export function put(url, data, config = {}) {
 
 /**
  * DELETE 请求
+ * params 为对象时作为 URL query string，config.data 时作为 request body
  */
 export function del(url, params, config = {}) {
   return request({
     method: 'DELETE',
     url,
     params,
+    ...config,
+  })
+}
+
+/**
+ * DELETE 请求（带 body）
+ * 用于需要 JSON body 的 DELETE 接口（如批量删除）
+ */
+export function delBody(url, data, config = {}) {
+  return request({
+    method: 'DELETE',
+    url,
+    data,
     ...config,
   })
 }

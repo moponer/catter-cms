@@ -214,7 +214,7 @@
                 {{ range first 5 .posts }}
                 <article class="article-card">
                     {{ if .Cover }}
-                    <img src="{{ .Cover }}" alt="{{ .Title }}" class="article-cover">
+                    <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="article-cover">
                     {{ end }}
                     <h3 class="article-title">
                         <a href="/article/{{ .Slug }}">{{ .Title }}</a>

@@ -215,3 +215,41 @@ func DeleteCategory(c *gin.Context) {
 
 	SuccessWithMessage(c, "分类删除成功", nil)
 }
+
+// BatchDeleteCategories 批量删除分类
+func BatchDeleteCategories(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		BadRequest(c, "请选择要删除的分类")
+		return
+	}
+
+	// 检查是否有子分类或文章
+	var childCount int64
+	models.DB.Model(&models.Category{}).Where("parent_id IN ?", req.IDs).Count(&childCount)
+	if childCount > 0 {
+		BadRequest(c, "选中分类下有子分类，无法删除")
+		return
+	}
+
+	var postCount int64
+	models.DB.Model(&models.Post{}).Where("category_id IN ?", req.IDs).Count(&postCount)
+	if postCount > 0 {
+		BadRequest(c, "选中分类下有文章，无法删除")
+		return
+	}
+
+	if err := models.DB.Where("id IN ?", req.IDs).Delete(&models.Category{}).Error; err != nil {
+		InternalError(c, "批量删除分类失败")
+		return
+	}
+
+	SuccessWithMessage(c, "批量删除成功", gin.H{"deleted_count": len(req.IDs)})
+}

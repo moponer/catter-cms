@@ -33,9 +33,6 @@
                             <span class="article-meta-item"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" .post.PublishedAt }}</span>
                         </div>
                     </div>
-                    {{ if .post.Cover }}
-                    <img src="{{ .post.Cover }}" alt="{{ .post.Title }}" class="article-cover">
-                    {{ end }}
                     <div class="article-body">{{ markdownHTML .post.Content }}</div>
                 </div>
 

@@ -159,7 +159,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
-import { get, del, put } from '@/utils/request'
+import { get, del, delBody, put } from '@/utils/request'
 
 const router = useRouter()
 
@@ -305,7 +305,7 @@ const bulkDelete = async () => {
     )
 
     const ids = selectedPosts.value.map(item => item.id).join(',')
-    await del('/api/posts/batch', { data: { ids } })
+    await delBody('/api/posts/batch', { ids })
     ElMessage.success('批量删除成功')
     selectedPosts.value = []
     loadPosts()

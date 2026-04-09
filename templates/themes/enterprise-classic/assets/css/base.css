@@ -586,6 +586,7 @@ h4 { font-size: var(--text-lg); }
     font-size: var(--text-base);
     color: var(--text-secondary);
     line-height: 1.9;
+    white-space: pre-line;
 }
 
 .about-content p { margin-bottom: var(--space-md); }

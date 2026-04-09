@@ -82,7 +82,7 @@
                         <a href="/article/{{ .Slug }}" class="article-card-link">
                             {{ if .Cover }}
                             <div class="article-card-cover">
-                                <img src="{{ .Cover }}" alt="{{ .Title }}">
+                                <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}">
                             </div>
                             {{ else }}
                             <div class="article-card-cover article-card-cover-empty">
@@ -112,7 +112,7 @@
                         <a href="/article/{{ .Slug }}" class="article-card-item-link">
                             {{ if .Cover }}
                             <div class="article-card-item-cover">
-                                <img src="{{ .Cover }}" alt="{{ .Title }}">
+                                <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}">
                             </div>
                             {{ end }}
                             <div class="article-card-item-body">
@@ -136,7 +136,7 @@
                     {{ range .posts }}
                     <a href="/article/{{ .Slug }}" class="article-list-item">
                         {{ if .Cover }}
-                        <img src="{{ .Cover }}" alt="{{ .Title }}" class="article-list-thumb">
+                        <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="article-list-thumb">
                         {{ else }}
                         <div class="article-list-thumb article-list-thumb-placeholder"><i class="fa-regular fa-newspaper"></i></div>
                         {{ end }}

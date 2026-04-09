@@ -221,6 +221,49 @@ func UpdateUser(c *gin.Context) {
 	SuccessWithMessage(c, "用户更新成功", user)
 }
 
+// ResetUserPassword 管理员重置用户密码
+func ResetUserPassword(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		BadRequest(c, "无效的用户ID")
+		return
+	}
+
+	var user models.User
+	if err := models.DB.First(&user, id).Error; err != nil {
+		NotFound(c, "用户不存在")
+		return
+	}
+
+	// 检查权限
+	currentUser, exists := c.Get("current_user")
+	if !exists || currentUser == nil {
+		Unauthorized(c, "未登录")
+		return
+	}
+	cu := currentUser.(*models.User)
+	if cu.Role != "admin" {
+		Forbidden(c, "只有管理员可以重置密码")
+		return
+	}
+
+	// 生成随机密码
+	newPassword := generateRandomPassword(12)
+	if err := user.SetPassword(newPassword); err != nil {
+		InternalError(c, "密码加密失败")
+		return
+	}
+
+	if err := models.DB.Model(&user).Update("password_hash", user.PasswordHash).Error; err != nil {
+		InternalError(c, "重置密码失败")
+		return
+	}
+
+	SuccessWithMessage(c, "密码已重置", gin.H{
+		"password": newPassword,
+	})
+}
+
 // DeleteUser 删除用户
 func DeleteUser(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)

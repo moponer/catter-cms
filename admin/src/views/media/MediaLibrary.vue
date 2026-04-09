@@ -3,14 +3,6 @@
     <div class="page-header">
       <h1>媒体库</h1>
       <div class="header-actions">
-        <el-button
-          v-if="selectedIds.length > 0"
-          type="danger"
-          @click="handleBatchDelete"
-        >
-          <el-icon><Delete /></el-icon>
-          删除选中 ({{ selectedIds.length }})
-        </el-button>
         <!-- 压缩选项 toggle -->
         <el-popover
           placement="bottom-end"
@@ -107,6 +99,28 @@
 
     <!-- 媒体网格 -->
     <el-card class="media-card">
+      <!-- 全选控制栏 -->
+      <div v-if="mediaList.length > 0" class="select-all-bar">
+        <el-checkbox
+          :model-value="isAllSelected"
+          :indeterminate="isIndeterminate"
+          @change="handleSelectAll"
+        >
+          全选当前页 ({{ mediaList.length }})
+        </el-checkbox>
+        <span v-if="selectedIds.length > 0" class="select-count">
+          已选 <strong>{{ selectedIds.length }}</strong> 项
+        </span>
+        <el-button
+          v-if="selectedIds.length > 0"
+          type="danger"
+          size="small"
+          @click="handleBatchDelete"
+        >
+          <el-icon><Delete /></el-icon>
+          批量删除
+        </el-button>
+      </div>
       <div class="media-grid" v-loading="loading">
         <div
           v-for="item in mediaList"
@@ -117,13 +131,21 @@
         >
           <!-- 预览区 -->
           <div class="media-preview" @click.stop="handlePreview(item)">
-            <img
+            <el-image
               v-if="isImage(item)"
               :src="item.url"
               :alt="item.filename"
               loading="lazy"
-              @error="onImgError($event)"
-            />
+              fit="cover"
+              class="media-thumb-img"
+            >
+              <template #error>
+                <div class="file-icon">
+                  <el-icon :size="40"><Picture /></el-icon>
+                  <span>加载失败</span>
+                </div>
+              </template>
+            </el-image>
             <div v-else-if="isVideo(item)" class="file-icon video-icon">
               <el-icon :size="40"><VideoPlay /></el-icon>
               <span>视频</span>
@@ -424,9 +446,10 @@ const handleUpload = async (file) => {
     // 兼容多种响应格式
     const url = res?.data?.url || res?.data?.path || res?.url || res?.path
     if (url) {
-      // 上传成功即标记完成，loadMedia 在用户关闭队列或刷新时再调
+      // 上传成功：标记完成 + 自动刷新列表
       const idx = uploadQueue.value.findIndex(t => t.id === taskId)
       if (idx > -1) uploadQueue.value.splice(idx, 1, { ...uploadQueue.value[idx], status: 'done' })
+      loadMedia()
     } else {
       throw new Error('服务器返回格式异常')
     }
@@ -443,6 +466,21 @@ const handleSelect = (item) => {
     selectedIds.value.splice(index, 1)
   } else {
     selectedIds.value.push(item.id)
+  }
+}
+
+// ====== 全选 / 取消全选 ======
+const isAllSelected = computed(() =>
+  mediaList.value.length > 0 && mediaList.value.every(item => selectedIds.value.includes(item.id))
+)
+const isIndeterminate = computed(() =>
+  selectedIds.value.length > 0 && !isAllSelected.value
+)
+const handleSelectAll = (val) => {
+  if (val) {
+    selectedIds.value = mediaList.value.map(item => item.id)
+  } else {
+    selectedIds.value = []
   }
 }
 
@@ -511,9 +549,21 @@ const copyUrl = async (url) => {
   }
 }
 
-// 用 file_type 字段判断（后端 BeforeCreate 钩子自动填充）
-const isImage = (item) => item?.file_type === 'image'
-const isVideo = (item) => item?.file_type === 'video'
+// 判断是否为图片：file_type 包含 image，或 URL 后缀匹配图片格式
+const IMAGE_EXTS = ['jpg','jpeg','png','gif','webp','bmp','svg','avif','ico']
+const isImage = (item) => {
+  if (!item) return false
+  if (item.file_type && item.file_type.includes('image')) return true
+  const ext = item.url?.split('.').pop()?.toLowerCase()
+  return ext ? IMAGE_EXTS.includes(ext) : false
+}
+const isVideo = (item) => {
+  if (!item) return false
+  if (item.file_type && item.file_type.includes('video')) return true
+  const VIDEO_EXTS = ['mp4','webm','avi','mov','mkv']
+  const ext = item.url?.split('.').pop()?.toLowerCase()
+  return ext ? VIDEO_EXTS.includes(ext) : false
+}
 
 const getExtension = (filename) => {
   if (!filename) return ''
@@ -579,6 +629,25 @@ onMounted(() => {
   margin-bottom: 0;
 }
 
+/* ====== 全选控制栏 ====== */
+.select-all-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  margin-bottom: 16px;
+}
+
+.select-count {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+
+.select-count strong {
+  color: var(--el-color-primary);
+}
+
 /* 网格布局 */
 .media-grid {
   display: grid;
@@ -620,7 +689,8 @@ onMounted(() => {
   position: relative;
 }
 
-.media-preview img {
+.media-preview img,
+.media-thumb-img {
   width: 100%;
   height: 100%;
   object-fit: cover;

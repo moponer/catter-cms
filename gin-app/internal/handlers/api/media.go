@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -17,7 +18,74 @@ import (
 
 	"catter-cms-gin/config"
 	"catter-cms-gin/internal/models"
+	"catter-cms-gin/internal/storage"
 )
+
+// 全局存储提供者（由 main.go 初始化）
+var storageProvider storage.StorageProvider
+
+// InitStorage 初始化存储提供者
+func InitStorage(cfg *config.Config, localBasePath string) error {
+	// 将 config.Storage 转换为 storage.StorageConfig
+	sc := storage.StorageConfig{
+		Type: cfg.Storage.Type,
+		CDN:  cfg.Storage.CDN,
+		Qiniu: storage.QiniuConfig{
+			AccessKey: cfg.Storage.Qiniu.AccessKey,
+			SecretKey: cfg.Storage.Qiniu.SecretKey,
+			Bucket:    cfg.Storage.Qiniu.Bucket,
+			Zone:      cfg.Storage.Qiniu.Zone,
+			Domain:    cfg.Storage.Qiniu.Domain,
+			UseHTTPS:  cfg.Storage.Qiniu.UseHTTPS,
+		},
+		AliOSS: storage.AliOSSConfig{
+			Endpoint:        cfg.Storage.AliOSS.Endpoint,
+			AccessKeyID:     cfg.Storage.AliOSS.AccessKeyID,
+			AccessKeySecret: cfg.Storage.AliOSS.AccessKeySecret,
+			Bucket:          cfg.Storage.AliOSS.Bucket,
+			CustomDomain:    cfg.Storage.AliOSS.CustomDomain,
+		},
+		TencentCOS: storage.TencentCOSConfig{
+			BucketURL:    cfg.Storage.TencentCOS.BucketURL,
+			SecretID:     cfg.Storage.TencentCOS.SecretID,
+			SecretKey:    cfg.Storage.TencentCOS.SecretKey,
+			Region:       cfg.Storage.TencentCOS.Region,
+			CustomDomain: cfg.Storage.TencentCOS.CustomDomain,
+		},
+		S3: storage.S3Config{
+			Endpoint:        cfg.Storage.S3.Endpoint,
+			Region:          cfg.Storage.S3.Region,
+			AccessKeyID:     cfg.Storage.S3.AccessKeyID,
+			SecretAccessKey: cfg.Storage.S3.SecretAccessKey,
+			Bucket:          cfg.Storage.S3.Bucket,
+			ForcePathStyle:  cfg.Storage.S3.ForcePathStyle,
+			CustomDomain:    cfg.Storage.S3.CustomDomain,
+		},
+	}
+
+	provider, err := storage.NewProvider(sc, localBasePath)
+	if err != nil {
+		return err
+	}
+	storageProvider = provider
+	// 同时设置 storage 包的全局变量（供模板函数使用）
+	storage.SetProvider(provider)
+	return nil
+}
+
+// GetStorage 获取全局存储提供者
+func GetStorage() storage.StorageProvider {
+	return storageProvider
+}
+
+// generateObjectKey 生成带日期目录的对象存储路径
+// 格式: 2026/04/1234567890_12345.jpg
+func generateObjectKey(filename string) string {
+	now := time.Now()
+	ext := filepath.Ext(filename)
+	uniqueName := fmt.Sprintf("%d_%d%s", now.Unix(), time.Now().UnixNano()%10000, ext)
+	return fmt.Sprintf("%d/%02d/%s", now.Year(), now.Month(), uniqueName)
+}
 
 // ListMedia 获取媒体列表
 func ListMedia(c *gin.Context) {
@@ -31,7 +99,7 @@ func ListMedia(c *gin.Context) {
 
 	// 搜索
 	if search := c.Query("search"); search != "" {
-		query = query.Where("filename LIKE ? OR title LIKE ? OR alt LIKE ?", 
+		query = query.Where("filename LIKE ? OR title LIKE ? OR alt LIKE ?",
 			"%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
 
@@ -92,14 +160,7 @@ func UploadMedia(c *gin.Context) {
 
 	// 获取上传配置
 	cfg := config.Get()
-	uploadPath := cfg.Upload.Path
 	maxSize := cfg.Upload.MaxSize
-
-	// 确保上传目录存在
-	if err := os.MkdirAll(uploadPath, 0755); err != nil {
-		InternalError(c, "创建上传目录失败")
-		return
-	}
 
 	// 获取文件
 	file, header, err := c.Request.FormFile("file")
@@ -132,49 +193,52 @@ func UploadMedia(c *gin.Context) {
 		}
 	}
 
-	// 生成唯一文件名
-	filename := fmt.Sprintf("%d_%d%s", time.Now().Unix(), header.Size, ext)
-	filePath := filepath.Join(uploadPath, filename)
+	// 生成对象存储路径
+	objectKey := generateObjectKey(header.Filename)
 
-	// 写入文件
-	out, err := os.Create(filePath)
-	if err != nil {
-		InternalError(c, "保存文件失败")
-		return
-	}
-	defer out.Close()
-
-	if _, err := io.Copy(out, file); err != nil {
-		InternalError(c, "保存文件失败")
-		return
-	}
-	out.Close()
+	// 获取文件内容（可能需要压缩处理）
+	var uploadReader io.Reader = file
+	finalSize := header.Size
 
 	// 图片压缩处理
-	finalPath := filePath
-	finalSize := header.Size
-	url := "/uploads/" + filename
-
 	if cfg.Upload.ImageCompress && isImageFile(ext) {
-		compressedPath, compressedSize, compressErr := compressImage(filePath, ext, cfg.Upload.MaxWidth, cfg.Upload.JPEGQuality)
-		if compressErr == nil && compressedPath != "" {
-			// 压缩成功，删除原文件
-			os.Remove(filePath)
-			finalPath = compressedPath
+		// 重置读取位置
+		file.Seek(0, 0)
+		compressedReader, compressedSize, compressErr := compressImageToReader(file, ext, cfg.Upload.MaxWidth, cfg.Upload.JPEGQuality)
+		if compressErr == nil && compressedReader != nil {
+			uploadReader = compressedReader
 			finalSize = compressedSize
-			filename = filepath.Base(compressedPath)
-			url = "/uploads/" + filename
+			objectKey = strings.TrimSuffix(objectKey, ext) + ".jpg"
 		}
-		// 压缩失败时静默使用原图，不阻断上传流程
+	}
+
+	// 上传到存储
+	url, err := storageProvider.Put(objectKey, uploadReader, finalSize, getContentType(ext))
+	if err != nil {
+		InternalError(c, "文件上传失败: "+err.Error())
+		return
+	}
+
+	// 生成缩略图 URL
+	var thumbnailURL string
+	if isImageFile(ext) || isImageFile(".jpg") {
+		if storage.IsObjectStorage(storageProvider) {
+			// 对象存储：通过 URL 参数实现缩略图
+			thumbnailURL = storageProvider.GetThumbURL(objectKey)
+		} else {
+			// 本地存储：保存缩略图文件
+			thumbnailURL = generateLocalThumbnail(objectKey, cfg.Upload.Path)
+		}
 	}
 
 	// 创建媒体记录
 	media := models.Media{
-		Filename:   header.Filename,
-		Path:       finalPath,
-		URL:        url,
-		FileSize:   finalSize,
-		UploadedBy: currentUser.ID,
+		Filename:     header.Filename,
+		Path:         objectKey,
+		URL:          url,
+		ThumbnailURL: thumbnailURL,
+		FileSize:     finalSize,
+		UploadedBy:   currentUser.ID,
 	}
 
 	if err := models.DB.Create(&media).Error; err != nil {
@@ -199,9 +263,18 @@ func DeleteMedia(c *gin.Context) {
 		return
 	}
 
-	// 删除物理文件
-	if _, err := os.Stat(media.Path); err == nil {
-		os.Remove(media.Path)
+	// 从存储中删除文件
+	if err := storageProvider.Delete(media.Path); err != nil {
+		// 对象存储删除失败只记录日志，不阻断
+		fmt.Printf("删除存储文件失败: %v\n", err)
+	}
+
+	// 本地存储：额外删除缩略图文件
+	if storageProvider.Type() == "local" && media.ThumbnailURL != "" {
+		thumbRelPath := strings.TrimPrefix(media.ThumbnailURL, "/")
+		if _, err := os.Stat(thumbRelPath); err == nil {
+			os.Remove(thumbRelPath)
+		}
 	}
 
 	// 删除数据库记录
@@ -213,8 +286,60 @@ func DeleteMedia(c *gin.Context) {
 	SuccessWithMessage(c, "媒体删除成功", nil)
 }
 
+// BatchDeleteMedia 批量删除媒体
+func BatchDeleteMedia(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil || len(req.IDs) == 0 {
+		BadRequest(c, "请提供要删除的媒体ID列表")
+		return
+	}
+
+	var medias []models.Media
+	if err := models.DB.Where("id IN ?", req.IDs).Find(&medias).Error; err != nil {
+		InternalError(c, "查询媒体失败")
+		return
+	}
+
+	successCount := 0
+	failCount := 0
+	for _, media := range medias {
+		// 从存储中删除文件
+		if err := storageProvider.Delete(media.Path); err != nil {
+			fmt.Printf("删除存储文件失败: %v\n", err)
+		}
+
+		// 本地存储：额外删除缩略图文件
+		if storageProvider.Type() == "local" && media.ThumbnailURL != "" {
+			thumbRelPath := strings.TrimPrefix(media.ThumbnailURL, "/")
+			if _, err := os.Stat(thumbRelPath); err == nil {
+				os.Remove(thumbRelPath)
+			}
+		}
+
+		// 删除数据库记录
+		if err := models.DB.Delete(&media).Error; err != nil {
+			failCount++
+			continue
+		}
+		successCount++
+	}
+
+	if successCount == 0 {
+		InternalError(c, "删除失败，资源不存在")
+		return
+	}
+
+	msg := fmt.Sprintf("成功删除 %d 个文件", successCount)
+	if failCount > 0 {
+		msg += fmt.Sprintf("，%d 个删除失败", failCount)
+	}
+	SuccessWithMessage(c, msg, gin.H{"success": successCount, "failed": failCount})
+}
+
 // UploadCover 上传封面图（自动压缩缩放）
-// 封面图会自动缩放到 1200px 宽度，保持比例，质量压缩到 85%
+// 封面图会自动缩放到配置的最大宽度，保持比例，质量压缩
 func UploadCover(c *gin.Context) {
 	// 获取当前用户
 	user, exists := c.Get("current_user")
@@ -226,14 +351,7 @@ func UploadCover(c *gin.Context) {
 
 	// 获取上传配置
 	cfg := config.Get()
-	uploadPath := cfg.Upload.Path
 	maxSize := cfg.Upload.MaxSize
-
-	// 确保上传目录存在
-	if err := os.MkdirAll(uploadPath, 0755); err != nil {
-		InternalError(c, "创建上传目录失败")
-		return
-	}
 
 	// 获取文件
 	file, header, err := c.Request.FormFile("file")
@@ -272,7 +390,6 @@ func UploadCover(c *gin.Context) {
 	case ".png":
 		img, err = png.Decode(file)
 	case ".webp":
-		// webp 需要额外库支持，这里简化处理
 		img, _, err = image.Decode(file)
 	default:
 		img, _, err = image.Decode(file)
@@ -282,7 +399,7 @@ func UploadCover(c *gin.Context) {
 		return
 	}
 
-	// 缩放图片：使用配置的最大宽度
+	// 缩放图片
 	coverMaxWidth := cfg.Upload.MaxWidth
 	if coverMaxWidth <= 0 {
 		coverMaxWidth = 1920
@@ -300,39 +417,43 @@ func UploadCover(c *gin.Context) {
 		jpegQ = 85
 	}
 
-	// 生成唯一文件名（统一保存为 jpg 格式以获得更好的压缩）
-	filename := fmt.Sprintf("cover_%d_%d.jpg", time.Now().Unix(), header.Size)
-	filePath := filepath.Join(uploadPath, filename)
-
-	// 创建输出文件
-	out, err := os.Create(filePath)
-	if err != nil {
-		InternalError(c, "保存文件失败")
-		return
-	}
-	defer out.Close()
-
-	// 以配置质量编码为 JPEG
-	if err := jpeg.Encode(out, img, &jpeg.Options{Quality: jpegQ}); err != nil {
+	// 压缩为 JPEG 到内存 buffer
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: jpegQ}); err != nil {
 		InternalError(c, "图片压缩失败")
 		return
 	}
 
-	// 获取压缩后的文件大小
-	fileInfo, _ := os.Stat(filePath)
-	compressedSize := fileInfo.Size()
+	compressedSize := int64(buf.Len())
 
-	// 生成 URL
-	url := "/uploads/" + filename
+	// 生成对象存储路径（封面图前缀 + 日期目录）
+	objectKey := fmt.Sprintf("cover/%d/%02d/cover_%d.jpg",
+		time.Now().Year(), time.Now().Month(), time.Now().UnixNano())
+
+	// 上传到存储
+	url, err := storageProvider.Put(objectKey, &buf, compressedSize, "image/jpeg")
+	if err != nil {
+		InternalError(c, "封面图上传失败: "+err.Error())
+		return
+	}
+
+	// 生成缩略图 URL
+	var thumbnailURL string
+	if storage.IsObjectStorage(storageProvider) {
+		thumbnailURL = storageProvider.GetThumbURL(objectKey)
+	} else {
+		thumbnailURL = generateLocalThumbnail(objectKey, cfg.Upload.Path)
+	}
 
 	// 创建媒体记录
 	media := models.Media{
-		Filename:   header.Filename,
-		Path:       filePath,
-		URL:        url,
-		FileSize:   compressedSize,
-		FileType:   "image",
-		UploadedBy: currentUser.ID,
+		Filename:     header.Filename,
+		Path:         objectKey,
+		URL:          url,
+		ThumbnailURL: thumbnailURL,
+		FileSize:     compressedSize,
+		FileType:     "image",
+		UploadedBy:   currentUser.ID,
 	}
 
 	if err := models.DB.Create(&media).Error; err != nil {
@@ -344,6 +465,7 @@ func UploadCover(c *gin.Context) {
 		"id":              media.ID,
 		"filename":        media.Filename,
 		"url":             media.URL,
+		"thumbnail_url":   media.ThumbnailURL,
 		"file_size":       media.FileSize,
 		"original_size":   header.Size,
 		"compressed_size": compressedSize,
@@ -402,35 +524,50 @@ func isImageFile(ext string) bool {
 	}
 }
 
-// compressImage 压缩图片：超宽缩放 + JPEG 质量压缩
-// 返回压缩后的路径、大小、错误（如果不需要压缩则返回原路径和 nil）
-func compressImage(srcPath, ext string, maxWidth, quality int) (string, int64, error) {
-	// 打开原文件
-	f, err := os.Open(srcPath)
-	if err != nil {
-		return srcPath, 0, fmt.Errorf("open file: %w", err)
-	}
-	defer f.Close()
-
-	// 解码图片
-	var img image.Image
+// getContentType 根据文件扩展名获取 Content-Type
+func getContentType(ext string) string {
 	switch strings.ToLower(ext) {
 	case ".jpg", ".jpeg":
-		img, err = jpeg.Decode(f)
+		return "image/jpeg"
 	case ".png":
-		img, err = png.Decode(f)
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	case ".webp":
+		return "image/webp"
+	case ".svg":
+		return "image/svg+xml"
+	case ".pdf":
+		return "application/pdf"
+	case ".doc":
+		return "application/msword"
+	case ".docx":
+		return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 	default:
-		img, _, err = image.Decode(f)
+		return "application/octet-stream"
+	}
+}
+
+// compressImageToReader 压缩图片到内存 reader
+// 返回压缩后的 reader、大小、错误
+func compressImageToReader(r io.Reader, ext string, maxWidth, quality int) (io.Reader, int64, error) {
+	// 解码图片
+	var img image.Image
+	var err error
+	switch strings.ToLower(ext) {
+	case ".jpg", ".jpeg":
+		img, err = jpeg.Decode(r)
+	case ".png":
+		img, err = png.Decode(r)
+	default:
+		img, _, err = image.Decode(r)
 	}
 	if err != nil {
-		return srcPath, 0, fmt.Errorf("decode image: %w", err)
+		return nil, 0, fmt.Errorf("decode image: %w", err)
 	}
 
-	originalW := img.Bounds().Dx()
-	needsResize := maxWidth > 0 && originalW > maxWidth
-
-	// 缩放（如果需要）
-	if needsResize {
+	// 缩放
+	if maxWidth > 0 && img.Bounds().Dx() > maxWidth {
 		img = imaging.Resize(img, maxWidth, 0, imaging.Lanczos)
 	}
 
@@ -442,31 +579,81 @@ func compressImage(srcPath, ext string, maxWidth, quality int) (string, int64, e
 		quality = 100
 	}
 
-	// 生成输出路径（统一保存为 jpg 以获得最佳压缩）
-	outExt := ".jpg"
-	outPath := srcPath
-	if strings.ToLower(ext) != ".jpg" && strings.ToLower(ext) != ".jpeg" {
-		outPath = strings.TrimSuffix(srcPath, ext) + outExt
+	// 编码到 buffer
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: quality}); err != nil {
+		return nil, 0, fmt.Errorf("encode jpeg: %w", err)
 	}
 
-	// 创建输出文件
-	out, err := os.Create(outPath)
+	return &buf, int64(buf.Len()), nil
+}
+
+// generateLocalThumbnail 生成本地缩略图文件（仅本地存储使用）
+func generateLocalThumbnail(objectKey, uploadPath string) string {
+	// 从 objectKey 构建本地文件路径
+	localPath := filepath.Join(uploadPath, objectKey)
+	f, err := os.Open(localPath)
 	if err != nil {
-		return srcPath, 0, fmt.Errorf("create output: %w", err)
+		return ""
+	}
+	defer f.Close()
+
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return ""
+	}
+
+	// 无论原始图尺寸，都生成缩略图（小图直接复制）
+	if img.Bounds().Dx() <= thumbnailWidth {
+		// 原始图已经很小，直接复制为缩略图
+		thumb := imaging.Clone(img)
+
+		thumbDir := filepath.Join(uploadPath, ".thumbs")
+		if err := os.MkdirAll(thumbDir, 0755); err != nil {
+			return ""
+		}
+
+		thumbFilename := "thumb_" + strings.ReplaceAll(objectKey, "/", "_")
+		thumbFilename = strings.TrimSuffix(thumbFilename, filepath.Ext(thumbFilename)) + ".jpg"
+		thumbPath := filepath.Join(thumbDir, thumbFilename)
+
+		out, err := os.Create(thumbPath)
+		if err != nil {
+			return ""
+		}
+		defer out.Close()
+
+		if err := jpeg.Encode(out, thumb, &jpeg.Options{Quality: 75}); err != nil {
+			os.Remove(thumbPath)
+			return ""
+		}
+
+		return "/uploads/.thumbs/" + thumbFilename
+	}
+
+	thumb := imaging.Resize(img, thumbnailWidth, 0, imaging.Lanczos)
+
+	thumbDir := filepath.Join(uploadPath, ".thumbs")
+	if err := os.MkdirAll(thumbDir, 0755); err != nil {
+		return ""
+	}
+
+	thumbFilename := "thumb_" + strings.ReplaceAll(objectKey, "/", "_")
+	thumbFilename = strings.TrimSuffix(thumbFilename, filepath.Ext(thumbFilename)) + ".jpg"
+	thumbPath := filepath.Join(thumbDir, thumbFilename)
+
+	out, err := os.Create(thumbPath)
+	if err != nil {
+		return ""
 	}
 	defer out.Close()
 
-	// 编码为 JPEG
-	if err := jpeg.Encode(out, img, &jpeg.Options{Quality: quality}); err != nil {
-		os.Remove(outPath) // 清理失败文件
-		return srcPath, 0, fmt.Errorf("encode jpeg: %w", err)
+	if err := jpeg.Encode(out, thumb, &jpeg.Options{Quality: 75}); err != nil {
+		os.Remove(thumbPath)
+		return ""
 	}
 
-	// 获取压缩后文件信息
-	info, err := os.Stat(outPath)
-	if err != nil {
-		return outPath, 0, nil
-	}
-
-	return outPath, info.Size(), nil
+	return "/uploads/.thumbs/" + thumbFilename
 }
+
+const thumbnailWidth = 400

@@ -2,10 +2,20 @@
   <div class="pages-page">
     <div class="page-header">
       <h1>页面管理</h1>
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        新建页面
-      </el-button>
+      <div style="display:flex;gap:8px">
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建页面
+        </el-button>
+        <el-button
+          v-if="selectedIds.length > 0"
+          type="danger"
+          @click="handleBatchDelete"
+        >
+          <el-icon><Delete /></el-icon>
+          批量删除 ({{ selectedIds.length }})
+        </el-button>
+      </div>
     </div>
 
     <!-- 搜索过滤 -->
@@ -30,7 +40,8 @@
 
     <!-- 页面列表 -->
     <el-card class="table-card">
-      <el-table :data="pages" v-loading="loading" style="width: 100%">
+      <el-table :data="pages" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="45" />
         <el-table-column prop="title" label="标题" min-width="200" />
         <el-table-column prop="slug" label="别名" width="150" />
         <el-table-column prop="template" label="模板" width="120">
@@ -88,8 +99,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import { get, del } from '@/utils/request'
+import { Plus, Delete } from '@element-plus/icons-vue'
+import { get, del, delBody } from '@/utils/request'
 
 const router = useRouter()
 
@@ -104,6 +115,12 @@ const searchForm = reactive({
   keyword: '',
   status: ''
 })
+
+const selectedIds = ref([])
+
+const handleSelectionChange = (selection) => {
+  selectedIds.value = selection.map(item => item.id)
+}
 
 const loadPages = async () => {
   loading.value = true
@@ -159,6 +176,23 @@ const handleDelete = async (id) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
+    }
+  }
+}
+
+const handleBatchDelete = async () => {
+  if (selectedIds.value.length === 0) return
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 个页面吗？`, '批量删除', {
+      type: 'warning'
+    })
+    await delBody('/api/pages/batch', { ids: selectedIds.value })
+    ElMessage.success('批量删除成功')
+    selectedIds.value = []
+    loadPages()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('批量删除失败')
     }
   }
 }

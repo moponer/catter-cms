@@ -2,10 +2,20 @@
   <div class="category-page">
     <div class="page-header">
       <h1>分类管理</h1>
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        新建分类
-      </el-button>
+      <div style="display:flex;gap:8px">
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建分类
+        </el-button>
+        <el-button
+          v-if="selectedIds.length > 0"
+          type="danger"
+          @click="handleBatchDelete"
+        >
+          <el-icon><Delete /></el-icon>
+          批量删除 ({{ selectedIds.length }})
+        </el-button>
+      </div>
     </div>
 
     <!-- 分类树形表格 -->
@@ -16,7 +26,9 @@
         border
         default-expand-all
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="45" />
         <el-table-column prop="name" label="分类名称" min-width="200" />
         <el-table-column prop="slug" label="Slug" width="150" />
         <el-table-column prop="description" label="描述" min-width="200" />
@@ -84,11 +96,16 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import { get, post, put, del } from '@/utils/request'
+import { Plus, Delete } from '@element-plus/icons-vue'
+import { get, post, put, del, delBody } from '@/utils/request'
 
 const categories = ref([])
 const dialogVisible = ref(false)
+const selectedIds = ref([])
+
+const handleSelectionChange = (selection) => {
+  selectedIds.value = selection.map(item => item.id)
+}
 const editingId = ref(null)
 const formRef = ref(null)
 const submitting = ref(false)
@@ -188,6 +205,24 @@ const handleDelete = async (row) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
+    }
+  }
+}
+
+// 批量删除分类
+const handleBatchDelete = async () => {
+  if (selectedIds.value.length === 0) return
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 个分类吗？有子分类或文章的分类将无法删除。`, '批量删除', {
+      type: 'warning'
+    })
+    await delBody('/api/categories/batch', { ids: selectedIds.value })
+    ElMessage.success('批量删除成功')
+    selectedIds.value = []
+    loadCategories()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('批量删除失败')
     }
   }
 }

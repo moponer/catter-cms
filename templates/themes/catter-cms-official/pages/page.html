@@ -33,7 +33,7 @@
         <p style="color: var(--text-secondary); margin-bottom: var(--spacing-xl); font-size: 1.1rem;">{{ .page.Excerpt }}</p>
         {{ end }}
         <div class="content">
-            {{ markdownHTML .page.Content }}
+            {{ .page.Content }}
         </div>
     </main>
 

@@ -149,6 +149,58 @@ func RejectComment(c *gin.Context) {
 	SuccessWithMessage(c, "评论已拒绝", comment)
 }
 
+// UpdateComment 更新评论
+func UpdateComment(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		BadRequest(c, "无效的评论ID")
+		return
+	}
+
+	var comment models.Comment
+	if err := models.DB.First(&comment, id).Error; err != nil {
+		NotFound(c, "评论不存在")
+		return
+	}
+
+	var req struct {
+		AuthorName  string `json:"author_name"`
+		AuthorEmail string `json:"author_email"`
+		Status      string `json:"status"`
+		Content     string `json:"content"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	updates := map[string]interface{}{}
+	if req.AuthorName != "" {
+		updates["author_name"] = html.EscapeString(req.AuthorName)
+	}
+	if req.AuthorEmail != "" {
+		updates["author_email"] = html.EscapeString(req.AuthorEmail)
+	}
+	if req.Status != "" {
+		updates["status"] = req.Status
+	}
+	if req.Content != "" {
+		updates["content"] = html.EscapeString(req.Content)
+	}
+
+	if len(updates) == 0 {
+		BadRequest(c, "没有需要更新的字段")
+		return
+	}
+
+	if err := models.DB.Model(&comment).Updates(updates).Error; err != nil {
+		InternalError(c, "更新评论失败")
+		return
+	}
+
+	SuccessWithMessage(c, "评论更新成功", comment)
+}
+
 // BatchDeleteComments 批量删除评论
 func BatchDeleteComments(c *gin.Context) {
 	var req struct {

@@ -137,7 +137,7 @@ func ArticleShowHandler(c *gin.Context) {
 
 	var recentPosts []models.Post
 	models.DB.Where("status = ?", "published").
-		Order("published_at DESC").
+		Order("COALESCE(published_at, created_at) DESC").
 		Limit(5).
 		Find(&recentPosts)
 
@@ -151,13 +151,19 @@ func ArticleShowHandler(c *gin.Context) {
 		"recentPosts": recentPosts,
 	}
 
-	if content, err := services.RenderTemplate("article_show", data); err == nil {
+	content, renderErr := services.RenderTemplate("article_show", data)
+	if renderErr == nil {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, string(content))
 		return
 	}
+	log.Printf("[WARN] ArticleShowHandler: template render failed, using fallback: %v", renderErr)
 
 	// 默认页面 - XSS 安全修复：使用 html.EscapeString 转义
+	publishedStr := ""
+	if post.PublishedAt != nil {
+		publishedStr = post.PublishedAt.Format("2006-01-02")
+	}
 	defaultHTML := fmt.Sprintf(`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -186,7 +192,7 @@ func ArticleShowHandler(c *gin.Context) {
 		html.EscapeString(post.Title),
 		html.EscapeString(post.Title),
 		post.Views,
-		post.PublishedAt.Format("2006-01-02"),
+		publishedStr,
 		html.EscapeString(post.Content))
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
@@ -209,7 +215,7 @@ func ArticleListHandler(c *gin.Context) {
 	models.DB.Where("status = ?", "published").
 		Preload("Category").
 		Preload("Tags").
-		Order("published_at DESC").
+		Order("COALESCE(published_at, created_at) DESC").
 		Offset((page - 1) * pageSize).
 		Limit(pageSize).
 		Find(&posts)
@@ -260,15 +266,30 @@ func PageShowHandler(c *gin.Context) {
 
 	var recentPosts []models.Post
 	models.DB.Where("status = ?", "published").
-		Order("published_at DESC").
+		Order("COALESCE(published_at, created_at) DESC").
 		Limit(5).
 		Find(&recentPosts)
 
 	siteData := getSiteData()
+	// 页面内容是 HTML（富文本编辑器产出），需要标记为 template.HTML 避免模板引擎转义
+	pageData := map[string]interface{}{
+		"ID":              page.ID,
+		"Title":           page.Title,
+		"Content":         template.HTML(page.Content),
+		"Excerpt":         page.Excerpt,
+		"Slug":            page.Slug,
+		"Template":        page.Template,
+		"Status":          page.Status,
+		"TemplateData":    page.TemplateData,
+		"MetaTitle":       page.MetaTitle,
+		"MetaDescription": page.MetaDescription,
+		"CreatedAt":       page.CreatedAt,
+		"UpdatedAt":       page.UpdatedAt,
+	}
 	data := map[string]interface{}{
 		"site":        siteData,
 		"pageTitle":   page.Title,
-		"page":        page,
+		"page":        pageData,
 		"recentPosts": recentPosts,
 	}
 
@@ -348,7 +369,7 @@ func CategoryHandler(c *gin.Context) {
 	var posts []models.Post
 	models.DB.Where("category_id = ? AND status = ?", category.ID, "published").
 		Preload("Category").
-		Order("published_at DESC").
+		Order("COALESCE(published_at, created_at) DESC").
 		Find(&posts)
 
 	var categories []models.Category
@@ -499,7 +520,7 @@ func TagHandler(c *gin.Context) {
 	models.DB.Joins("JOIN post_tags ON posts.id = post_tags.post_id").
 		Where("post_tags.tag_id = ? AND posts.status = ?", tag.ID, "published").
 		Preload("Category").
-		Order("posts.published_at DESC").
+		Order("COALESCE(posts.published_at, posts.created_at) DESC").
 		Find(&posts)
 
 	siteData := getSiteData()
@@ -525,7 +546,7 @@ func TagHandler(c *gin.Context) {
 func ArchivesHandler(c *gin.Context) {
 	var posts []models.Post
 	models.DB.Where("status = ?", "published").
-		Order("published_at DESC").
+		Order("COALESCE(published_at, created_at) DESC").
 		Find(&posts)
 
 	archives := make(map[string][]models.Post)
@@ -564,7 +585,7 @@ func SearchHandler(c *gin.Context) {
 			"%"+query+"%",
 			"%"+query+"%").
 			Preload("Category").
-			Order("published_at DESC").
+			Order("COALESCE(published_at, created_at) DESC").
 			Find(&posts)
 	}
 

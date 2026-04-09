@@ -17,9 +17,11 @@ import (
 
 	"catter-cms-gin/config"
 	"catter-cms-gin/internal/models"
+	"catter-cms-gin/internal/storage"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
 	"gopkg.in/yaml.v3"
 )
 
@@ -235,6 +237,9 @@ type ThemeService struct {
 }
 
 // 全局主题服务
+// gmMarkdown 全局 goldmark 实例（GFM 模式，无缩进代码块）
+var gmMarkdown = goldmark.New(goldmark.WithExtensions(extension.GFM))
+
 var themeService *ThemeService
 
 // InitThemeService 初始化主题服务
@@ -932,9 +937,18 @@ func RenderTemplate(templateName string, data map[string]interface{}) (template.
 
 	// 执行模板（使用 Root 的 ExecuteTemplate 确保正确渲染具名模板）
 	var buf bytes.Buffer
-	if err := set.Root.ExecuteTemplate(&buf, templateName+".html", templateData); err != nil {
-		log.Printf("[ERROR] ExecuteTemplate %q failed: %v", templateName, err)
-		return "", fmt.Errorf("template execute error: %v", err)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("[ERROR] ExecuteTemplate %q panicked: %v", templateName, r)
+			}
+		}()
+		if err := set.Root.ExecuteTemplate(&buf, templateName+".html", templateData); err != nil {
+			log.Printf("[ERROR] ExecuteTemplate %q failed: %v", templateName, err)
+		}
+	}()
+	if buf.Len() == 0 {
+		return "", fmt.Errorf("template %q rendered empty content", templateName)
 	}
 
 	return template.HTML(buf.String()), nil
@@ -1261,8 +1275,8 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 			return result
 		},
 
-		// markdownHTML函数 - 将 Markdown 转换为 HTML
-		// 如果内容已经是 HTML（以 < 开头），则直接输出
+		// markdownHTML函数 - 将 Markdown 转换为 HTML（GFM 模式）
+		// GFM 模式下不会将缩进4空格解析为代码块，减少纯文本意外渲染
 		"markdownHTML": func(content string) template.HTML {
 			trimmed := strings.TrimSpace(content)
 			if trimmed == "" {
@@ -1272,10 +1286,8 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 			if strings.HasPrefix(trimmed, "<") {
 				return template.HTML(content)
 			}
-			// 是 Markdown，转换为 HTML
 			var buf bytes.Buffer
-			if err := goldmark.Convert([]byte(content), &buf); err != nil {
-				// 转换失败，返回原始内容
+			if err := gmMarkdown.Convert([]byte(content), &buf); err != nil {
 				return template.HTML(content)
 			}
 			return template.HTML(buf.String())
@@ -1321,6 +1333,11 @@ func getTemplateFuncsForTheme(theme *Theme) template.FuncMap {
 			}
 			return []interface{}{}
 		},
+
+		// thumbnailURL - 将原图 URL 转换为缩略图 URL
+		// 本地存储: /uploads/xxx.jpg → /uploads/.thumbs/thumb_xxx.jpg
+		// 对象存储: https://cdn.example.com/xxx.jpg → 追加图片处理参数
+		"thumbnailURL": storage.GlobalGetThumbURL,
 
 		// substr函数 - 字符串截取
 		// Go模板没有内置的substr，需要自己实现
@@ -1797,15 +1814,19 @@ func getRecentPosts(limit int) []map[string]interface{} {
 		limit = 5
 	}
 	var posts []models.Post
-	models.DB.Where("status = ?", "published").Order("published_at DESC").Limit(limit).Find(&posts)
+	models.DB.Where("status = ?", "published").Order("COALESCE(published_at, created_at) DESC").Limit(limit).Find(&posts)
 
 	result := make([]map[string]interface{}, len(posts))
 	for i, p := range posts {
+		dateStr := ""
+		if p.PublishedAt != nil {
+			dateStr = p.PublishedAt.Format("2006-01-02")
+		}
 		result[i] = map[string]interface{}{
 			"id":    p.ID,
 			"title": p.Title,
 			"slug":  p.Slug,
-			"date":  p.PublishedAt.Format("2006-01-02"),
+			"date":  dateStr,
 		}
 	}
 	return result

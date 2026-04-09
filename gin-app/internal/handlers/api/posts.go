@@ -152,6 +152,12 @@ func CreatePost(c *gin.Context) {
 		post.Status = "draft"
 	}
 
+	// 创建时如果是发布状态，自动设置发布时间
+	if post.Status == "published" {
+		now := time.Now()
+		post.PublishedAt = &now
+	}
+
 	if err := models.DB.Create(&post).Error; err != nil {
 		InternalError(c, "创建文章失败")
 		return

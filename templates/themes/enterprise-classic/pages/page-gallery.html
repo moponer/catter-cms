@@ -52,7 +52,7 @@
             <div {{ if and $sidebarEnabled $sidebarModules }}style="flex:1;"{{ else }}style="max-width:100%;"{{ end }}>
                 {{ if .page.Content }}
                 <div class="gallery-intro">
-                    {{ markdownHTML .page.Content }}
+                    {{ .page.Content }}
                 </div>
                 {{ end }}
 

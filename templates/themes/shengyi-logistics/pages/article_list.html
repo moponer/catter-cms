@@ -36,7 +36,7 @@
         {{ range .posts }}
         <a href="/article/{{ .Slug }}" class="news-list-item-row">
             {{ if .Cover }}
-            <img src="{{ .Cover }}" alt="{{ .Title }}" class="news-list-thumb">
+            <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="news-list-thumb">
             {{ else }}
             <div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>
             {{ end }}

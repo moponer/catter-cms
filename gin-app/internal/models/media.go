@@ -1,6 +1,7 @@
 package models
 
 import (
+	"path/filepath"
 	"time"
 
 	"gorm.io/gorm"
@@ -11,8 +12,9 @@ type Media struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Filename    string    `json:"filename" gorm:"not null;size:255"`
 	Path        string    `json:"path" gorm:"not null;size:500"`
-	URL         string    `json:"url" gorm:"size:500"`
-	FileType    string    `json:"file_type" gorm:"size:50"`
+	URL          string    `json:"url" gorm:"size:500"`
+	ThumbnailURL string    `json:"thumbnail_url" gorm:"size:500"`
+	FileType     string    `json:"file_type" gorm:"size:50"`
 	FileSize    int64     `json:"file_size"`
 	Width       int       `json:"width"`
 	Height      int       `json:"height"`
@@ -39,10 +41,7 @@ func (m *Media) BeforeCreate(tx *gorm.DB) error {
 
 // getFileType 根据文件名获取文件类型
 func getFileType(filename string) string {
-	ext := ""
-	if len(filename) > 5 {
-		ext = filename[len(filename)-5:]
-	}
+	ext := filepath.Ext(filename)
 	switch ext {
 	case ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg":
 		return "image"

@@ -39,7 +39,7 @@
         {{ if .category.Description }}<p class="category-desc">{{ .category.Description }}</p>{{ end }}
         {{ range .posts }}
         <a href="/article/{{ .Slug }}" class="news-list-item-row">
-            {{ if .Cover }}<img src="{{ .Cover }}" alt="{{ .Title }}" class="news-list-thumb">{{ else }}<div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>{{ end }}
+            {{ if .Cover }}<img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="news-list-thumb">{{ else }}<div class="news-list-thumb-placeholder"><i class="fa-solid fa-newspaper"></i></div>{{ end }}
             <div class="news-list-body">
                 <div class="news-list-meta">{{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}<span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span></div>
                 <div class="news-list-item-title">{{ .Title }}</div>

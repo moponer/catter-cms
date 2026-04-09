@@ -18,6 +18,8 @@ type Config struct {
 	Database DatabaseConfig `yaml:"database"`
 	JWT      JWTConfig      `yaml:"jwt"`
 	Upload   UploadConfig   `yaml:"upload"`
+	Storage  Storage        `yaml:"storage"`
+	Redis    RedisConfig    `yaml:"redis"`
 	Security SecurityConfig `yaml:"security"`
 	Env      string         `yaml:"env"` // 环境: development, production
 }
@@ -47,19 +49,68 @@ type UploadConfig struct {
 	MaxSize       int64  `yaml:"max_size"`
 	Path          string `yaml:"path"`
 	AllowedExt    string `yaml:"allowed_ext"`
-	StorageType   string `yaml:"storage_type"` // local, oss, s3
-	OSSConfig     OSSConfig `yaml:"oss_config,omitempty"`
 	ImageCompress bool   `yaml:"image_compress"`    // 图片压缩开关，默认 true
 	MaxWidth      int    `yaml:"max_width"`         // 最大宽度，默认 1920
-	JPEGQuality   int    `yaml:"jpeg_quality"`       // JPEG 质量，默认 85（60-100）
+	JPEGQuality   int    `yaml:"jpeg_quality"`      // JPEG 质量，默认 85（60-100）
 }
 
-// OSSConfig OSS配置
-type OSSConfig struct {
+// Storage 存储配置（对象存储）
+type Storage struct {
+	Type        string          `yaml:"type"`                  // local, qiniu, alioss, tencentcos, s3
+	CDN         string          `yaml:"cdn"`                   // CDN 域名（可选，全局覆盖）
+	Qiniu       QiniuConfig     `yaml:"qiniu,omitempty"`
+	AliOSS      AliOSSConfig    `yaml:"alioss,omitempty"`
+	TencentCOS  TencentCOSConfig `yaml:"tencentcos,omitempty"`
+	S3          S3Config        `yaml:"s3,omitempty"`
+}
+
+// QiniuConfig 七牛云配置
+type QiniuConfig struct {
+	AccessKey string `yaml:"access_key"`
+	SecretKey string `yaml:"secret_key"`
+	Bucket    string `yaml:"bucket"`
+	Zone      string `yaml:"zone"`       // huadong, huabei, huanan, beimei, xinjiapo
+	Domain    string `yaml:"domain"`     // CDN 域名
+	UseHTTPS  bool   `yaml:"use_https"`
+}
+
+// AliOSSConfig 阿里云 OSS 配置
+type AliOSSConfig struct {
 	Endpoint        string `yaml:"endpoint"`
 	AccessKeyID     string `yaml:"access_key_id"`
 	AccessKeySecret string `yaml:"access_key_secret"`
 	Bucket          string `yaml:"bucket"`
+	CustomDomain    string `yaml:"custom_domain"`
+}
+
+// TencentCOSConfig 腾讯云 COS 配置
+type TencentCOSConfig struct {
+	BucketURL    string `yaml:"bucket_url"`
+	SecretID     string `yaml:"secret_id"`
+	SecretKey    string `yaml:"secret_key"`
+	Region       string `yaml:"region"`
+	CustomDomain string `yaml:"custom_domain"`
+}
+
+// S3Config S3 兼容存储配置
+type S3Config struct {
+	Endpoint        string `yaml:"endpoint"`
+	Region          string `yaml:"region"`
+	AccessKeyID     string `yaml:"access_key_id"`
+	SecretAccessKey string `yaml:"secret_access_key"`
+	Bucket          string `yaml:"bucket"`
+	ForcePathStyle  bool   `yaml:"force_path_style"`
+	CustomDomain    string `yaml:"custom_domain"`
+}
+
+// RedisConfig Redis 缓存配置
+type RedisConfig struct {
+	Enabled   bool   `yaml:"enabled"`    // 是否启用 Redis
+	Host      string `yaml:"host"`       // Redis 地址，默认 127.0.0.1
+	Port      int    `yaml:"port"`       // Redis 端口，默认 6379
+	Password  string `yaml:"password"`   // Redis 密码，可选
+	DB        int    `yaml:"db"`         // Redis 数据库编号，默认 0
+	KeyPrefix string `yaml:"key_prefix"` // Key 前缀，默认 catter:
 }
 
 // SecurityConfig 安全配置
@@ -365,6 +416,13 @@ func defaultConfig() *Config {
 		Security: SecurityConfig{
 			AllowOrigins: []string{"*"},
 			EnableCSP:    false,
+		},
+		Redis: RedisConfig{
+			Enabled:   false,
+			Host:      "127.0.0.1",
+			Port:      6379,
+			DB:        0,
+			KeyPrefix: "catter:",
 		},
 		Env: "development",
 	}

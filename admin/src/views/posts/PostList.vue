@@ -2,10 +2,20 @@
   <div class="posts-page">
     <div class="page-header">
       <h1>文章管理</h1>
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>
-        新建文章
-      </el-button>
+      <div style="display:flex;gap:8px">
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建文章
+        </el-button>
+        <el-button
+          v-if="selectedIds.length > 0"
+          type="danger"
+          @click="handleBatchDelete"
+        >
+          <el-icon><Delete /></el-icon>
+          批量删除 ({{ selectedIds.length }})
+        </el-button>
+      </div>
     </div>
 
     <!-- 搜索过滤 -->
@@ -30,7 +40,8 @@
 
     <!-- 文章列表 -->
     <el-card class="table-card">
-      <el-table :data="posts" v-loading="loading" style="width: 100%">
+      <el-table :data="posts" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="45" />
         <el-table-column label="封面" width="80" align="center">
           <template #default="{ row }">
             <div class="cover-cell">
@@ -105,8 +116,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Picture } from '@element-plus/icons-vue'
-import { get, del } from '@/utils/request'
+import { Plus, Picture, Delete } from '@element-plus/icons-vue'
+import { get, del, delBody, post } from '@/utils/request'
 
 const router = useRouter()
 
@@ -120,6 +131,12 @@ const searchForm = reactive({
   keyword: '',
   status: ''
 })
+
+const selectedIds = ref([])
+
+const handleSelectionChange = (selection) => {
+  selectedIds.value = selection.map(item => item.id)
+}
 
 const loadPosts = async () => {
   loading.value = true
@@ -157,6 +174,23 @@ const handleDelete = async (id) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
+    }
+  }
+}
+
+const handleBatchDelete = async () => {
+  if (selectedIds.value.length === 0) return
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 篇文章吗？`, '批量删除', {
+      type: 'warning'
+    })
+    await delBody('/api/posts/batch', { ids: selectedIds.value.join(',') })
+    ElMessage.success('批量删除成功')
+    selectedIds.value = []
+    loadPosts()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('批量删除失败')
     }
   }
 }

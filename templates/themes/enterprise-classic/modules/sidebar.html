@@ -173,7 +173,7 @@
             {{- else if eq .id "custom_html" -}}
             <div class="sidebar-custom-html">
                 {{- if .data -}}
-                {{ .data | safe }}
+                {{ .data }}
                 {{- else -}}
                 <div class="sidebar-empty">
                     <i class="fa-solid fa-code"></i>

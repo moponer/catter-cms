@@ -201,3 +201,26 @@ func DeletePage(c *gin.Context) {
 
 	SuccessWithMessage(c, "页面删除成功", nil)
 }
+
+// BatchDeletePages 批量删除页面
+func BatchDeletePages(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "请求参数错误")
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		BadRequest(c, "请选择要删除的页面")
+		return
+	}
+
+	if err := models.DB.Where("id IN ?", req.IDs).Delete(&models.Page{}).Error; err != nil {
+		InternalError(c, "批量删除页面失败")
+		return
+	}
+
+	SuccessWithMessage(c, "批量删除成功", gin.H{"deleted_count": len(req.IDs)})
+}
