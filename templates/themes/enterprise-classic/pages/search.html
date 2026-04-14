@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preload" href="/fontawesome/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
     {{ end }}
     <title>搜索：{{ .query }} - {{ .site.title }}</title>
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     {{ if getConfig "customHead" "" }}
-    {{ getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" | safe }}
     {{ end }}
 </head>
-<body data-color-scheme="{{ getConfig "colorScheme" "default" }}">
+<body>
 
 {{ template "header" . }}
 
@@ -23,9 +22,9 @@
 {{ $heroSingle := getConfig "heroBgImage" "" }}
 {{ $hasMulti := gt (len $heroImgs) 0 }}
 {{ if $hasMulti }}
-<div class="page-banner" style="background-image:url('{{ (index $heroImgs 0).url }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ (index $heroImgs 0).url }}')">
 {{ else if $heroSingle }}
-<div class="page-banner" style="background-image:url('{{ $heroSingle }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ $heroSingle }}')">
 {{ else }}
 <div class="page-banner">
 {{ end }}
@@ -38,8 +37,9 @@
 <main class="main-wrapper">
     <div class="container">
         <p class="search-count-text">
-            共找到 <strong style="color:var(--primary)">{{ .count }}</strong> 条与 "<strong>{{ .query }}</strong>" 相关的结果
+            共找到 <strong class="search-count-highlight">{{ .count }}</strong> 条与 "<strong>{{ .query }}</strong>" 相关的结果
         </p>
+        {{ if .posts }}
         {{ range .posts }}
         <a href="/article/{{ .Slug }}" class="news-list-item-row">
             {{ if .Cover }}
@@ -55,6 +55,7 @@
                 <p class="news-list-excerpt">{{ .Excerpt }}</p>
             </div>
         </a>
+        {{ end }}
         {{ else }}
         <div class="search-no-results">
             <div class="search-no-results-icon"><i class="fa-solid fa-magnifying-glass"></i></div>

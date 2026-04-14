@@ -1,25 +1,76 @@
 {{ define "header" }}
 <nav class="site-header" id="siteHeader">
-    <div class="container">
-        <div class="header-inner">
-            <a href="/" class="header-logo">
+
+    <!-- 第一行：顶部信息条（浅色） -->
+    <div class="header-top-bar">
+        <div class="container header-top-inner">
+            <span class="header-slogan">{{ getConfig "headerSlogan" "欢迎访问，诚信服务值得信赖！！！" }}</span>
+            <div class="header-top-links">
+                {{ $topLinks := getConfig "headerTopLinks" "" }}
+                {{ if $topLinks }}
+                    {{ range $topLinks }}
+                    {{ $linkTarget := .target }}
+                    <a href="{{ .url }}"{{ if $linkTarget }} target="{{ $linkTarget }}"{{ end }}>{{ .label }}</a>
+                    {{ end }}
+                {{ else }}
+                    <a href="/page/about">关于我们</a>
+                    <a href="/page/contact">合作咨询</a>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 第二行：Logo + 电话 -->
+    <div class="header-logo-bar">
+        <div class="container header-logo-inner">
+            <a href="/" class="header-brand">
                 {{ $logo := getConfig "logo" "" }}
                 {{ if $logo }}
                 <img src="{{ $logo }}" alt="{{ .site.title }}" class="header-logo-img">
                 {{ else }}
-                <span class="header-logo-text logo-text-only">{{ .site.title }}</span>
-                {{ end }}
-                {{ if .site.description }}
-                <span class="header-logo-desc">{{ .site.description }}</span>
+                <span class="header-brand-text">{{ .site.title }}</span>
                 {{ end }}
             </a>
+            <div class="header-contact-info">
+                {{ $hotlineLabel := getConfig "hotlineLabel" "" }}
+                {{ $hotlineNumber := getConfig "hotlineNumber" "" }}
+                {{ if not $hotlineNumber }}
+                {{/* 回退：从 footerContact 中找电话类型 */}}
+                {{ $footerContact := getConfig "footerContact" "" }}
+                {{ if $footerContact }}
+                    {{ range $footerContact }}
+                        {{ if or (eq .icon "fa-solid fa-phone") (eq .icon "fa-solid fa-phone-volume") (eq .icon "fa-solid fa-mobile-screen") }}
+                            {{ $hotlineNumber = .value }}
+                        {{ end }}
+                    {{ end }}
+                {{ end }}
+                {{ end }}
+                {{ if $hotlineNumber }}
+                <div class="header-phone-box">
+                    <i class="fa-solid fa-phone-volume header-phone-icon"></i>
+                    <div class="header-phone-text">
+                        <span class="phone-label">{{ if $hotlineLabel }}{{ $hotlineLabel }}{{ else }}全国24小时服务热线{{ end }}</span>
+                        <span class="phone-number">{{ $hotlineNumber }}</span>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 第三行：蓝色导航条 -->
+    <div class="header-nav-bar">
+        <div class="container header-nav-inner">
             <ul class="header-menu" id="headerMenu">
-                {{ if .headerMenu }}{{ range .headerMenu.Items }}
-                <li><a href="{{ .URL }}">{{ .Label }}</a></li>
-                {{ end }}{{ else }}
-                <li><a href="/">首页</a></li>
-                <li><a href="/article">新闻资讯</a></li>
-                <li><a href="/page/about">关于我们</a></li>
+                <li><a href="/" class="nav-home"><i class="fa-solid fa-house"></i> {{ getConfig "homeNavText" "首页推荐" }}</a></li>
+                {{ if .headerMenu }}
+                    {{ range .headerMenu.Items }}
+                    {{ $menuTarget := .Target }}
+                    <li><a href="{{ .URL }}"{{ if $menuTarget }} target="{{ $menuTarget }}"{{ end }}>{{ if .Icon }}<i class="{{ .Icon }}"></i> {{ end }}{{ .Label }}</a></li>
+                    {{ end }}
+                {{ else }}
+                    <li><a href="/article">新闻资讯</a></li>
+                    <li><a href="/page/about">关于我们</a></li>
                 {{ end }}
             </ul>
             <button class="header-toggle" id="headerToggle" aria-label="菜单">
@@ -27,5 +78,6 @@
             </button>
         </div>
     </div>
+
 </nav>
 {{ end }}

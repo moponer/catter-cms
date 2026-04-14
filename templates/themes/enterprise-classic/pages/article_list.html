@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preload" href="/fontawesome/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
     {{ end }}
     <title>{{ getConfig "articleListTitle" "新闻资讯" }} - {{ .site.title }}</title>
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     {{ if getConfig "customHead" "" }}
-    {{ getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" | safe }}
     {{ end }}
 </head>
-<body data-color-scheme="{{ getConfig "colorScheme" "default" }}">
+<body>
 
 {{ template "header" . }}
 
@@ -34,11 +33,11 @@
 {{ $listBg := getConfig "articleListBgImage" "" }}
 {{ $hasMulti := gt (len $heroImgs) 0 }}
 {{ if $hasMulti }}
-<div class="page-banner" style="background-image:url('{{ (index $heroImgs 0).url }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ (index $heroImgs 0).url }}')">
 {{ else if $listBg }}
-<div class="page-banner" style="background-image:url('{{ $listBg }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ $listBg }}')">
 {{ else if $heroSingle }}
-<div class="page-banner" style="background-image:url('{{ $heroSingle }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ $heroSingle }}')">
 {{ else }}
 <div class="page-banner">
 {{ end }}
@@ -52,10 +51,10 @@
     <div class="container">
         {{/* 侧边栏布局 */}}
         {{ if $showSidebar }}
-        <div class="with-sidebar" style="display:flex;gap:var(--space-xl);align-items:flex-start;">
+        <div class="layout-with-sidebar">
         {{ end }}
 
-            <div {{ if $showSidebar }}style="flex:1;"{{ else }}style="max-width:100%;"{{ end }}>
+            <div class="{{ if $showSidebar }}layout-main-flex{{ else }}layout-main-full{{ end }}">
                 {{/* 副标题描述 */}}
                 {{ if $subtitle }}
                 <div class="article-list-intro">{{ $subtitle }}</div>
@@ -142,7 +141,7 @@
                         {{ end }}
                         <div class="article-list-body">
                             <div class="article-list-meta">
-                                {{ if .Category }}<span class="badge badge-accent">{{ .Category.Name }}</span>{{ end }}
+                                {{ if .Category }}<span class="badge badge-primary">{{ .Category.Name }}</span>{{ end }}
                                 {{ range .Tags }}<span class="badge badge-outline">{{ .Name }}</span>{{ end }}
                             </div>
                             <div class="article-list-title-row">

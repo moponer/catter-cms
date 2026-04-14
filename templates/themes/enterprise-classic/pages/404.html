@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preload" href="/fontawesome/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
     {{ end }}
     <title>页面未找到 - {{ .site.title }}</title>
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
 </head>
-<body data-color-scheme="{{ getConfig "colorScheme" "default" }}">
+<body>
 
 {{ template "header" . }}
 

@@ -1,6 +1,6 @@
-name: 企业经典官网
-version: 1.0.0
-description: 明亮商务风格企业官网主题，支持5套配色方案一键切换，模块化设计，全CSS变量控制
+﻿name: 企业经典官网
+version: 3.0.0
+description: 传统企业官网主题，三层Header+居中Banner+蓝色简介区+图片服务卡+双栏新闻+蓝色四栏Footer。参考远笙物流布局风格。
 author: Catter CMS Team
 
 configDefinition:
@@ -13,484 +13,400 @@ configDefinition:
         label: "Logo图片"
         type: "image"
         default: ""
-      - name: "colorScheme"
-        label: "配色方案"
-        type: "select"
-        default: "default"
-        description: "切换主题整体配色风格"
-        options:
-          - value: "default"
-            label: "默认 - 橙红 + 暖金"
-          - value: "scheme-a"
-            label: "A - 权威藏蓝 + 古典金"
-          - value: "scheme-b"
-            label: "B - 深邃墨蓝 + 香槟金"
-          - value: "scheme-c"
-            label: "C - 米白 + 浅棕 + 暖橙"
-          - value: "scheme-d"
-            label: "D - 天际蓝 + 活力橙"
       - name: "footerCopyright"
         label: "底部版权信息"
         type: "text"
-        default: "Copyright © 2026 公司名称 版权所有"
+        default: "Copyright \u00a9 2026 \u516c\u53f8\u540d\u79f0 \u7248\u6743\u6240\u6709"
 
-  # ========== Hero 模块 ==========
-  - section: "hero"
-    label: "Hero 横幅"
-    icon: "image"
-    fields:
-      - name: "heroEnabled"
-        label: "启用模块"
-        type: "switch"
-        default: true
-      - name: "heroTitle"
-        label: "主标题"
+      # Header 新增字段
+      - name: "headerSlogan"
+        label: "\u9876\u90e8\u680f\u53e3\u53f7"
         type: "text"
-        default: "专业、创新、值得信赖"
-      - name: "heroSubtitle"
-        label: "副标题"
-        type: "text"
-        default: "为您提供优质的行业解决方案"
-      - name: "heroBgImage"
-        label: "背景图片（兼容旧数据）"
-        type: "image"
-        default: ""
-        description: "兼容旧数据，建议改用「背景轮播」"
-      - name: "heroBgImages"
-        label: "背景轮播"
-        type: "image-list"
-        default: []
-        description: "推荐使用，支持多张图片自动切换"
-      - name: "heroBtnText"
-        label: "按钮文字"
-        type: "text"
-        default: ""
-      - name: "heroBtnLink"
-        label: "按钮链接"
-        type: "text"
-        default: ""
-      - name: "heroBtn2Text"
-        label: "副按钮文字"
-        type: "text"
-        default: ""
-      - name: "heroBtn2Link"
-        label: "副按钮链接"
-        type: "text"
-        default: ""
-      - name: "heroBadges"
-        label: "信任标识"
-        type: "repeater"
-        itemTitle: "text"
-        default: []
-        description: "Hero区域底部的信任标识，如资质、认证等"
-        fields:
-          - name: "icon"
-            label: "图标"
-            type: "icon"
-          - name: "text"
-            label: "文字"
-            type: "text"
-
-  # ========== 关于我们 ==========
-  - section: "about"
-    label: "关于我们"
-    icon: "info-circle"
-    fields:
-      - name: "aboutEnabled"
-        label: "启用模块"
-        type: "switch"
-        default: true
-      - name: "aboutTitle"
-        label: "区块标题"
-        type: "text"
-        default: "关于我们"
-      - name: "aboutImage"
-        label: "展示图片（单张）"
-        type: "image"
-        default: ""
-        description: "兼容旧数据，建议改用「多图轮播」"
-      - name: "aboutImages"
-        label: "多图轮播"
-        type: "image-list"
-        default: []
-        description: "推荐使用，支持多张图片自动轮播"
-      - name: "aboutContent"
-        label: "简介内容"
-        type: "textarea"
-        default: "这是一段公司简介，请前往后台编辑。"
-
-  # ========== 数据统计 ==========
-  - section: "stats"
-    label: "数据统计"
-    icon: "bar-chart"
-    fields:
-      - name: "statsEnabled"
-        label: "启用模块"
-        type: "switch"
-        default: true
-      - name: "statsItems"
-        label: "统计数据"
+        default: "\u6b22\u8fce\u8bbf\u95ee\uff0c\u8bda\u4fe1\u670d\u52a1\u503c\u5f97\u4fe1\u8d56\uff01\uff01\uff01"
+      - name: "headerTopLinks"
+        label: "\u987d\u90e8\u94fe\u63a5"
         type: "repeater"
         itemTitle: "label"
         default:
-          - value: "15"
-            suffix: "+"
-            label: "年行业经验"
-          - value: "500"
-            suffix: "+"
-            label: "服务客户"
-          - value: "1000"
-            suffix: "+"
-            label: "成功案例"
-          - value: "50"
-            suffix: ""
-            label: "覆盖城市"
+          - label: "\u5173\u4e8e\u6211\u4eec"
+            url: "/page/about"
+          - label: "\u5408\u4f5c\u54a8\u8be2"
+            url: "/page/contact"
         fields:
-          - name: "value"
-            label: "数字"
-            type: "text"
-          - name: "suffix"
-            label: "后缀"
-            type: "text"
-            default: "+"
           - name: "label"
-            label: "标签"
+            label: "\u6587\u5b57"
             type: "text"
+          - name: "url"
+            label: "\u94fe\u63a5"
+            type: "text"
+          - name: "target"
+            label: "\u65b0\u7a97\u6253\u5f00"
+            type: "switch"
+            default: false
+      - name: "hotlineLabel"
+        label: "\u70ed\u7ebf\u6807\u7b7e"
+        type: "text"
+        default: "\u5168\u56fd24\u5c0f\u65f6\u670d\u52a1\u70ed\u7ebf:"
+      - name: "hotlineNumber"
+        label: "\u70ed\u7ebf\u7535\u8bdd"
+        type: "text"
+        default: ""
+      - name: "homeNavText"
+        label: "\u9996\u9875\u5bfc\u822a\u6587\u5b57"
+        type: "text"
+        default: "\u9996\u9875\u63a8\u8350"
 
-  # ========== 新闻资讯 ==========
+  # ========== Hero 横幅 ==========
+  - section: "hero"
+    label: "Hero \u6a2a\u5e45"
+    icon: "image"
+    fields:
+      - name: "heroEnabled"
+        label: "\u542f\u7528\u6a21\u5757"
+        type: "switch"
+        default: true
+      - name: "heroTitle"
+        label: "\u4e3b\u6807\u9898(\u5c45\u4e2d)"
+        type: "text"
+        default: "\u63d0\u4f9b\u4e13\u4e1a\u7684\u4e00\u7ad9\u5f0f\u7269\u6d41\u670d\u52a1"
+      - name: "breadcrumbText"
+        label: "\u9762\u5305\u788e\u6587\u5b57"
+        type: "text"
+        default: ""
+      - name: "searchPlaceholder"
+        label: "\u641c\u7d22\u6846\u5360\u4f4d\u7b26"
+        type: "text"
+        default: "\u8bf7\u8f93\u5165\u5173\u952e\u5b57\u641c\u7d22"
+      - name: "heroBgImage"
+        label: "\u80cc\u666f\u56fe\u7247(\u517c\u5bb9\u65e7\u6570\u636e)"
+        type: "image"
+        default: ""
+      - name: "heroBgImages"
+        label: "\u80cc\u666f\u8f6e\u64ad"
+        type: "image-list"
+        default: []
+        description: "\u652f\u6301\u591a\u5f20\u56fe\u7247\u81ea\u52a8\u5207\u6362"
+
+  # ========== \u5173\u4e8e\u6211\u4eec(\u84dd\u8272\u5168\u5bbd) ==========
+  - section: "about"
+    label: "\u516c\u53f8\u7b80\u4ecb"
+    icon: "info-circle"
+    fields:
+      - name: "aboutEnabled"
+        label: "\u542f\u7528\u6a21\u5757"
+        type: "switch"
+        default: true
+      - name: "aboutTitle"
+        label: "\u533a\u5757\u6807\u9898"
+        type: "text"
+        default: "\u516c\u53f8\u7b80\u4ecb"
+      - name: "aboutSubtitleEn"
+        label: "\u82f1\u6587\u526f\u6807\u9898"
+        type: "text"
+        default: "ABOUTUS"
+      - name: "aboutLink"
+        label: "\u8be6\u60c5\u94fe\u63a5"
+        type: "text"
+        default: "/page/about"
+      - name: "aboutImage"
+        label: "\u5c55\u793a\u56fe\u7247(\u5355\u5f20)"
+        type: "image"
+        default: ""
+      - name: "aboutImages"
+        label: "\u591a\u56fe\u8f6e\u64ad"
+        type: "image-list"
+        default: []
+      - name: "aboutContent"
+        label: "\u7b80\u4ecb\u5185\u5bb9"
+        type: "textarea"
+        default: "\u8fd9\u662f\u4e00\u6bb5\u516c\u53f8\u7b80\u4ecb\uff0c\u8bf7\u524d\u5f80\u540e\u53f0\u7f16\u8f91\u3002"
+
+  # ========== \u670d\u52a1\u9879\u76ee(\u56fe\u7247\u5361\u7247) ==========
+  - section: "services"
+    label: "\u670d\u52a1\u9879\u76ee"
+    icon: "briefcase"
+    fields:
+      - name: "servicesEnabled"
+        label: "\u542f\u7528\u6a21\u5757"
+        type: "switch"
+        default: true
+      - name: "servicesTitle"
+        label: "\u533a\u5757\u6807\u9898"
+        type: "text"
+        default: "\u670d\u52a1\u9879\u76ee"
+      - name: "servicesEnTitle"
+        label: "\u82f1\u6587\u526f\u6807\u9898"
+        type: "text"
+        default: "ALBUM"
+      - name: "servicesSubtitle"
+        label: "\u533a\u5757\u526f\u6807\u9898"
+        type: "text"
+        default: ""
+      - name: "servicesList"
+        label: "\u670d\u52a1\u5217\u8868"
+        type: "repeater"
+        itemTitle: "title"
+        default:
+          - title: "\u96f6\u62c5\u914d\u9001"
+            image: ""
+            description: "\u8986\u76d6\u5168\u56fd\u4e3b\u8981\u57ce\u5e02\u7684\u96f6\u62c5\u914d\u9001\u7f51\u7edc"
+          - title: "\u957f\u9014\u6574\u8f66"
+            image: ""
+            description: "\u63d0\u4f9b\u5168\u56fd\u8303\u56f4\u5185\u7684\u6574\u8f8d\u8fd0\u8f93\u670d\u52a1"
+          - title: "\u516c\u8def\u8fd0\u8f93"
+            image: ""
+            description: "\u4e13\u4e1a\u5feb\u9012\u8fd0\u8f93\u670d\u52a1\uff0c\u53ca\u65f6\u5230\u8fbe"
+          - title: "\u96c6\u88c5\u7bb1\u8fd0\u8f93"
+            image: ""
+            description: "\u6db5\u76d6\u6d77\u8fd0\u3001\u94c1\u8def\u96c6\u88c5\u7bb1\u8fd0\u8f93"
+          - title: "\u5362\u8f66\u8fd0\u8f93"
+            image: ""
+            description: "\u5927\u578b\u8bbe\u5907\u3001\u673a\u68b0\u8bbe\u5907\u7279\u79cd\u8f66\u8f86\u8fd0\u8f93"
+        fields:
+          - name: "title"
+            label: "\u6807\u9898"
+            type: "text"
+          - name: "image"
+            label: "\u56fe\u7247"
+            type: "image"
+          - name: "icon"
+            label: "\u56fe\u6807"
+            type: "icon"
+          - name: "description"
+            label: "\u63cf\u8ff0"
+            type: "textarea"
+
+  # ========== \u65b0\u95fb\u8d44\u8baf(\u53cc\u680f) ==========
   - section: "news"
-    label: "新闻资讯"
+    label: "\u65b0\u95fb\u8d44\u8baf"
     icon: "newspaper-o"
     fields:
       - name: "newsEnabled"
-        label: "启用模块"
+        label: "\u542f\u7528\u6a21\u5757"
         type: "switch"
         default: true
       - name: "newsTitle"
-        label: "区块标题"
+        label: "\u533a\u5757\u6807\u9898"
         type: "text"
-        default: "新闻资讯"
+        default: "\u65b0\u95fb\u8d44\u8baf"
+      - name: "newsCount"
+        label: "\u663e\u793a\u6570\u91cf"
+        type: "number"
+        default: 5
+        min: 3
+        max: 20
+      - name: "newsTab1Name"
+        label: "Tab1 \u540d\u79f0"
+        type: "text"
+        default: "\u516c\u53f8\u52a8\u6001"
+        description: "\u65b0\u95fb\u533a\u5757\u5de6\u4fa7\u7b2c\u4e00\u4e2aTab\u7684\u540d\u79f0"
+      - name: "newsTab2Name"
+        label: "Tab2 \u540d\u79f0"
+        type: "text"
+        default: "\u884c\u4e1a\u52a8\u6001"
+        description: "\u65b0\u95fb\u533a\u5757\u5de6\u4fa7\u7b2c\u4e8c\u4e2aTab\u7684\u540d\u79f0"
+      - name: "qaList"
+        label: "\u5e38\u89c1\u95ee\u9898 Q&A"
+        type: "repeater"
+        itemTitle: "question"
+        default: []
+        description: "\u53f3\u4fa7Q&A\u5217\u8868\u7684\u95ee\u9898\uff0c\u4e0d\u586b\u5199\u65f6\u81ea\u52a8\u663e\u793a\u6700\u65b0\u6587\u7ae0"
+        fields:
+          - name: "question"
+            label: "\u95ee\u9898(Q)"
+            type: "text"
+          - name: "answer"
+            label: "\u7b54\u6848(A)"
+            type: "textarea"
 
-  # ========== 文章列表页 ==========
+  # ========== Footer ==========
+  - section: "footer"
+    label: "\u9875\u811a\u8bbe\u7f6e"
+    icon: "footer"
+    fields:
+      - name: "footerEnabled"
+        label: "\u542f\u7528\u591a\u680fFooter"
+        type: "switch"
+        default: true
+      - name: "footerCompany"
+        label: "\u516c\u53f8\u540d\u79f0"
+        type: "text"
+        default: ""
+      - name: "footerDesc"
+        label: "\u516c\u53f8\u7b80\u4ecb"
+        type: "textarea"
+        default: ""
+      - name: "footerContact"
+        label: "\u8054\u7cfb\u65b9\u5f0f"
+        type: "repeater"
+        itemTitle: "label"
+        default: []
+        fields:
+          - name: "icon"
+            label: "\u56fe\u6807"
+            type: "icon"
+          - name: "label"
+            label: "\u6807\u7b7e"
+            type: "text"
+          - name: "value"
+            label: "\u5185\u5bb9"
+            type: "text"
+      - name: "footerContactTitle"
+        label: "\u8054\u7cfb\u65b9\u5f0f\u680f\u6807\u9898"
+        type: "text"
+        default: "\u8054\u7cfb\u65b9\u5f0f"
+        description: "\u7b2c\u4e09\u680f\u201c\u8054\u7cfb\u65b9\u5f0f\u201d\u6807\u9898"
+      - name: "footerNavTitle2"
+        label: "\u4e1a\u52a1\u8303\u56f4\u680f\u6807\u9898"
+        type: "text"
+        default: "\u4e1a\u52a1\u8303\u56f4"
+        description: "\u65e0\u8054\u7cfb\u65b9\u5f0f\u6570\u636e\u65f6\u7b2c\u4e09\u680f\u7684\u6807\u9898"
+      - name: "footerNavTitle3"
+        label: "\u66f4\u591a\u4fe1\u606f\u680f\u6807\u9898"
+        type: "text"
+        default: "\u66f4\u591a\u4fe1\u606f"
+        description: "\u7b2c\u56db\u680f\u201c\u66f4\u591a\u4fe1\u606f\u201d\u6807\u9898"
+      - name: "friendLinks"
+        label: "\u53cb\u60c5\u94fe\u63a5"
+        type: "repeater"
+        itemTitle: "label"
+        default: []
+        description: "Footer\u9876\u90e8\u7684\u53cb\u60c5\u94fe\u63a5\u884c"
+        fields:
+          - name: "label"
+            label: "\u7ad9\u70b9\u540d\u79f0"
+            type: "text"
+          - name: "url"
+            label: "\u94fe\u63a5\u5730\u5740"
+            type: "text"
+      - name: "icpNumber"
+        label: "ICP\u5907\u6848\u53f7"
+        type: "text"
+        default: ""
+
+  # ========== \u6587\u7ae0\u5217\u8868\u9875 ==========
   - section: "articleList"
-    label: "文章列表页"
+    label: "\u6587\u7ae0\u5217\u8868\u9875"
     icon: "fa-solid fa-list"
     fields:
       - name: "articleListEnabled"
-        label: "启用文章列表页"
+        label: "\u542f\u7528\u6587\u7ae0\u5217\u8868\u9875"
         type: "switch"
         default: true
-        description: "关闭后访问 /article 将跳转到首页"
       - name: "articleListTitle"
-        label: "页面标题"
+        label: "\u9875\u9762\u6807\u9898"
         type: "text"
-        default: "新闻资讯"
+        default: "\u65b0\u95fb\u8d44\u8baf"
       - name: "articleListSubtitle"
-        label: "页面副标题"
+        label: "\u9875\u9762\u526f\u6807\u9898"
         type: "text"
-        default: "了解行业动态，获取最新资讯"
-      - name: "articleListBgImage"
-        label: "横幅背景图"
-        type: "image"
-        default: ""
+        default: "\u4e86\u89e3\u884c\u4e1a\u52a8\u6001\uff0c\u83b7\u53d6\u6700\u65b0\u8d44\u8baf"
       - name: "articleListLayout"
-        label: "布局样式"
+        label: "\u5e03\u5c40\u6837\u5f0f"
         type: "select"
         default: "list"
         options:
           - value: "list"
-            label: "列表式"
+            label: "\u5217\u8868\u5f0f"
           - value: "card"
-            label: "卡片式"
+            label: "\u5361\u7247\u5f0f"
           - value: "grid"
-            label: "网格式"
+            label: "\u7f51\u683c\u5f0f"
+      - name: "articleListBgImage"
+        label: "\u6a2a\u5e45\u80cc\u666f\u56fe"
+        type: "image"
+        default: ""
+        description: "\u6587\u7ae0\u5217\u8868\u9875\u6a2a\u5e45\u80cc\u666f\u56fe\uff0c\u4e0d\u586b\u5219\u4f7f\u7528\u9996\u9875Banner\u56fe"
       - name: "articleListColumns"
-        label: "网格列数"
+        label: "\u7f51\u683c\u5217\u6570"
         type: "select"
         default: "3"
-        description: "仅网格式布局生效"
         options:
           - value: "2"
-            label: "2列"
+            label: "2\u5217"
           - value: "3"
-            label: "3列"
+            label: "3\u5217"
           - value: "4"
-            label: "4列"
+            label: "4\u5217"
+        description: "\u7f51\u683c\u5e03\u5c40\u65f6\u7684\u5217\u6570"
       - name: "articleListPageSize"
-        label: "每页数量"
+        label: "\u6bcf\u9875\u6570\u91cf"
         type: "number"
-        default: 9
+        default: 10
         min: 3
         max: 20
       - name: "articleListShowCategory"
-        label: "显示分类筛选"
+        label: "\u663e\u793a\u5206\u7c7b\u7b5b\u9009"
         type: "switch"
         default: true
       - name: "articleListShowSidebar"
-        label: "启用侧边栏"
+        label: "\u663e\u793a\u4fa7\u8fb9\u680f"
         type: "switch"
         default: false
       - name: "articleListSidebarPosition"
-        label: "侧边栏位置"
+        label: "\u4fa7\u8fb9\u680f\u4f4d\u7f6e"
         type: "select"
         default: "right"
         options:
           - value: "left"
-            label: "左侧"
+            label: "\u5de6\u4fa7"
           - value: "right"
-            label: "右侧"
+            label: "\u53f3\u4fa7"
 
-  # ========== 服务项目 ==========
-  - section: "services"
-    label: "服务项目"
-    icon: "briefcase"
-    fields:
-      - name: "servicesEnabled"
-        label: "启用模块"
-        type: "switch"
-        default: true
-      - name: "servicesTitle"
-        label: "区块标题"
-        type: "text"
-        default: "服务项目"
-      - name: "servicesSubtitle"
-        label: "区块副标题"
-        type: "text"
-        default: "为客户提供全方位的专业物流服务"
-      - name: "servicesList"
-        label: "服务列表"
-        type: "repeater"
-        itemTitle: "title"
-        default:
-          - icon: "fa-solid fa-truck-fast"
-            title: "国内零担配送"
-            description: "覆盖全国主要城市的零担配送网络，门到门服务，实时货物追踪，确保货物安全准时送达。"
-          - icon: "fa-solid fa-truck"
-            title: "国内长途整车配送"
-            description: "提供全国范围内的整车运输服务，专业调度团队优化路线，降低运输成本，保障时效。"
-          - icon: "fa-solid fa-ship"
-            title: "集装箱运输"
-            description: "涵盖海运、铁路集装箱运输，提供整箱及拼箱服务，对接全球主要港口航线。"
-          - icon: "fa-solid fa-flask"
-            title: "危险品运输"
-            description: "持有危险品运输资质，专业车辆与持证驾驶员，全程符合安全监管要求。"
-        fields:
-          - name: "icon"
-            label: "图标"
-            type: "icon"
-          - name: "title"
-            label: "标题"
-            type: "text"
-          - name: "description"
-            label: "简短描述"
-            type: "textarea"
-          - name: "features"
-            label: "详细特性（每行一条）"
-            type: "textarea"
-            description: "悬停展开时显示的特性列表，每行一条"
-
-  # ========== 展示模块（产品展示） ==========
-  - section: "showcase"
-    label: "展示模块"
-    icon: "th-large"
-    fields:
-      - name: "showcaseEnabled"
-        label: "启用模块"
-        type: "switch"
-        default: true
-      - name: "showcaseTitle"
-        label: "区块标题"
-        type: "text"
-        default: "产品展示"
-      - name: "showcaseCategories"
-        label: "产品分类"
-        type: "repeater"
-        itemTitle: "name"
-        default:
-          - name: "全部"
-          - name: "分类一"
-          - name: "分类二"
-        fields:
-          - name: "name"
-            label: "分类名称"
-            type: "text"
-      - name: "showcaseItems"
-        label: "产品列表"
-        type: "repeater"
-        itemTitle: "title"
-        default:
-          - title: "产品一"
-            image: ""
-            category: "分类一"
-            description: "请前往后台编辑产品描述。"
-          - title: "产品二"
-            image: ""
-            category: "分类一"
-            description: "请前往后台编辑产品描述。"
-          - title: "产品三"
-            image: ""
-            category: "分类二"
-            description: "请前往后台编辑产品描述。"
-        fields:
-          - name: "title"
-            label: "产品名称"
-            type: "text"
-          - name: "image"
-            label: "产品图片"
-            type: "image"
-          - name: "category"
-            label: "所属分类"
-            type: "text"
-          - name: "description"
-            label: "产品描述"
-            type: "textarea"
-
-  # ========== 自定义代码 ==========
+  # ========== \u81ea\u5b9a\u4e49\u4ee3\u7801 ==========
   - section: "custom"
-    label: "自定义代码"
+    label: "\u81ea\u5b9a\u4e49\u4ee3\u7801"
     icon: "code"
     fields:
       - name: "customHead"
-        label: "头部代码（<head> 内）"
+        label: "\u5934\u90e8\u4ee3\u7801(<head> \u5185)"
         type: "code"
         language: "html"
         default: ""
       - name: "customFooter"
-        label: "底部代码（</body> 前）"
+        label: "\u5e95\u90e8\u4ee3\u7801(</body> \u524d)"
         type: "code"
         language: "html"
         default: ""
-
-  # ========== 侧边栏模块配置 ==========
-  - section: "sidebar"
-    label: "侧边栏模块"
-    icon: "columns"
-    description: "配置侧边栏各模块的内容和显示参数，页面编辑中可自由选择启用哪些模块"
-    fields:
-      # --- 最新文章 ---
-      - name: "sidebarRecentPostsCount"
-        label: "最新文章 - 显示数量"
-        type: "number"
-        default: 5
-        min: 1
-        max: 20
-      # --- 热门文章 ---
-      - name: "sidebarHotPostsCount"
-        label: "热门文章 - 显示数量"
-        type: "number"
-        default: 5
-        min: 1
-        max: 20
-      # --- 标签云 ---
-      - name: "sidebarTagsCount"
-        label: "标签云 - 显示数量"
-        type: "number"
-        default: 20
-        min: 1
-        max: 50
-      # --- 社交链接 ---
-      - name: "sidebarSocialLinks"
-        label: "社交链接"
-        type: "repeater"
-        itemTitle: "name"
-        default: []
-        fields:
-          - name: "name"
-            label: "平台名称"
-            type: "text"
-            placeholder: "如：微信、微博、GitHub"
-          - name: "icon"
-            label: "图标"
-            type: "icon"
-            description: "选择社交媒体图标，如 brands 分类下的微信、微博等"
-          - name: "url"
-            label: "链接地址"
-            type: "text"
-            placeholder: "https://"
-      # --- 友情链接 ---
-      - name: "sidebarFriendLinks"
-        label: "友情链接"
-        type: "repeater"
-        itemTitle: "name"
-        default: []
-        fields:
-          - name: "name"
-            label: "站点名称"
-            type: "text"
-          - name: "icon"
-            label: "图标"
-            type: "icon"
-            description: "选择友站图标，可选"
-          - name: "url"
-            label: "链接地址"
-            type: "text"
-            placeholder: "https://"
-      # --- 最新评论 ---
-      - name: "sidebarRecentCommentsCount"
-        label: "最新评论 - 显示数量"
-        type: "number"
-        default: 5
-        min: 1
-        max: 20
-      # --- 自定义HTML ---
-      - name: "sidebarCustomHtml"
-        label: "自定义HTML内容"
-        type: "code"
-        language: "html"
-        default: ""
-        description: "在侧边栏显示一段自定义HTML代码"
 
 # =============================================
-# 侧边栏模块定义
-# 主题提供的所有侧边栏模块，页面可自由组合
+# \u4fa7\u8fb9\u680f\u6a21\u5757\u5b9a\u4e49
 # =============================================
 sidebarModules:
   - id: "recent_posts"
-    name: "最新文章"
+    name: "\u6700\u65b0\u6587\u7ae0"
     icon: "fa-solid fa-clock"
     limit: 5
   - id: "hot_posts"
-    name: "热门文章"
+    name: "\u70ed\u95e8\u6587\u7ae0"
     icon: "fa-solid fa-fire"
     limit: 5
   - id: "categories"
-    name: "分类列表"
+    name: "\u5206\u7c7b\u5217\u8868"
     icon: "fa-solid fa-folder"
     show_count: true
   - id: "tags"
-    name: "标签云"
+    name: "\u6807\u7b7e\u4e91"
     icon: "fa-solid fa-tags"
     limit: 20
   - id: "site_info"
-    name: "站点信息"
+    name: "\u7ad9\u70b9\u4fe1\u606f"
     icon: "fa-solid fa-globe"
   - id: "search"
-    name: "搜索框"
+    name: "\u641c\u7d22\u6846"
     icon: "fa-solid fa-search"
   - id: "social_links"
-    name: "社交链接"
+    name: "\u793e\u4ea4\u94fe\u63a5"
     icon: "fa-solid fa-share-nodes"
-  - id: "custom_html"
-    name: "自定义HTML"
-    icon: "fa-solid fa-code"
-    html_content: ""
   - id: "recent_comments"
-    name: "最新评论"
+    name: "\u6700\u65b0\u8bc4\u8bba"
     icon: "fa-solid fa-comments"
     limit: 5
-  - id: "links"
-    name: "友情链接"
-    icon: "fa-solid fa-link"
 
-# =============================================
-# 模板默认侧边栏配置
-# 继承关系：页面template_data > 模板默认配置 > 全局默认
-# =============================================
 templateSidebarDefaults:
-  # 文章详情页 - 默认启用侧边栏
   "article_show":
     enabled: true
-    position: "right"  # left / right
+    position: "right"
     modules:
       - id: "recent_posts"
         enabled: true
@@ -498,104 +414,60 @@ templateSidebarDefaults:
       - id: "categories"
         enabled: true
         sort: 2
-      - id: "tags"
-        enabled: true
-        sort: 3
-
-  # 单页模板默认不启用侧边栏
   "page":
     enabled: false
     position: "right"
     modules: []
 
-  "page-gallery":
-    enabled: false
-    position: "right"
-    modules: []
-
-  "page-contact":
-    enabled: false
-    position: "right"
-    modules: []
-
-  # 列表页默认不启用
-  "article_list":
-    enabled: false
-    position: "right"
-    modules: []
-
-  "category":
-    enabled: false
-    position: "right"
-    modules: []
-
-  "tag":
-    enabled: false
-    position: "right"
-    modules: []
-
-# =============================================
-# 页面模板定义
-# 用户在管理后台创建页面时可选择以下模板
-# =============================================
 pageTemplates:
   - type: "gallery"
-    name: "图片灯箱"
+    name: "\u56fe\u7247\u706f\u7bb1"
     icon: "fa-solid fa-images"
-    description: "适用于图片展示页面，支持灯箱浏览"
+    description: "\u9002\u7528\u4e8e\u56fe\u7247\u5c55\u793a\u9875\u9762\uff0c\u652f\u6301\u706f\u7bb1\u6d4f\u89c8"
     hasSidebar: true
     fields:
       - name: "columns"
-        label: "列数"
+        label: "\u5217\u6570"
         type: "select"
         default: "3"
         options:
           - value: "2"
-            label: "2列"
+            label: "2\u5217"
           - value: "3"
-            label: "3列"
+            label: "3\u5217"
           - value: "4"
-            label: "4列"
+            label: "4\u5217"
       - name: "images"
-        label: "图片列表"
+        label: "\u56fe\u7247\u5217\u8868"
         type: "image-list"
-        placeholder: "点击上传或从媒体库选择图片"
-
   - type: "contact"
-    name: "联系我们"
+    name: "\u8054\u7cfb\u6211\u4eec"
     icon: "fa-solid fa-envelope"
-    description: "联系信息展示页面，包含电话/邮箱/地址"
+    description: "\u8054\u7cfb\u4fe1\u606f\u5c55\u793a\u9875\u9762"
     hasSidebar: true
     fields:
       - name: "contactTitle"
-        label: "页面标题"
+        label: "\u9875\u9762\u6807\u9898"
         type: "text"
-        default: "联系我们"
-      - name: "contactImage"
-        label: "配图"
-        type: "image"
-        default: ""
+        default: "\u8054\u7cfb\u6211\u4eec"
       - name: "contactInfo"
-        label: "联系信息"
+        label: "\u8054\u7cfb\u4fe1\u606f"
         type: "repeater"
         itemTitle: "label"
         default:
-          - label: "电话"
+          - label: "\u7535\u8bdd"
             icon: "fa-solid fa-phone"
             value: "400-888-8888"
-          - label: "邮箱"
+          - label: "\u90ae\u7bb1"
             icon: "fa-solid fa-envelope"
             value: "info@example.com"
-          - label: "地址"
-            icon: "fa-solid fa-location-dot"
-            value: "浙江省杭州市西湖区"
         fields:
           - name: "label"
-            label: "名称"
+            label: "\u540d\u79f0"
             type: "text"
           - name: "icon"
-            label: "图标"
+            label: "\u56fe\u6807"
             type: "text"
           - name: "value"
-            label: "内容"
+            label: "\u5185\u5bb9"
             type: "text"

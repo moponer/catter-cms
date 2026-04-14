@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preload" href="/fontawesome/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
     {{ end }}
@@ -12,8 +11,11 @@
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/gallery.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/sidebar.css" }}">
+    {{ if getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" | safe }}
+    {{ end }}
 </head>
-<body data-color-scheme="{{ getConfig "colorScheme" "default" }}">
+<body>
 
 {{ template "header" . }}
 
@@ -22,9 +24,9 @@
 {{ $heroSingle := getConfig "heroBgImage" "" }}
 {{ $hasMulti := gt (len $heroImgs) 0 }}
 {{ if $hasMulti }}
-<div class="page-banner" style="background-image:url('{{ (index $heroImgs 0).url }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ (index $heroImgs 0).url }}')">
 {{ else if $heroSingle }}
-<div class="page-banner" style="background-image:url('{{ $heroSingle }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ $heroSingle }}')">
 {{ else }}
 <div class="page-banner">
 {{ end }}
@@ -46,13 +48,13 @@
 <main class="main-wrapper">
     <div class="container">
         {{ if and $sidebarEnabled $sidebarModules }}
-        <div class="with-sidebar" style="display:flex;gap:var(--space-xl);align-items:flex-start;">
+        <div class="layout-with-sidebar">
         {{ end }}
 
-            <div {{ if and $sidebarEnabled $sidebarModules }}style="flex:1;"{{ else }}style="max-width:100%;"{{ end }}>
+            <div class="{{ if and $sidebarEnabled $sidebarModules }}layout-main-flex{{ else }}layout-main-full{{ end }}">
                 {{ if .page.Content }}
                 <div class="gallery-intro">
-                    {{ .page.Content }}
+                    {{ markdownHTML .page.Content }}
                 </div>
                 {{ end }}
 

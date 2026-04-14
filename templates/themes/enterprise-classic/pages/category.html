@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preload" href="/fontawesome/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
     {{ end }}
     <title>{{ .category.Name }} - {{ .site.title }}</title>
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     {{ if getConfig "customHead" "" }}
-    {{ getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" | safe }}
     {{ end }}
 </head>
-<body data-color-scheme="{{ getConfig "colorScheme" "default" }}">
+<body>
 
 {{ template "header" . }}
 
@@ -23,9 +22,9 @@
 {{ $heroSingle := getConfig "heroBgImage" "" }}
 {{ $hasMulti := gt (len $heroImgs) 0 }}
 {{ if $hasMulti }}
-<div class="page-banner" style="background-image:url('{{ (index $heroImgs 0).url }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ (index $heroImgs 0).url }}')">
 {{ else if $heroSingle }}
-<div class="page-banner" style="background-image:url('{{ $heroSingle }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ $heroSingle }}')">
 {{ else }}
 <div class="page-banner">
 {{ end }}
@@ -39,6 +38,7 @@
     <div class="container">
         {{ if .category.Description }}<p class="category-desc">{{ .category.Description }}</p>{{ end }}
 
+        {{ if .posts }}
         {{ range .posts }}
         <a href="/article/{{ .Slug }}" class="news-list-item-row">
             {{ if .Cover }}
@@ -48,7 +48,7 @@
             {{ end }}
             <div class="news-list-body">
                 <div class="news-list-meta">
-                    {{ range .Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
+                    {{ range .Tags }}<span class="badge badge-accent">{{ .Name }}</span>{{ end }}
                     <span class="news-list-date-text">{{ dateFormat "2006-01-02" .PublishedAt }}</span>
                 </div>
                 <div class="news-list-item-title">{{ .Title }}</div>
@@ -56,8 +56,7 @@
             </div>
         </a>
         {{ end }}
-
-        {{ if eq (len .posts) 0 }}
+        {{ else }}
         <div class="empty-state"><i class="fa-regular fa-folder-open"></i> 暂无文章</div>
         {{ end }}
     </div>

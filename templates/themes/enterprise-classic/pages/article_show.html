@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preload" href="/fontawesome/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/fontawesome/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     {{ if .site.favicon }}
     <link rel="icon" href="{{ .site.favicon }}">
     {{ end }}
@@ -13,10 +12,10 @@
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/sidebar.css" }}">
     {{ if getConfig "customHead" "" }}
-    {{ getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" | safe }}
     {{ end }}
 </head>
-<body data-color-scheme="{{ getConfig "colorScheme" "default" }}">
+<body>
 
 {{ template "header" . }}
 
@@ -25,9 +24,9 @@
 {{ $heroSingle := getConfig "heroBgImage" "" }}
 {{ $hasMulti := gt (len $heroImgs) 0 }}
 {{ if $hasMulti }}
-<div class="page-banner" style="background-image:url('{{ (index $heroImgs 0).url }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ (index $heroImgs 0).url }}')">
 {{ else if $heroSingle }}
-<div class="page-banner" style="background-image:url('{{ $heroSingle }}')">
+<div class="page-banner page-banner-has-bg" style="--page-banner-bg:url('{{ $heroSingle }}')">
 {{ else }}
 <div class="page-banner">
 {{ end }}
@@ -50,15 +49,15 @@
     <div class="container">
         {{/* 根据侧边栏状态选择不同布局 */}}
         {{ if and $sidebarEnabled $sidebarModules }}
-        <div class="with-sidebar" style="display:flex;gap:var(--space-xl);align-items:flex-start;">
-            <article class="article-content-wrap" style="flex:1;max-width:100%;margin:0;">
+        <div class="layout-with-sidebar">
+            <article class="article-content-wrap layout-main-flex">
         {{ else }}
-        <div class="article-content-wrap" style="max-width:860px;margin:0 auto;">
+        <div class="article-content-wrap layout-main-centered">
         {{ end }}
 
                 <div class="article-meta">
-                    {{ with .post.Category }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
-                    {{ range .post.Tags }}<span class="badge badge-blue">{{ .Name }}</span>{{ end }}
+                    {{ with .post.Category }}<span class="badge badge-primary">{{ .Name }}</span>{{ end }}
+                    {{ range .post.Tags }}<span class="badge badge-accent">{{ .Name }}</span>{{ end }}
                     <span class="article-meta-item"><i class="fa-regular fa-calendar"></i> {{ dateFormat "2006-01-02" .post.PublishedAt }}</span>
                 </div>
                 <div class="article-body">{{ markdownHTML .post.Content }}</div>
