@@ -61,3 +61,17 @@ data-*/
 
 # 测试/部署目录（模拟生产环境）
 deploy/
+
+# 临时脚本和工具（项目根目录）
+*_test.py
+*_api.py
+reset_*.py
+regenerate_*.py
+update_*.py
+find_*.py
+get_*.py
+
+# Go 编译产物（跨平台）
+gin-app/catter-cms
+gin-app/catter-cms-*
+gin-app/*.exe~-no-index
