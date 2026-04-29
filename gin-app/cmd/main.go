@@ -114,12 +114,14 @@ func main() {
 	}
 
 	// 启动任务调度器
+	log.Println("[Main] Starting scheduler...")
 	scheduler := services.GetScheduler()
 	if err := scheduler.Start(); err != nil {
 		log.Printf("Warning: Failed to start scheduler: %v", err)
 	} else {
 		log.Println("Task scheduler started")
 	}
+	log.Println("[Main] Scheduler done, creating Gin engine...")
 
 	// 创建 Gin 引擎
 	if cfg.IsProduction() {
@@ -304,6 +306,8 @@ func main() {
 			protected.POST("/admin/scheduled-tasks/:id/run", api.RunScheduledTask)
 			protected.POST("/admin/scheduled-tasks/:id/enable", api.EnableScheduledTask)
 			protected.POST("/admin/scheduled-tasks/:id/disable", api.DisableScheduledTask)
+			protected.GET("/admin/scheduled-tasks/:id/executions", api.GetTaskExecutions)
+			protected.GET("/admin/scheduled-tasks/executions/all", api.GetAllExecutions)
 			protected.GET("/admin/scheduler/status", api.GetSchedulerStatus)
 			protected.POST("/admin/scheduler/restart", api.RestartScheduler)
 
@@ -471,14 +475,17 @@ func main() {
 	// ========================================
 	// 启动服务器（Graceful Shutdown）
 	// ========================================
+	log.Println("[Main] Creating HTTP server...")
 	addr := cfg.GetFullPort()
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: r,
 	}
+	log.Printf("[Main] HTTP server created, addr=%s\n", addr)
 
 	// 启动服务器 goroutine
 	go func() {
+		log.Println("[Main] Server goroutine starting...")
 		log.Printf("Starting Catter CMS (%s) on %s", cfg.Env, addr)
 		log.Printf("Admin panel: http://localhost:%s/admin", cfg.Server.Port)
 		log.Printf("API: http://localhost:%s/api", cfg.Server.Port)

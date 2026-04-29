@@ -117,7 +117,6 @@ func IncrementRunCount(id uint) error {
 	return DB.Model(&ScheduledTask{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"run_count":  gorm.Expr("run_count + 1"),
 		"last_run_at": now,
-		"status":     "idle",
 	}).Error
 }
 

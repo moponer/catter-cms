@@ -37,17 +37,20 @@
             {{ formatDate(row.created_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleEdit(row)">
               编辑
             </el-button>
-            <el-button type="primary" link size="small" @click="handleCreateChild(row)">
-              添加子分类
-            </el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(row)">
-              删除
-            </el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleCatAction(cmd, row)">
+              <el-button type="primary" link size="small">更多<el-icon class="dropdown-arrow"><ArrowDown /></el-icon></el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="child">添加子分类</el-dropdown-item>
+                  <el-dropdown-item command="delete" style="color: var(--el-color-danger)">删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -96,7 +99,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Delete } from '@element-plus/icons-vue'
+import { Plus, Delete, ArrowDown } from '@element-plus/icons-vue'
 import { get, post, put, del, delBody } from '@/utils/request'
 
 const categories = ref([])
@@ -168,6 +171,18 @@ const handleCreate = () => {
 }
 
 // 添加子分类
+// 操作下拉菜单
+const handleCatAction = (command, row) => {
+  switch (command) {
+    case 'child':
+      handleCreateChild(row)
+      break
+    case 'delete':
+      handleDelete(row)
+      break
+  }
+}
+
 const handleCreateChild = (parent) => {
   editingId.value = null
   Object.assign(form, {
@@ -305,5 +320,14 @@ onMounted(() => {
   font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }
 </style>

@@ -25,17 +25,20 @@
             {{ formatDate(row.created_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleEdit(row)">
               编辑
             </el-button>
-            <el-button type="warning" link size="small" @click="handleResetPassword(row)">
-              重置密码
-            </el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(row)" :disabled="row.id === currentUserId">
-              删除
-            </el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleUserAction(cmd, row)">
+              <el-button type="primary" link size="small">更多<el-icon class="dropdown-arrow"><ArrowDown /></el-icon></el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="resetPwd">重置密码</el-dropdown-item>
+                  <el-dropdown-item command="delete" style="color: var(--el-color-danger)" :disabled="row.id === currentUserId">删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -85,7 +88,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, ArrowDown } from '@element-plus/icons-vue'
 import { get, post, put, del } from '@/utils/request'
 import { useUserStore } from '@/store/index'
 import { storeToRefs } from 'pinia'
@@ -149,6 +152,18 @@ const handleEdit = (row) => {
     role: row.role
   })
   dialogVisible.value = true
+}
+
+// 操作下拉菜单
+const handleUserAction = (command, row) => {
+  switch (command) {
+    case 'resetPwd':
+      handleResetPassword(row)
+      break
+    case 'delete':
+      handleDelete(row)
+      break
+  }
 }
 
 const handleDelete = async (row) => {
@@ -255,5 +270,18 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--spacing-md);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
 }
 </style>

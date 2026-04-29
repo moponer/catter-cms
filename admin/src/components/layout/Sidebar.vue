@@ -270,11 +270,19 @@ const activeMenu = computed(() => route.path)
 /* 响应式 */
 @media (max-width: 768px) {
   .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
     transform: translateX(-100%);
+    box-shadow: none;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .sidebar:not(.collapsed) {
     transform: translateX(0);
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
   }
 }
 </style>

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -64,7 +65,7 @@ func (s *Scheduler) Start() error {
 	}
 
 	for _, task := range tasks {
-		if err := s.AddTask(&task); err != nil {
+		if err := s.AddTaskLocked(&task); err != nil {
 			log.Printf("[Scheduler] 添加任务 %s 失败: %v", task.Name, err)
 		}
 	}
@@ -104,7 +105,11 @@ func (s *Scheduler) IsRunning() bool {
 func (s *Scheduler) AddTask(task *models.ScheduledTask) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.AddTaskLocked(task)
+}
 
+// AddTaskLocked 添加任务到调度器（内部使用，需持有锁）
+func (s *Scheduler) AddTaskLocked(task *models.ScheduledTask) error {
 	// 如果任务已存在，先移除
 	if _, ok := s.entryMap[task.ID]; ok {
 		s.RemoveTaskLocked(task.ID)
@@ -191,14 +196,21 @@ func (s *Scheduler) executeTask(taskID uint) {
 	finishedAt := time.Now()
 	duration := int(finishedAt.Sub(startTime).Seconds())
 
-	// 更新执行记录
+	// 更新执行记录（保存到数据库）
 	execution.Status = status
 	execution.Message = message
 	execution.FinishedAt = &finishedAt
 	execution.Duration = duration
+	if err := models.DB.Save(execution).Error; err != nil {
+		log.Printf("[Scheduler] 更新执行记录失败: ID %d, Error: %v", execution.ID, err)
+	}
 
 	// 更新任务状态和统计
-	models.UpdateScheduledTaskStatus(taskID, status)
+	if status == "failed" {
+		models.UpdateScheduledTaskStatus(taskID, "failed")
+	} else {
+		models.UpdateScheduledTaskStatus(taskID, "idle")
+	}
 	models.IncrementRunCount(taskID)
 
 	// 计算下次执行时间
@@ -560,9 +572,25 @@ func (s *Scheduler) executeCustom(task *models.ScheduledTask) string {
 		return "命令为空"
 	}
 
-	cmd := exec.Command(parts[0], parts[1:]...)
+	var cmd *exec.Cmd
+	cmdName := parts[0]
 
-	// 执行命令（注意：Windows 不支持带 context 的 Run）
+	// Windows 兼容：cmd.exe 的内部命令（如 dir, date, ver 等）需要通过 cmd /c 执行
+	windowsInternalCommands := map[string]bool{
+		"dir":  true,
+		"date": true,
+		"ver":  true,
+		"net":  true,
+		"chcp": true,
+	}
+
+	if runtime.GOOS == "windows" && windowsInternalCommands[strings.ToLower(cmdName)] {
+		cmd = exec.Command("cmd", "/c", task.Command)
+	} else {
+		cmd = exec.Command(cmdName, parts[1:]...)
+	}
+
+	// 执行命令
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -587,22 +615,54 @@ func (s *Scheduler) executeCustom(task *models.ScheduledTask) string {
 
 // isCommandAllowed 检查命令是否在白名单中
 func isCommandAllowed(cmd string) bool {
-	// 白名单：只允许执行特定的安全命令
+	// 解析命令
+	parts := strings.Fields(cmd)
+	if len(parts) == 0 {
+		return false
+	}
+
+	// 获取命令名（第一个部分）
+	cmdName := strings.ToLower(parts[0])
+
+	// 白名单：只允许执行特定的安全命令（跨平台）
 	allowed := []string{
-		"ls",
-		"dir",
+		// 通用命令
 		"echo",
 		"date",
 		"whoami",
+		// Linux/Unix 命令
+		"ls",
 		"df",
 		"du",
 		"free",
 		"uptime",
 		"ps",
 		"top",
+		// Windows 命令
+		"dir",
+		"tasklist",
+		"systeminfo",
+		"ipconfig",
+		"net",
+		"ver",
+		"hostname",
+		"chcp",
 	}
 
-	// 检查是否是危险命令
+	// 检查命令名是否在白名单中
+	allowedCmd := false
+	for _, a := range allowed {
+		if cmdName == a {
+			allowedCmd = true
+			break
+		}
+	}
+	if !allowedCmd {
+		log.Printf("[Scheduler] 安全拒绝: 命令不在白名单中: %s", cmdName)
+		return false
+	}
+
+	// 检查参数中是否包含危险字符
 	dangerous := []string{
 		"rm",
 		"del",
@@ -618,11 +678,12 @@ func isCommandAllowed(cmd string) bool {
 		";",
 		"`",
 		"$(",
+		"rmdir",
+		"format",
+		"fdisk",
 	}
 
 	lowerCmd := strings.ToLower(cmd)
-
-	// 检查危险命令
 	for _, d := range dangerous {
 		if strings.Contains(lowerCmd, d) {
 			log.Printf("[Scheduler] 安全拒绝: 命令包含危险字符/命令: %s", d)
@@ -630,14 +691,7 @@ func isCommandAllowed(cmd string) bool {
 		}
 	}
 
-	// 检查是否在白名单中
-	for _, a := range allowed {
-		if strings.HasPrefix(lowerCmd, a) {
-			return true
-		}
-	}
-
-	return false
+	return true
 }
 
 // RunTaskNow 立即执行任务

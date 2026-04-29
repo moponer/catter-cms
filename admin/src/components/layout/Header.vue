@@ -299,6 +299,10 @@ onMounted(async () => {
 
 /* 响应式 */
 @media (max-width: 768px) {
+  .header {
+    padding: 0 var(--admin-spacing-sm);
+  }
+
   .toggle-btn {
     display: flex;
     align-items: center;

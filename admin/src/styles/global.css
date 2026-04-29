@@ -160,6 +160,25 @@ a:hover {
   letter-spacing: 0.5px;
 }
 
+/* 表格操作列 - dropdown 内联对齐 */
+.el-table .cell .el-dropdown {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.el-table .cell .el-dropdown .el-button {
+  vertical-align: middle;
+}
+
+/* 下拉箭头图标 - 与文字同高不撑行 */
+.dropdown-arrow {
+  font-size: 12px !important;
+  height: 1em !important;
+  width: 1em !important;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
 /* 对话框 */
 .el-dialog {
   border-radius: var(--admin-radius-lg);
@@ -371,8 +390,74 @@ a:hover {
 }
 
 /* ========== 响应式 ========== */
+
+/* ---- 移动端通用适配 ---- */
 @media (max-width: 768px) {
   :root {
     --admin-sidebar-width: 100%;
+  }
+
+  /* 卡片内间距缩小 */
+  .el-card__body {
+    padding: var(--admin-spacing-sm);
+  }
+
+  /* 表格在小屏幕下允许横向滚动 */
+  .el-table {
+    min-width: 600px;
+  }
+
+  /* 分页器紧凑模式 */
+  .el-pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .el-pagination__sizes,
+  .el-pagination__jump {
+    display: none;
+  }
+
+  /* 对话框全宽 */
+  .el-dialog {
+    --el-dialog-width: 92% !important;
+    margin: 5vh auto !important;
+  }
+
+  .el-dialog__body {
+    padding: var(--admin-spacing-sm);
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* 表单标签顶部对齐 */
+  .el-form--label-top .el-form-item__label {
+    padding-bottom: 2px;
+  }
+
+  /* 卡片头部紧凑 */
+  .el-card__header {
+    padding: var(--admin-spacing-sm) var(--admin-spacing-md);
+  }
+
+  /* 按钮组紧凑 */
+  .el-button + .el-button {
+    margin-left: 4px;
+  }
+
+  /* 面包屑简化 */
+  .el-breadcrumb {
+    font-size: 12px;
+  }
+}
+
+/* ---- 平板适配 ---- */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .el-card__body {
+    padding: var(--admin-spacing-md);
+  }
+
+  .el-pagination__jump {
+    display: none;
   }
 }
