@@ -1,51 +1,40 @@
 package middleware
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"runtime/debug"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// ErrorResponse 错误响应结构
+// ErrorResponse is the unified error response structure
 type ErrorResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message,omitempty"`
 	Code    int    `json:"code,omitempty"`
-	Details any    `json:"details,omitempty"`
 }
 
-// Recovery 恢复中间件
-// 捕获所有panic并返回统一的错误响应
-func Recovery() gin.HandlerFunc {
+// CustomRecovery is a secure recovery middleware that:
+// - Captures all panics and logs full stack traces server-side
+// - Returns a generic error to the client (never exposes stack traces)
+// - Works identically in both Debug and Release modes
+func CustomRecovery() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				// 打印堆栈信息
+				// Log full details server-side for debugging
 				log.Printf("[PANIC RECOVER] %v\n%s", err, debug.Stack())
 
-				// 构建错误响应
-				errMsg := fmt.Sprintf("%v", err)
-				response := ErrorResponse{
+				// Return generic error to client - NEVER expose stack traces
+				c.JSON(http.StatusInternalServerError, ErrorResponse{
 					Error:   "Internal Server Error",
-					Message: errMsg,
+					Message: "An unexpected error occurred. Please try again later.",
 					Code:    http.StatusInternalServerError,
-				}
-
-				// 如果是开发模式，显示详细信息
-				if gin.Mode() == gin.DebugMode {
-					response.Details = gin.H{
-						"stack": string(debug.Stack()),
-						"error": errMsg,
-					}
-				}
-
-				// 发送错误响应
-				c.JSON(http.StatusInternalServerError, response)
+				})
 				c.Abort()
 			}
 		}()
@@ -54,13 +43,11 @@ func Recovery() gin.HandlerFunc {
 	}
 }
 
-// ErrorHandler 错误处理中间件
-// 统一处理应用程序错误
+// ErrorHandler handles application errors
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 
-		// 检查是否有错误
 		if len(c.Errors) > 0 {
 			for _, e := range c.Errors {
 				log.Printf("[ERROR] %v", e.Err)
@@ -69,33 +56,31 @@ func ErrorHandler() gin.HandlerFunc {
 	}
 }
 
-// NotFoundHandler 404处理
+// NotFoundHandler handles 404 errors
 func NotFoundHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, ErrorResponse{
 			Error:   "Not Found",
-			Message: "请求的资源不存在: " + c.Request.URL.Path,
+			Message: "The requested resource does not exist: " + c.Request.URL.Path,
 			Code:    http.StatusNotFound,
 		})
 	}
 }
 
-// MethodNotAllowedHandler 405处理
+// MethodNotAllowedHandler handles 405 errors
 func MethodNotAllowedHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusMethodNotAllowed, ErrorResponse{
 			Error:   "Method Not Allowed",
-			Message: fmt.Sprintf("不允许使用 %s 方法访问 %s", c.Request.Method, c.Request.URL.Path),
+			Message: fmt.Sprintf("Method %s is not allowed for %s", c.Request.Method, c.Request.URL.Path),
 			Code:    http.StatusMethodNotAllowed,
 		})
 	}
 }
 
-// JSONValidator JSON验证中间件
-// 验证请求体的JSON格式
+// JSONValidator validates request body JSON format
 func JSONValidator() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 只检查带有Body的请求
 		if c.Request.Body == nil {
 			c.Next()
 			return
@@ -107,16 +92,14 @@ func JSONValidator() gin.HandlerFunc {
 			return
 		}
 
-		// 检查是否是JSON请求
 		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "PATCH" {
 			if contentType != "application/json" && contentType != "application/json; charset=utf-8" {
-				// 尝试解析JSON以验证格式
 				if c.Request.Body != nil {
 					var js interface{}
 					if err := c.ShouldBindJSON(&js); err != nil {
 						c.JSON(http.StatusBadRequest, ErrorResponse{
 							Error:   "Invalid JSON",
-							Message: "请求体必须是有效的JSON格式",
+							Message: "Request body must be valid JSON",
 							Code:    http.StatusBadRequest,
 						})
 						c.Abort()
@@ -130,8 +113,7 @@ func JSONValidator() gin.HandlerFunc {
 	}
 }
 
-// RequestIDHandler 请求ID中间件
-// 为每个请求生成唯一的ID，便于追踪
+// RequestIDHandler generates a unique ID for each request
 func RequestIDHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestID := c.GetHeader("X-Request-ID")
@@ -146,15 +128,12 @@ func RequestIDHandler() gin.HandlerFunc {
 	}
 }
 
-// generateRequestID 生成唯一的请求ID
+// generateRequestID generates a cryptographically secure request ID
 func generateRequestID() string {
-	// 使用时间戳和随机数生成唯一ID
-	return fmt.Sprintf("%d-%d", time.Now().UnixNano(), getRandomInt())
-}
-
-// getRandomInt 获取随机整数（简化实现）
-func getRandomInt() int {
-	// 简单实现，实际项目可使用 crypto/rand
-	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(100000)
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		// Fallback: should never happen with crypto/rand
+		return fmt.Sprintf("fallback-%d", 0)
+	}
+	return hex.EncodeToString(b)
 }

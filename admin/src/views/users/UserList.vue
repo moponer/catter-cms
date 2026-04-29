@@ -166,9 +166,9 @@ const handleDelete = async (row) => {
 
 const handleResetPassword = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要重置该用户的密码吗？系统将生成一个新的随机密码。', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确定要重置该用户的密码吗？系统将重置为初始密码 (admin123)。', '提示', { type: 'warning' })
     const res = await post(`/api/users/${row.id}/reset-password`)
-    ElMessage.success(`密码已重置为: ${res.data?.new_password || res.new_password}`)
+    ElMessage.success(`密码已重置为: ${res.data?.password || 'admin123'}`)
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('重置密码失败')

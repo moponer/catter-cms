@@ -6,31 +6,36 @@ const TOKEN_KEY = 'token'
 const USER_KEY = 'user'
 
 /**
- * 获取 Token
+ * 获取 Token (已废弃，改用 httpOnly Cookie)
  */
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY)
+  // httpOnly cookie 由浏览器自动发送，前端 JS 无法也无需获取
+  return null
 }
 
 /**
- * 设置 Token
+ * 设置 Token (已废弃，改用 httpOnly Cookie)
  */
 export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token)
+  // 空操作
 }
 
 /**
- * 移除 Token
+ * 移除 Token (已废弃，改用 httpOnly Cookie)
  */
 export function removeToken() {
-  localStorage.removeItem(TOKEN_KEY)
+  // 登出时 Cookie 会由后端清除
 }
 
 /**
- * 检查是否已登录
+ * 检查是否已登录 (前端无法直接判断 httpOnly cookie)
+ * 依赖 API 请求返回 401 来判断会话是否有效
  */
 export function isAuthenticated() {
-  return !!getToken()
+  // 这个函数不再可靠，因为前端无法读取 httpOnly cookie。
+  // 真实的认证状态由每次 API 请求的结果决定。
+  // 暂时返回 true，让路由守卫放行，具体页面再根据API返回的401做跳转。
+  return true
 }
 
 /**
@@ -71,25 +76,35 @@ export function clearAuth() {
 }
 
 /**
- * 登出 - 使用 router 跳转
+ * 登出 - 调用后端接口清除 Cookie，然后跳转
  * 注意：需要在 Vue 应用中调用
  */
-export function logout() {
-  clearAuth()
-  // 使用 window.location 作为后备，避免在没有 router 的情况下出错
-  if (typeof window !== 'undefined') {
-    // 尝试使用 router，失败则用 window.location
-    try {
-      // 通过动态导入避免循环依赖
-      import('@/router').then(({ default: router }) => {
-        router.push('/login').catch(() => {
+export async function logout() {
+  try {
+    // 调用后端接口清除 httpOnly Cookie
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include'
+    })
+  } catch (e) {
+    // 即使接口调用失败，也继续执行清理和跳转
+    console.warn('Logout API call failed:', e)
+  } finally {
+    // 清除本地认证信息
+    clearAuth()
+    // 跳转到登录页
+    if (typeof window !== 'undefined') {
+      try {
+        import('@/router').then(({ default: router }) => {
+          router.push('/login').catch(() => {
+            window.location.href = '/admin/login'
+          })
+        }).catch(() => {
           window.location.href = '/admin/login'
         })
-      }).catch(() => {
+      } catch (e) {
         window.location.href = '/admin/login'
-      })
-    } catch (e) {
-      window.location.href = '/admin/login'
+      }
     }
   }
 }

@@ -20,7 +20,8 @@ func GlobalSearch(c *gin.Context) {
 	}
 
 	keyword = strings.TrimSpace(keyword)
-	searchPattern := "%" + keyword + "%"
+	escapedKeyword := escapeLikeWildcards(keyword)
+	searchPattern := "%" + escapedKeyword + "%"
 
 	// 搜索文章
 	var posts []models.Post

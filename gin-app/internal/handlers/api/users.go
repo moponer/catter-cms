@@ -1,9 +1,9 @@
 package api
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -126,9 +126,9 @@ func CreateUser(c *gin.Context) {
 			return
 		}
 	} else {
-		// 生成随机密码
-		if err := user.SetPassword(generateRandomPassword(12)); err != nil {
-			InternalError(c, "密码生成失败")
+		// 使用固定初始密码
+		if err := user.SetPassword("admin123"); err != nil {
+			InternalError(c, "密码设置失败")
 			return
 		}
 	}
@@ -247,8 +247,8 @@ func ResetUserPassword(c *gin.Context) {
 		return
 	}
 
-	// 生成随机密码
-	newPassword := generateRandomPassword(12)
+	// 重置为初始密码
+	newPassword := "admin123"
 	if err := user.SetPassword(newPassword); err != nil {
 		InternalError(c, "密码加密失败")
 		return
@@ -306,13 +306,17 @@ func DeleteUser(c *gin.Context) {
 	SuccessWithMessage(c, "用户删除成功", nil)
 }
 
-// generateRandomPassword 生成随机密码
+// generateRandomPassword generates a cryptographically secure random password
 func generateRandomPassword(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	password := make([]byte, length)
 	for i := range password {
-		password[i] = charset[r.Intn(len(charset))]
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			// Should never happen with crypto/rand
+			panic("crypto/rand failed: " + err.Error())
+		}
+		password[i] = charset[n.Int64()]
 	}
 	return string(password)
 }

@@ -1,9 +1,11 @@
 package api
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/golang-jwt/jwt/v5"
 
 	"catter-cms-gin/config"
@@ -40,7 +42,8 @@ type LoginResponse struct {
 // LoginHandler 处理登录请求
 func LoginHandler(c *gin.Context) {
 	var req LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	// 必须使用 ShouldBindBodyWith，因为 ratelimit 中间件已经读取并缓存了 Body
+	if err := c.ShouldBindBodyWith(&req, binding.JSON); err != nil {
 		BadRequest(c, "邮箱和密码不能为空")
 		return
 	}
@@ -66,21 +69,25 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	// 设置 httpOnly Cookie（安全措施：防止 XSS 窃取 token）
-	// Cookie 会自动随请求发送，无需前端手动处理
-	c.SetCookie(
-		CookieName,     // name
-		token,          // value
-		CookieMaxAge,   // maxAge（秒）
-		"/",            // path
-		"",             // domain（空表示当前域名）
-		false,          // secure（开发环境设为 false，生产环境应为 true）
-		true,           // httpOnly（核心安全措施：JavaScript 无法访问）
-	)
+	cfg := config.Get()
+	cookieMaxAge := int(cfg.JWT.Expire * 3600) // 小时转为秒
 
-	// 返回响应（包含 token 用于前端存储，Cookie 作为主要认证方式）
-	SuccessWithMessage(c, "登录成功", LoginResponse{
-		Token: token,
-		User:  *user,
+	cookie := &http.Cookie{
+		Name:     CookieName,
+		Value:    token,
+		MaxAge:   cookieMaxAge,
+		Path:     "/",
+		Domain:   "", // 空表示当前域名
+		Secure:   cfg.IsProduction(),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(c.Writer, cookie)
+
+	// 返回响应（不再返回 token，完全依赖 httpOnly Cookie）
+	SuccessWithMessage(c, "登录成功", gin.H{
+		"user":                *user,
+		"must_change_password": user.IsDefaultPassword, // 初始密码需要修改
 	})
 }
 
@@ -181,6 +188,24 @@ func UpdateProfileHandler(c *gin.Context) {
 	SuccessWithMessage(c, "个人资料更新成功", updatedUser)
 }
 
+// LogoutHandler 处理退出登录请求
+func LogoutHandler(c *gin.Context) {
+	// 清除 Token Cookie
+	cookie := &http.Cookie{
+		Name:     CookieName,
+		Value:    "",
+		MaxAge:   -1, // 立即过期
+		Path:     "/",
+		Domain:   "",
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(c.Writer, cookie)
+
+	SuccessWithMessage(c, "退出成功", nil)
+}
+
 // ChangePasswordRequest 修改密码请求
 type ChangePasswordRequest struct {
 	OldPassword string `json:"old_password" binding:"required"`
@@ -220,7 +245,11 @@ func ChangePasswordHandler(c *gin.Context) {
 		return
 	}
 
-	if err := models.DB.Model(cu).Update("password_hash", cu.PasswordHash).Error; err != nil {
+	// 更新密码哈希，同时清除初始密码标记
+	if err := models.DB.Model(cu).Updates(map[string]interface{}{
+		"password_hash":      cu.PasswordHash,
+		"is_default_password": false,
+	}).Error; err != nil {
 		InternalError(c, "密码更新失败")
 		return
 	}

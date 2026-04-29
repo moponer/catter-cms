@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"catter-cms-gin/config"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -34,10 +36,24 @@ func DefaultCORSConfig() CORSConfig {
 	}
 }
 
-// CORS CORS中间件
-// 处理跨域资源共享
+// CORS CORS middleware
+// Reads allowed origins from config.Security.AllowOrigins
 func CORS() gin.HandlerFunc {
-	return CORSWithConfig(DefaultCORSConfig())
+	cfg := config.Get()
+	allowOrigins := cfg.Security.AllowOrigins
+	if len(allowOrigins) == 0 {
+		allowOrigins = []string{"*"}
+	}
+
+	corsConfig := CORSConfig{
+		AllowOrigins:     allowOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "X-CSRF-Token"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+		MaxAge:           3600,
+	}
+	return CORSWithConfig(corsConfig)
 }
 
 // CORSWithConfig 使用配置创建CORS中间件
@@ -88,7 +104,7 @@ func CORSWithConfig(config CORSConfig) gin.HandlerFunc {
 
 			// 设置预检请求缓存时间
 			if config.MaxAge > 0 {
-				c.Header("Access-Control-Max-Age", string(rune(config.MaxAge)))
+				c.Header("Access-Control-Max-Age", strconv.Itoa(config.MaxAge))
 			}
 		}
 

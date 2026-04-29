@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -415,7 +414,7 @@ func defaultConfig() *Config {
 		},
 		Security: SecurityConfig{
 			AllowOrigins: []string{"*"},
-			EnableCSP:    false,
+			EnableCSP:    true, // 默认启用 CSP，生产环境强烈建议保持开启
 		},
 		Redis: RedisConfig{
 			Enabled:   false,
@@ -518,18 +517,34 @@ func (c *Config) UpdateFromCLI(port, host, env, dbPath string) {
 func (c *Config) ValidateSecurity() []string {
 	var warnings []string
 
+	// 已知的弱密钥黑名单
+	knownWeakSecrets := []string{
+		"your-secret-key-change-in-production",
+		"dev-only-secret-do-not-use-in-production",
+		"***REDACTED***",
+		"insecure-default-change-me",
+		"secret",
+		"password",
+	}
+
 	// 检查 CORS 配置
 	if len(c.Security.AllowOrigins) == 0 {
 		warnings = append(warnings, "No CORS origins configured, using defaults")
 	}
 
 	// 检查 JWT 密钥强度
-	if len(c.JWT.Secret) < 32 {
-		warnings = append(warnings, "JWT secret is too short (< 32 characters)")
+	isWeak := false
+	for _, weakSecret := range knownWeakSecrets {
+		if c.JWT.Secret == weakSecret {
+			isWeak = true
+			break
+		}
 	}
 
-	if strings.Contains(c.JWT.Secret, "secret") || strings.Contains(c.JWT.Secret, "password") {
-		warnings = append(warnings, "JWT secret appears to contain common words, consider using a stronger secret")
+	if isWeak {
+		warnings = append(warnings, "Using a known weak JWT secret in production is highly discouraged.")
+	} else if c.IsProduction() && len(c.JWT.Secret) < 32 {
+		warnings = append(warnings, "JWT secret is too short (< 32 characters) for production environment.")
 	}
 
 	// 检查是否启用了 CSP

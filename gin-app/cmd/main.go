@@ -131,7 +131,7 @@ func main() {
 	r := gin.New()
 
 	// 恢复和日志中间件
-	r.Use(gin.Recovery())
+	r.Use(middleware.CustomRecovery())
 	if !cfg.IsProduction() {
 		r.Use(gin.Logger())
 	}
@@ -164,11 +164,13 @@ func main() {
 	apiGroup := r.Group("/api")
 	{
 		// 公开 API
-		apiGroup.POST("/auth/login", api.LoginHandler)
+		apiGroup.POST("/auth/login", middleware.LoginRateLimiter(), api.LoginHandler)
+		apiGroup.POST("/auth/logout", api.LogoutHandler)
 
 		// 需要认证的 API
 		protected := apiGroup.Group("/")
 		protected.Use(middleware.APIAuth())
+		protected.Use(middleware.CSRFProtection())
 		{
 			protected.GET("/auth/me", api.MeHandler)
 			protected.PUT("/auth/profile", api.UpdateProfileHandler)

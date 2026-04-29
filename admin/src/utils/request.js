@@ -14,6 +14,7 @@ const request = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // 允许跨域携带 Cookie
 })
 
 // 是否正在处理登出，防止重复跳转
@@ -42,13 +43,22 @@ const handleAuthError = () => {
   }, 1500)
 }
 
+// 从 Cookie 中读取指定名称的值
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return match ? decodeURIComponent(match[2]) : null
+}
+
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
-    // 从 localStorage 获取 token
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    // 对非安全方法（POST/PUT/DELETE 等），自动附加 CSRF Token
+    const method = (config.method || 'get').toUpperCase()
+    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+      const csrfToken = getCookie('catter_csrf')
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken
+      }
     }
     return config
   },

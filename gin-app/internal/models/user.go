@@ -1,8 +1,6 @@
 package models
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"log"
 	"time"
 
@@ -12,15 +10,16 @@ import (
 
 // User 用户模型
 type User struct {
-	ID           uint      `json:"id" gorm:"primaryKey"`
-	Email        string    `json:"email" gorm:"uniqueIndex;not null;size:255"`
-	Name         string    `json:"name" gorm:"not null;size:255"`
-	PasswordHash string    `json:"-" gorm:"column:password_hash;not null"`
-	Role         string    `json:"role" gorm:"default:'editor';size:50"`
-	Avatar       string    `json:"avatar" gorm:"size:512"`
-	Bio          string    `json:"bio" gorm:"size:1000"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID                uint      `json:"id" gorm:"primaryKey"`
+	Email             string    `json:"email" gorm:"uniqueIndex;not null;size:255"`
+	Name              string    `json:"name" gorm:"not null;size:255"`
+	PasswordHash      string    `json:"-" gorm:"column:password_hash;not null"`
+	Role              string    `json:"role" gorm:"default:'editor';size:50"`
+	Avatar            string    `json:"avatar" gorm:"size:512"`
+	Bio               string    `json:"bio" gorm:"size:1000"`
+	IsDefaultPassword bool      `json:"is_default_password" gorm:"default:false;column:is_default_password"` // 是否仍在使用初始密码
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 // TableName 指定表名
@@ -70,18 +69,14 @@ func CreateDefaultAdmin() error {
 
 	// 创建默认管理员
 	admin := &User{
-		Email: "admin@example.com",
-		Name:  "Administrator",
-		Role:  "admin",
+		Email:             "admin@example.com",
+		Name:              "Administrator",
+		Role:              "admin",
+		IsDefaultPassword: true, // 标记为初始密码，登录后提示修改
 	}
 
-	// 生成随机初始密码（生产环境应要求用户在首次登录后修改）
-	initialPassword, err := generateRandomPassword(16)
-	if err != nil {
-		// 如果生成失败，使用一个占位符，生产环境必须修改
-		initialPassword = "CHANGE_ME_FIRST"
-	}
-
+	// 设置固定初始密码（生产环境应在首次登录后立即修改）
+	initialPassword := "admin123"
 	if err := admin.SetPassword(initialPassword); err != nil {
 		return err
 	}
@@ -90,18 +85,9 @@ func CreateDefaultAdmin() error {
 		return err
 	}
 
-	// 只在开发环境输出密码提示，生产环境不应输出任何密码信息
+	// 输出初始密码到日志（首次部署时需要）
 	log.Println("Default admin user created: admin@example.com")
-	log.Printf("Initial password set. Please change it immediately after first login!")
+	log.Printf("⚠️  Initial password: %s  — Please change it immediately after first login!", initialPassword)
 
 	return nil
-}
-
-// generateRandomPassword 生成随机密码
-func generateRandomPassword(length int) (string, error) {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
 }

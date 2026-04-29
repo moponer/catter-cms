@@ -410,6 +410,13 @@ func extractTheme(zipPath, destPath string) (string, error) {
 
 		filePath := filepath.Join(destPath, file.Name)
 
+		// Zip Slip 漏洞防御
+		cleanedPath := filepath.Clean(filePath)
+		if !strings.HasPrefix(cleanedPath, filepath.Clean(destPath)+string(os.PathSeparator)) {
+			return "", fmt.Errorf("检测到不安全的 ZIP 文件路径: %s", file.Name)
+		}
+		filePath = cleanedPath
+
 		if file.FileInfo().IsDir() {
 			os.MkdirAll(filePath, 0755)
 			continue

@@ -131,7 +131,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { post } from '@/utils/request'
-import { setToken, setCurrentUser } from '@/utils/auth'
+import { setCurrentUser } from '@/utils/auth'
 
 const router = useRouter()
 const route = useRoute()
@@ -172,8 +172,20 @@ const handleLogin = async () => {
     // 处理响应 - 标准格式是 { code: 0, message: "...", data: {...} }
     if (res.code === 0 || res.code === 200) {
       const data = res.data
-      setToken(data.token)
+      // setToken(data.token) // 已废弃，改用 httpOnly Cookie
       setCurrentUser(data.user)
+
+      // 检查是否需要修改初始密码
+      if (data.must_change_password) {
+        ElMessage.warning({
+          message: '⚠️ 您正在使用初始密码，请立即修改以保障账户安全！',
+          duration: 5000,
+          showClose: true,
+        })
+        // 跳转到修改密码页面
+        router.push('/change-password')
+        return
+      }
 
       ElMessage.success(res.message || '登录成功')
 
@@ -194,14 +206,14 @@ const handleLogin = async () => {
   }
 }
 
-// 检查是否已登录，已登录则直接跳转
+// onMounted 检查已不可靠，因为无法读取 httpOnly cookie
+// 认证状态由路由守卫和 API 返回的 401 统一处理
 onMounted(() => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    // 有 token，尝试跳转回之前的页面
-    const redirect = route.query.redirect || '/'
-    router.push(redirect)
-  }
+  // const token = localStorage.getItem('token') // 已废弃
+  // if (token) {
+  //   const redirect = route.query.redirect || '/'
+  //   router.push(redirect)
+  // }
 })
 </script>
 
