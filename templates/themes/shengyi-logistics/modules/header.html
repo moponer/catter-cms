@@ -4,11 +4,7 @@
     <div class="container">
         <div class="nav-inner">
             <a href="/" class="nav-logo">
-                {{ if .site.logo }}
-                <img src="{{ .site.logo }}" alt="{{ .site.title }}" class="nav-logo-img">
-                {{ else }}
-                <div class="nav-logo-icon"><i class="fa-solid fa-truck"></i></div>
-                {{ end }}
+                <img src="{{ asset_path "images/logo-sy.svg" }}" alt="{{ .site.title }}" class="nav-logo-icon-img">
                 <div class="nav-logo-text">
                     <span class="nav-logo-main">{{ .site.title }}</span>
                     <span class="nav-logo-sub">{{ .site.description }}</span>

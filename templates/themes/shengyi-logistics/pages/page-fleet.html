@@ -8,6 +8,7 @@
     <meta name="description" content="{{ if .page.Excerpt }}{{ .page.Excerpt }}{{ else }}{{ getConfig "metaDescription" "" }}{{ end }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/fleet.css" }}">
+    <link rel="icon" href="{{ asset_path "images/logo-sy.svg" }}" type="image/svg+xml">
     {{ if getConfig "customCSS" "" }}
     <style>{{ getConfig "customCSS" "" | safe }}</style>
     {{ end }}
