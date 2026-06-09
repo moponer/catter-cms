@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ if getConfig "metaTitle" "" }}{{ getConfig "metaTitle" "" }}{{ else }}{{ .site.title }}{{ end }}</title>
+    <meta name="description" content="{{ if getConfig "metaDescription" "" }}{{ getConfig "metaDescription" "" }}{{ else }}{{ .site.description }}{{ end }}">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    {{ if getConfig "customCss" "" }}
+    <style>{{ getConfig "customCss" "" | safe }}</style>
+    {{ end }}
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/" class="logo">{{ .site.title }}</a>
+            <nav class="nav">
+                {{ if .headerMenu }}
+                {{ range .headerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+                {{ end }}
+                <a href="https://github.com/your-username/catter-cms" target="_blank" class="github-link">
+                    <i class="fa-brands fa-github"></i> Star
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero - 亮色系项目特点展示 -->
+    <section class="hero-bright">
+        <div class="hero-container">
+            <h1 class="hero-title">{{ .site.title }}</h1>
+            <p class="hero-subtitle">Go + Vue 3 轻量级内容管理系统</p>
+
+            <div class="feature-badges">
+                <span class="badge">
+                    <i class="fa-solid fa-rocket"></i> <span class="badge-label">单文件部署</span>
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-database"></i> <span class="badge-label">SQLite</span>
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-code"></i> <span class="badge-label">Go + Vue 3</span>
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-check"></i> <span class="badge-label">MIT 开源</span>
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-palette"></i> <span class="badge-label">内置主题</span>
+                </span>
+                <span class="badge">
+                    <i class="fa-solid fa-robot"></i> <span class="badge-label">AI API</span>
+                </span>
+            </div>
+
+            <div class="hero-terminal">
+                <div class="terminal-bar">
+                    <span class="terminal-dot red"></span>
+                    <span class="terminal-dot yellow"></span>
+                    <span class="terminal-dot green"></span>
+                    <span class="terminal-title">bash</span>
+                </div>
+                <div class="terminal-body">
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> git clone https://github.com/your-username/catter-cms.git</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> cd catter-cms && go build -o catter-cms.exe .</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="cmd"> ./catter-cms.exe</span>
+                    </div>
+                    <div class="terminal-line muted"># 访问 http://localhost:3000</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目特点 -->
+    <section class="section section-alt">
+        <div class="section-container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <h3 class="feature-title">单文件部署</h3>
+                    <p class="feature-desc">一个 .exe + 一个 .db，无需安装数据库，开箱即用</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <h3 class="feature-title">Go + Vue 3</h3>
+                    <p class="feature-desc">Go 后端高性能，Vue 3 前端现代化，前后端分离架构</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <h3 class="feature-title">SQLite 数据库</h3>
+                    <p class="feature-desc">零配置，零依赖，文件即数据库，备份只需复制一个文件</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <h3 class="feature-title">MIT 开源协议</h3>
+                    <p class="feature-desc">无授权费用，可商用，可二次开发，无任何限制</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+                    <h3 class="feature-title">内置主题</h3>
+                    <p class="feature-desc">博客、企业官网、物流等场景，开源免费，持续更新</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3 class="feature-title">AI API 接口</h3>
+                    <p class="feature-desc">提供 REST API，AI 客户端可直接调用管理内容</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 新模块：左侧轮播 + 右侧滚动（特性下方） -->
+    {{ if getConfig "showcaseEnabled" true }}
+    <section class="showcase-section">
+        <div class="showcase-container">
+        <div class="showcase-split" id="showcaseSplit">
+
+            <!-- 左侧：浏览器窗口 -->
+            <div class="showcase-browser-window">
+                <div class="window-titlebar browser">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <div class="window-addressbar">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>catter-cms/demo</span>
+                    </div>
+                </div>
+                <div class="window-content browser-content" id="showcaseLeft">
+                    <div class="showcase-carousel" id="showcaseCarousel">
+                        {{ $images := getConfig "showcaseImages" "[]" }}
+                        {{ if $images }}
+                        {{ range $images }}
+                        <div class="showcase-slide">
+                            <img src="{{ .url }}" alt="{{ .title }}" loading="eager">
+                        </div>
+                        {{ end }}
+                        {{ else }}
+                        <div class="showcase-slide">
+                            <img src="https://picsum.photos/800/600?random=4" alt="展示图片" loading="eager">
+                        </div>
+                        <div class="showcase-slide">
+                            <img src="https://picsum.photos/800/600?random=5" alt="展示图片" loading="lazy">
+                        </div>
+                        <div class="showcase-slide">
+                            <img src="https://picsum.photos/800/600?random=6" alt="展示图片" loading="lazy">
+                        </div>
+                        {{ end }}
+                    </div>
+                    <div class="showcase-dots" id="showcaseDots"></div>
+                </div>
+            </div>
+
+            <!-- 右侧：终端窗口 -->
+            <div class="showcase-terminal-window">
+                <div class="window-titlebar terminal">
+                    <div class="window-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <div class="window-title">bash</div>
+                </div>
+                <div class="window-content terminal-content" id="showcaseRight">
+
+                    <!-- Logo 区域 -->
+                    <div class="terminal-logo">
+                        <div class="terminal-logo-text">Catter CMS</div>
+                        <div class="terminal-logo-sub">Go + Vue 3 轻量级内容管理系统</div>
+                    </div>
+
+                    <!-- 逐行输出的内容 -->
+                    <div class="terminal-output-scroll" id="terminalOutput"></div>
+                    <div class="terminal-cursor-line"><span class="cyan">$</span> <span class="cursor">█</span></div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+    {{ end }}
+
+    <!-- 最新文章 -->
+    {{ if .posts }}
+    <section class="section">
+        <div class="section-container">
+            <h2 class="section-title">最新文章</h2>
+            <div class="article-list">
+                {{ range first 5 .posts }}
+                <article class="article-card">
+                    {{ if .Cover }}
+                    <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="article-cover">
+                    {{ end }}
+                    <h3 class="article-title">
+                        <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+                    </h3>
+                    <p class="article-excerpt">{{ .Excerpt }}</p>
+                    <div class="article-meta">
+                        {{ if .Category }}
+                        <span><i class="fa-solid fa-folder"></i> {{ .Category.Name }}</span>
+                        {{ end }}
+                        <span><i class="fa-solid fa-calendar"></i> {{ dateFormat "2006-01-02" .PublishedAt }}</span>
+                    </div>
+                </article>
+                {{ end }}
+            </div>
+        </div>
+    </section>
+    {{ end }}
+
+    <!-- 页脚 -->
+    {{ if getConfig "footerEnabled" true }}
+    <footer class="footer">
+        <div class="footer-container">
+            {{ if .footerMenu }}
+            <nav class="footer-nav">
+                {{ range .footerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            {{ end }}
+            <div class="footer-bottom">
+                <p>
+                    <i class="fa-solid fa-code"></i>
+                    {{ getConfig "footerCopyright" "2026 Catter CMS" }}
+                    · MIT License
+                </p>
+                {{ if getConfig "footerICP" "" }}
+                <p class="footer-icp">{{ getConfig "footerICP" "" }}</p>
+                {{ end }}
+            </div>
+        </div>
+    </footer>
+    {{ end }}
+
+    <script>
+    (function() {
+        // ========== 左侧轮播 ==========
+        var slides = document.querySelectorAll('.showcase-slide');
+        var dotsContainer = document.getElementById('showcaseDots');
+        var currentSlide = 0;
+
+        if (slides.length > 1 && dotsContainer) {
+            slides.forEach(function(_, i) {
+                var dot = document.createElement('span');
+                dot.className = 'showcase-dot' + (i === 0 ? ' active' : '');
+                dot.addEventListener('click', function() { goToSlide(i); });
+                dotsContainer.appendChild(dot);
+            });
+
+            function goToSlide(index) {
+                slides.forEach(function(s, i) {
+                    s.classList.toggle('active', i === index);
+                });
+                document.querySelectorAll('.showcase-dot').forEach(function(d, i) {
+                    d.classList.toggle('active', i === index);
+                });
+                currentSlide = index;
+            }
+
+            setInterval(function() { goToSlide((currentSlide + 1) % slides.length); }, 4000);
+        } else if (slides.length === 1) {
+            slides[0].classList.add('active');
+        }
+
+        // ========== 右侧终端滚动动画 ==========
+        var terminalOutput = document.getElementById('terminalOutput');
+        if (terminalOutput) {
+            var lines = [
+                { text: '[*] Initializing Catter CMS...', class: 'dim' },
+                { text: '[*] Loading themes... ✓', class: 'dim', accent: 'green' },
+                { text: '[*] Connecting to database... ✓', class: 'dim', accent: 'green' },
+                { text: '[+] System ready!', class: 'green' },
+                { text: '', class: '' },
+                { text: '$ cat README.md', class: 'cyan', isCommand: true },
+                { text: '', class: '' },
+                { text: 'Catter CMS - 自由定义你的内容', class: 'yellow bold' },
+                { text: '', class: '' },
+                { text: '┌─────────────────────────────────────┐', class: 'dim' },
+                { text: '│  MIT 开源  ·  自由理念  ·  轻松部署  │', class: 'green' },
+                { text: '└─────────────────────────────────────┘', class: 'dim' },
+                { text: '', class: '' },
+                { text: '$ cat features.md', class: 'cyan', isCommand: true },
+                { text: '', class: '' },
+                { text: '▸ 主题自由', class: 'green' },
+                { text: '  AI 帮写主题，6 套内置主题开箱即用', class: 'dim' },
+                { text: '', class: '' },
+                { text: '▸ 管理自由', class: 'green' },
+                { text: '  复制提示词，AI 接管后台管理操作', class: 'dim' },
+                { text: '', class: '' },
+                { text: '▸ 使用自由', class: 'green' },
+                { text: '  MIT 协议，个人 / 商业均可免费使用', class: 'dim' },
+                { text: '', class: '' },
+                { text: '▸ 插件自由', class: 'green' },
+                { text: '  标准 RESTful API，AI 随心扩展插件', class: 'dim' },
+                { text: '', class: '' },
+                { text: '$ cat core.md', class: 'cyan', isCommand: true },
+                { text: '', class: '' },
+                { text: '★ AI 原生核心', class: 'magenta bold' },
+                { text: '  AI 原生驱动，不用代码也能管 CMS', class: 'dim' },
+                { text: '  创建 API Key，复制提示词', class: 'dim' },
+                { text: '  AI 帮你写文章 / 改页面 / 传图片', class: 'dim' },
+                { text: '', class: '' },
+                { text: '$ cat deploy.md', class: 'cyan', isCommand: true },
+                { text: '', class: '' },
+                { text: '★ 快速部署', class: 'yellow bold' },
+                { text: '  单二进制部署，零依赖超省心', class: 'dim' },
+                { text: '  编译后仅 1 个可执行文件', class: 'dim' },
+                { text: '  本地一键运行，无需额外配置', class: 'dim' },
+                { text: '', class: '' },
+                { text: '$ cat summary.md', class: 'cyan', isCommand: true },
+                { text: '', class: '' },
+                { text: '★ 功能全景', class: 'yellow bold' },
+                { text: '  ▸ 文章管理    Markdown 支持 · 定时发布', class: 'dim', green: 'Markdown 支持 · 定时发布' },
+                { text: '  ▸ 媒体库      图片 / 文件一键上传管理', class: 'dim' },
+                { text: '  ▸ 分类标签    多级分类 · 标签云管理', class: 'dim' },
+                { text: '  ▸ 后台主题    3 套后台主题自由切换', class: 'dim' },
+                { text: '  ▸ 安全防护    XSS / SQL 注入防护', class: 'dim' },
+                { text: '', class: '' },
+            ];
+
+            var lineIndex = 0;
+            var displayLines = [];
+            var maxVisibleLines = 18;
+            var charIndex = 0;
+            var currentLine = null;
+            var isTyping = false;
+            var typeInterval;
+            var lineDelay = 200;
+            var charDelay = 8;
+
+            function getLineHeight() {
+                return 22;
+            }
+
+            function checkOverflow() {
+                var totalHeight = displayLines.length * getLineHeight();
+                var containerHeight = terminalOutput.parentElement.clientHeight - 60;
+                return totalHeight > containerHeight;
+            }
+
+            function clearOldLines() {
+                while (checkOverflow() && displayLines.length > 0) {
+                    displayLines.shift();
+                }
+                renderLines();
+            }
+
+            function renderLines() {
+                terminalOutput.innerHTML = displayLines.map(function(line) {
+                    return '<div class="boot-line ' + line.class + '">' + line.text + '</div>';
+                }).join('');
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }
+
+            function typeLine(lineData) {
+                isTyping = true;
+                currentLine = lineData;
+                charIndex = 0;
+                var displayText = '';
+                var fullText = lineData.text;
+
+                function typeChar() {
+                    if (charIndex < fullText.length) {
+                        displayText += fullText[charIndex];
+                        currentLine.text = displayText;
+                        renderLines();
+                        charIndex++;
+                        typeInterval = setTimeout(typeChar, charDelay);
+                    } else {
+                        isTyping = false;
+                        displayLines.push(currentLine);
+                        renderLines();
+                        setTimeout(nextStep, lineDelay);
+                    }
+                }
+                typeChar();
+            }
+
+            function nextStep() {
+                clearOldLines();
+
+                if (lineIndex < lines.length) {
+                    var lineData = lines[lineIndex];
+                    lineIndex++;
+                    if (lineData.text === '') {
+                        displayLines.push({ text: '', class: '' });
+                        renderLines();
+                        setTimeout(nextStep, 200);
+                    } else {
+                        typeLine(lineData);
+                    }
+                } else {
+                    lineIndex = 0;
+                    displayLines = [];
+                    setTimeout(nextStep, 1500);
+                }
+            }
+
+            setTimeout(nextStep, 500);
+        }
+    })();
+    </script>
+
+    {{ if getConfig "customJs" "" }}
+    <script>{{ getConfig "customJs" "" | safe }}</script>
+    {{ end }}
+</body>
+</html>

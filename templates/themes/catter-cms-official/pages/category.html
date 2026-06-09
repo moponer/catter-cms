@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .category.Name }} - {{ .site.title }}</title>
-    <meta name="description" content="{{ .site.description }}">
+    <meta name="description" content="{{ if .category.Description }}{{ .category.Description }}{{ else }}{{ .category.Name }} 分类下的所有文章 — {{ .site.description }}{{ end }}">
+    <link rel="canonical" href="/category/{{ .category.Slug }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ .category.Name }} - {{ .site.title }}">
+    <meta property="og:url" content="/category/{{ .category.Slug}}">
+    <meta property="og:description" content="{{ if .category.Description }}{{ .category.Description }}{{ else }}{{ .category.Name }} 分类下的所有文章 — {{ .site.description }}{{ end }}">
+    <meta property="og:site_name" content="{{ .site.title }}">
+    <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     {{ if getConfig "customCss" "" }}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <title>{{ .pageTitle }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ getConfig "metaDescription" "" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/gallery.css" }}">
+    <link rel="icon" href="{{ asset_path "images/logo-sy.svg" }}" type="image/svg+xml">
+    {{ if getConfig "customCSS" "" }}
+    <style>{{ getConfig "customCSS" "" | safe }}</style>
+    {{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+<div class="page-banner">
+    <h1 class="page-banner-title">{{ .page.Title }}</h1>
+    <div class="page-banner-breadcrumb"><a href="/">首页</a><span>›</span>{{ .page.Title }}</div>
+</div>
+
+<!-- ====== 相册内容 ====== -->
+{{ $td := .td }}
+{{ if not $td }}{{ $td = dict }}{{ end }}
+
+<section class="gallery-section">
+    <div class="container">
+        {{ if .page.Content }}
+        <div class="gallery-intro">
+            {{ .page.Content }}
+        </div>
+        {{ end }}
+
+        <!-- 图片网格 - 从 .td.images 获取 -->
+        {{ $images := ensureSlice (index $td "images") }}
+        {{ $columns := index $td "columns" }}
+        {{ if not $columns }}{{ $columns = "3" }}{{ end }}
+        <div class="gallery-grid" id="galleryGrid" data-columns="{{ $columns }}">
+            {{ if $images }}
+                {{ range $img := $images }}
+                <div class="gallery-item">
+                    <!-- 图片区 -->
+                    <div class="gallery-item-inner">
+                        <img src="{{ $img.url }}" alt="{{ $img.title }}" loading="lazy">
+                        <!-- 相机角标 -->
+                        <span class="gallery-item-index"><i class="fa-solid fa-camera"></i></span>
+                        <!-- 放大遮罩 -->
+                        <div class="gallery-item-overlay">
+                            <button class="gallery-item-view" data-src="{{ $img.url }}" data-title="{{ $img.title }}">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 底部名称条 -->
+                    <div class="gallery-item-caption">
+                        <span class="gallery-item-caption-icon">
+                            <i class="fa-solid fa-image"></i>
+                        </span>
+                        <h3 class="gallery-item-title">{{ if $img.title }}{{ $img.title }}{{ else }}未命名图片{{ end }}</h3>
+                    </div>
+                </div>
+                {{ end }}
+            {{ else }}
+            <div class="gallery-empty">
+                <div class="gallery-empty-icon"><i class="fa-solid fa-camera"></i></div>
+                <p>暂无图片</p>
+                <p class="gallery-empty-hint">请在后台「页面编辑」中添加图片</p>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+
+<!-- ====== 灯箱 ====== -->
+<div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">&times;</button>
+    <button class="lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+    <div class="lightbox-content">
+        <img src="" alt="" id="lightboxImg">
+        <p class="lightbox-caption" id="lightboxCaption"></p>
+    </div>
+</div>
+
+{{ template "footer" . }}
+
+<script>
+(function(){
+    // 灯箱
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = document.getElementById('lightboxImg');
+    var lightboxCaption = document.getElementById('lightboxCaption');
+    var currentIndex = 0;
+    var visibleItems = [];
+
+    function updateVisibleItems() {
+        visibleItems = Array.from(document.querySelectorAll('.gallery-item')).filter(function(item) {
+            return item.style.display !== 'none';
+        });
+    }
+
+    function showLightbox(index) {
+        updateVisibleItems();
+        currentIndex = index;
+        var item = visibleItems[currentIndex];
+        if (!item) return;
+        var btn = item.querySelector('.gallery-item-view');
+        lightboxImg.src = btn.getAttribute('data-src');
+        lightboxCaption.textContent = btn.getAttribute('data-title');
+        lightbox.classList.add('active');
+    }
+
+    document.querySelectorAll('.gallery-item-view').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            updateVisibleItems();
+            var realIdx = visibleItems.indexOf(btn.closest('.gallery-item'));
+            showLightbox(realIdx);
+        });
+    });
+
+    document.getElementById('lightboxClose').addEventListener('click', function() {
+        lightbox.classList.remove('active');
+    });
+
+    document.getElementById('lightboxPrev').addEventListener('click', function() {
+        currentIndex = (currentIndex - 1 + visibleItems.length) % visibleItems.length;
+        showLightbox(currentIndex);
+    });
+
+    document.getElementById('lightboxNext').addEventListener('click', function() {
+        currentIndex = (currentIndex + 1) % visibleItems.length;
+        showLightbox(currentIndex);
+    });
+
+    lightbox.addEventListener('click', function(e) {
+        if (e.target === lightbox) lightbox.classList.remove('active');
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (!lightbox.classList.contains('active')) return;
+        if (e.key === 'Escape') lightbox.classList.remove('active');
+        if (e.key === 'ArrowLeft') document.getElementById('lightboxPrev').click();
+        if (e.key === 'ArrowRight') document.getElementById('lightboxNext').click();
+    });
+})();
+</script>
+</body>
+</html>

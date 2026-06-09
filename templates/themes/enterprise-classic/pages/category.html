@@ -8,6 +8,16 @@
     <link rel="icon" href="{{ .site.favicon }}">
     {{ end }}
     <title>{{ .category.Name }} - {{ .site.title }}</title>
+    <link rel="canonical" href="/category/{{ .category.Slug }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ .category.Name }} - {{ .site.title }}">
+    <meta property="og:url" content="/category/{{ .category.Slug}}">
+    <meta property="og:description" content="{{ if .category.Description }}{{ .category.Description }}{{ else }}{{ .category.Name }} - {{ .site.description }}{{ end }}">
+    <meta property="og:site_name" content="{{ .site.title }}">
+    <meta name="twitter:card" content="summary">
+    {{ if getConfig "customHead" "" }}
+    {{ getConfig "customHead" "" | safe }}
+    {{ end }}
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     {{ if getConfig "customHead" "" }}
     {{ getConfig "customHead" "" | safe }}

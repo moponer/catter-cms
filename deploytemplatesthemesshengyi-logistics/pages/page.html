@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="icon" href="{{ asset_path "images/logo-sy.svg" }}" type="image/svg+xml">
+    <title>{{ .page.Title }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ .page.MetaDescription | default .page.Excerpt }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
+    {{ if getConfig "customCSS" "" }}<style>{{ getConfig "customCSS" "" | safe }}</style>{{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+<div class="page-banner">
+    <h1 class="page-banner-title">{{ .page.Title }}</h1>
+    <div class="page-banner-breadcrumb"><a href="/">首页</a><span>›</span>{{ .page.Title }}</div>
+</div>
+
+<main class="main-wrapper">
+    <div class="container">
+        {{ $sbEnabled := getConfig "sidebarEnabled" true }}
+        {{ $sbPosition := getConfig "sidebarPosition" "right" }}
+        <div class="layout-with-sidebar{{ if eq $sbPosition "left" }} sidebar-left{{ end }}">
+            <!-- 主内容 -->
+            <div>
+                <div class="article-content-wrap">
+                    <div class="article-body">{{ .page.Content }}</div>
+                </div>
+            </div>
+
+            <!-- 侧边栏 -->
+            {{ template "sidebar" . }}
+        </div>
+    </div>
+</main>
+
+{{ template "footer" . }}
+</body>
+</html>

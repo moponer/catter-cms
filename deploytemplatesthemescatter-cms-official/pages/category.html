@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .category.Name }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ .site.description }}">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    {{ if getConfig "customCss" "" }}
+    <style>{{ getConfig "customCss" "" | safe }}</style>
+    {{ end }}
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
+            {{ if .headerMenu }}
+            <nav class="nav">
+                {{ range .headerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            {{ end }}
+        </div>
+    </header>
+
+    <!-- 分类文章列表 -->
+    <main class="section">
+        <div class="section-container">
+            <div class="section-header">
+                <h1>{{ .category.Name }}</h1>
+                {{ if .category.Description }}
+                <p>{{ .category.Description }}</p>
+                {{ end }}
+            </div>
+
+            {{ if .posts }}
+            <div class="article-list">
+                {{ range .posts }}
+                <article class="article-card">
+                    {{ if .Cover }}
+                    <img src="{{ thumbnailURL .Cover }}" alt="{{ .Title }}" class="article-cover">
+                    {{ end }}
+                    <div>
+                        <h2 class="article-title">
+                            <a href="/article/{{ .Slug }}">{{ .Title }}</a>
+                        </h2>
+                        {{ if .Excerpt }}
+                        <p class="article-excerpt">{{ .Excerpt }}</p>
+                        {{ end }}
+                        <div class="article-meta">
+                            <span><i class="fa-solid fa-calendar"></i>{{ dateFormat "2006-01-02" .PublishedAt }}</span>
+                            <span><i class="fa-solid fa-eye"></i>{{ .Views }}</span>
+                        </div>
+                    </div>
+                </article>
+                {{ end }}
+            </div>
+            {{ else }}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+                <p class="empty-hint">该分类下暂无文章</p>
+            </div>
+            {{ end }}
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    {{ if getConfig "footerEnabled" true }}
+    <footer class="footer">
+        <div class="footer-container">
+            {{ if .footerMenu }}
+            <nav class="footer-nav">
+                {{ range .footerMenu.Items }}
+                <a href="{{ .URL }}"{{ if .Target }} target="{{ .Target }}"{{ end }}>{{ .Label }}</a>
+                {{ end }}
+            </nav>
+            {{ end }}
+            <div class="footer-bottom">
+                <p>{{ getConfig "footerCopyright" "" }}</p>
+                {{ if getConfig "footerICP" "" }}
+                <p class="footer-icp">{{ getConfig "footerICP" "" }}</p>
+                {{ end }}
+            </div>
+        </div>
+    </footer>
+    {{ end }}
+
+    {{ if getConfig "customJs" "" }}
+    <script>{{ getConfig "customJs" "" | safe }}</script>
+    {{ end }}
+</body>
+</html>

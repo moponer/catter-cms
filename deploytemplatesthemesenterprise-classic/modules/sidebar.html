@@ -1,0 +1,191 @@
+{{ define "sidebar" }}
+{{/* 侧边栏模板组件 */}}
+{{/* 使用方式：{{ template "sidebar" dict "modules" .sidebarModules "position" .sidebarPosition }} */}}
+
+{{- $modules := .modules -}}
+{{- $position := .position -}}
+
+{{- if $modules -}}
+<aside class="sidebar-wrap {{ $position }}" id="sidebar">
+    {{- range $modules -}}
+    <div class="sidebar-widget" data-module="{{ .id }}">
+        <div class="sidebar-widget-title">
+            <i class="{{ .icon }}"></i>
+            <span>{{ .name }}</span>
+        </div>
+        <div class="sidebar-widget-body">
+            {{- /* 最新文章 */ -}}
+            {{- if eq .id "recent_posts" -}}
+            {{- if .data -}}
+            <ul class="sidebar-post-list">
+                {{- range .data -}}
+                <li class="sidebar-post-item">
+                    <a href="/article/{{ .slug }}" class="sidebar-post-info">
+                        <span class="sidebar-post-title">{{ .title }}</span>
+                        <span class="sidebar-post-date">{{ .date }}</span>
+                    </a>
+                </li>
+                {{- end -}}
+            </ul>
+            {{- else -}}
+            <div class="sidebar-empty">
+                <i class="fa-solid fa-newspaper"></i>
+                <p>暂无文章</p>
+            </div>
+            {{- end -}}
+
+            {{- /* 热门文章 */ -}}
+            {{- else if eq .id "hot_posts" -}}
+            {{- if .data -}}
+            <ul class="sidebar-post-list">
+                {{- range .data -}}
+                <li class="sidebar-post-item">
+                    <a href="/article/{{ .slug }}" class="sidebar-post-info">
+                        <span class="sidebar-post-title">{{ .title }}</span>
+                        <span class="sidebar-post-views">{{ .views }} 阅读</span>
+                    </a>
+                </li>
+                {{- end -}}
+            </ul>
+            {{- else -}}
+            <div class="sidebar-empty">
+                <i class="fa-solid fa-fire"></i>
+                <p>暂无文章</p>
+            </div>
+            {{- end -}}
+
+            {{- /* 分类列表 */ -}}
+            {{- else if eq .id "categories" -}}
+            {{- if .data -}}
+            <ul class="sidebar-category-list">
+                {{- range .data -}}
+                <li class="sidebar-category-item">
+                    <a href="/category/{{ .slug }}" class="sidebar-category-link">
+                        <i class="fa-solid fa-chevron-right"></i>
+                        {{ .name }}
+                    </a>
+                    {{- if index . "count" -}}
+                    <span class="sidebar-category-count">{{ index . "count" }}</span>
+                    {{- end -}}
+                </li>
+                {{- end -}}
+            </ul>
+            {{- else -}}
+            <div class="sidebar-empty">
+                <i class="fa-solid fa-folder"></i>
+                <p>暂无分类</p>
+            </div>
+            {{- end -}}
+
+            {{- /* 标签云 */ -}}
+            {{- else if eq .id "tags" -}}
+            {{- if .data -}}
+            <div class="sidebar-tag-list">
+                {{- range .data -}}
+                <a href="/tag/{{ .slug }}" class="sidebar-tag-item">{{ .name }}</a>
+                {{- end -}}
+            </div>
+            {{- else -}}
+            <div class="sidebar-empty">
+                <i class="fa-solid fa-tags"></i>
+                <p>暂无标签</p>
+            </div>
+            {{- end -}}
+
+            {{- /* 站点信息 */ -}}
+            {{- else if eq .id "site_info" -}}
+            <div class="sidebar-site-info">
+                {{- if .logo -}}
+                <img src="{{ .logo }}" alt="{{ .title }}" class="sidebar-site-logo">
+                {{- end -}}
+                <div class="sidebar-site-name">{{ .title }}</div>
+                {{- if .description -}}
+                <div class="sidebar-site-desc">{{ .description }}</div>
+                {{- end -}}
+            </div>
+
+            {{- /* 搜索框 */ -}}
+            {{- else if eq .id "search" -}}
+            <form action="/search" method="get" class="sidebar-search-form">
+                <input type="text" name="q" placeholder="搜索..." class="sidebar-search-input">
+                <button type="submit" class="sidebar-search-btn">
+                    <i class="fa-solid fa-search"></i>
+                </button>
+            </form>
+
+            {{- /* 社交链接 */ -}}
+            {{- else if eq .id "social_links" -}}
+            {{- if .data -}}
+            <div class="sidebar-social-list">
+                {{- range .data -}}
+                <a href="{{ .url }}" class="sidebar-social-link" target="_blank" title="{{ .name }}">
+                    <i class="{{ .icon }}"></i>
+                </a>
+                {{- end -}}
+            </div>
+            {{- else -}}
+            <div class="sidebar-empty">
+                <i class="fa-solid fa-share-nodes"></i>
+                <p>暂无链接</p>
+            </div>
+            {{- end -}}
+
+            {{- /* 最新评论 */ -}}
+            {{- else if eq .id "recent_comments" -}}
+            {{- if .data -}}
+            <ul class="sidebar-comment-list">
+                {{- range .data -}}
+                <li class="sidebar-comment-item">
+                    <div class="sidebar-comment-author">{{ .author }}</div>
+                    <div class="sidebar-comment-content">{{ .content }}</div>
+                    <div class="sidebar-comment-date">{{ .date }}</div>
+                </li>
+                {{- end -}}
+            </ul>
+            {{- else -}}
+            <div class="sidebar-empty">
+                <i class="fa-solid fa-comments"></i>
+                <p>暂无评论</p>
+            </div>
+            {{- end -}}
+
+            {{- /* 友情链接 */ -}}
+            {{- else if eq .id "links" -}}
+            {{- if .data -}}
+            <ul class="sidebar-links-list">
+                {{- range .data -}}
+                <li class="sidebar-links-item">
+                    <a href="{{ .url }}" class="sidebar-links-link" target="_blank">
+                        <i class="fa-solid fa-link"></i>
+                        {{ .name }}
+                    </a>
+                </li>
+                {{- end -}}
+            </ul>
+            {{- else -}}
+            <div class="sidebar-empty">
+                <i class="fa-solid fa-link"></i>
+                <p>暂无链接</p>
+            </div>
+            {{- end -}}
+
+            {{- /* 自定义HTML */ -}}
+            {{- else if eq .id "custom_html" -}}
+            <div class="sidebar-custom-html">
+                {{- if .data -}}
+                {{ .data }}
+                {{- else -}}
+                <div class="sidebar-empty">
+                    <i class="fa-solid fa-code"></i>
+                    <p>暂无内容</p>
+                </div>
+                {{- end -}}
+            </div>
+
+            {{- end -}}
+        </div>
+    </div>
+    {{- end -}}
+</aside>
+{{- end -}}
+{{ end }}

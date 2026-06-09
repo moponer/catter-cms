@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .site.title }} - {{ .pageTitle }}</title>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/list.css" }}">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">{{ .site.title }}<span>CMS</span></a>
+            <nav>
+                <a href="/">首页</a>
+                <a href="/article">文章</a>
+                <a href="/categories" class="active">分类</a>
+                <a href="/tags">标签</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>分类</h1>
+    </section>
+
+    <div class="main-container">
+        <div class="categories-grid">
+            {{ if gt (len .categories) 0 }}
+            {{ range .categories }}
+            <a href="/category/{{ .Slug }}" class="category-card">
+                <div class="category-icon"><i class="fa-solid fa-folder"></i></div>
+                <div class="category-info">
+                    <h3 class="category-name">{{ .Name }}</h3>
+                    <span class="category-count">{{ .PostCount }} 篇文章</span>
+                </div>
+            </a>
+            {{ end }}
+            {{ else }}
+            <div class="empty-state-full">
+                <p>暂无分类</p>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 {{ .site.title }}. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>

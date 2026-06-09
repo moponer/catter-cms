@@ -9,6 +9,13 @@
     {{ end }}
     <title>{{ .page.Title }} - {{ .site.title }}</title>
     <meta name="description" content="{{ .page.MetaDescription }}">
+    <link rel="canonical" href="/page/{{ .page.Slug }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ .page.Title }} - {{ .site.title }}">
+    <meta property="og:url" content="/page/{{ .page.Slug}}">
+    <meta property="og:description" content="{{ .page.MetaDescription }}">
+    <meta property="og:site_name" content="{{ .site.title }}">
+    <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/sidebar.css" }}">
     {{ if getConfig "customHead" "" }}

@@ -1,0 +1,210 @@
+name: Catter CMS Official
+slug: catter-cms-official
+version: 2.0.0
+author: Catter CMS Team
+description: Catter CMS 开源官网主题，Terminal 风格，MIT 开源精神
+
+config:
+  # ===== 颜色配置（绿色系，无蓝色）=====
+  primaryColor: "#10B981"
+  primaryDark: "#059669"
+  primaryDarker: "#047857"
+  accent: "#F59E0B"
+  bgPrimary: "#F9FAFB"
+  bgSecondary: "#FFFFFF"
+  bgDark: "#0F172A"
+  textPrimary: "#1E293B"
+  textSecondary: "#64748B"
+  textMuted: "#94A3B8"
+  borderColor: "#E2E8F0"
+  success: "#10B981"
+
+  # ===== Hero 区域 =====
+  heroEnabled: true
+
+  # ===== 左右分栏模块（特性下方） =====
+  showcaseEnabled: true
+  showcaseImages: "[]"
+  showcaseTitle: "Catter CMS"
+  showcaseSubtitle: "自由定义你的内容"
+  showcaseBadges: "MIT 开源,四大自由,单二进制零依赖部署"
+  showcaseGitHubUrl: "https://github.com/your-username/catter-cms"
+  showcaseGitHubText: "获取项目"
+  showcaseDocUrl: "/page/getting-started"
+  showcaseDocText: "快速开始"
+  showcaseViewDocUrl: "/page/docs"
+  showcaseViewDocText: "查看文档"
+  showcaseScrollSections: "[]"
+
+  # ===== Footer =====
+  footerEnabled: true
+  footerCopyright: "2026 Catter CMS. All rights reserved."
+  footerICP: ""
+
+  # ===== 自定义代码 =====
+  customCss: ""
+  customJs: ""
+
+configDefinition:
+  - section: 颜色设置
+    fields:
+      - name: primaryColor
+        type: color
+        label: 主色调
+        default: "#10B981"
+      - name: primaryDark
+        type: color
+        label: 深主色调
+        default: "#059669"
+      - name: primaryDarker
+        type: color
+        label: 更深主色调
+        default: "#047857"
+      - name: accent
+        type: color
+        label: 强调色
+        default: "#F59E0B"
+      - name: bgPrimary
+        type: color
+        label: 主背景色
+        default: "#F9FAFB"
+      - name: bgSecondary
+        type: color
+        label: 次背景色
+        default: "#FFFFFF"
+      - name: bgDark
+        type: color
+        label: 深色背景
+        default: "#0F172A"
+      - name: textPrimary
+        type: color
+        label: 主文字色
+        default: "#1E293B"
+      - name: textSecondary
+        type: color
+        label: 次文字色
+        default: "#64748B"
+      - name: textMuted
+        type: color
+        label: 弱化文字色
+        default: "#94A3B8"
+      - name: borderColor
+        type: color
+        label: 边框色
+        default: "#E2E8F0"
+
+  - section: 首页 Hero
+    fields:
+      - name: heroEnabled
+        type: switch
+        label: 显示 Hero 区域
+        default: true
+
+  - section: 左右分栏模块
+    fields:
+      - name: showcaseEnabled
+        type: switch
+        label: 显示左右分栏模块（特性下方）
+        default: true
+      - name: showcaseImages
+        type: image-list
+        label: 左侧轮播图片
+        show_if: "showcaseEnabled == true"
+        default: "[]"
+      - name: showcaseTitle
+        type: text
+        label: 主标题
+        show_if: "showcaseEnabled == true"
+        default: "Catter CMS"
+      - name: showcaseSubtitle
+        type: text
+        label: 副标题
+        show_if: "showcaseEnabled == true"
+        default: "自由定义你的内容"
+      - name: showcaseBadges
+        type: text
+        label: 顶部徽章（逗号分隔）
+        show_if: "showcaseEnabled == true"
+        default: "MIT 开源,四大自由,单二进制零依赖部署"
+      - name: showcaseGitHubUrl
+        type: text
+        label: GitHub 链接
+        show_if: "showcaseEnabled == true"
+        default: "https://github.com/your-username/catter-cms"
+      - name: showcaseGitHubText
+        type: text
+        label: GitHub 按钮文字
+        show_if: "showcaseEnabled == true"
+        default: "获取项目"
+      - name: showcaseDocUrl
+        type: text
+        label: 快速开始链接
+        show_if: "showcaseEnabled == true"
+        default: "/page/getting-started"
+      - name: showcaseDocText
+        type: text
+        label: 快速开始文字
+        show_if: "showcaseEnabled == true"
+        default: "快速开始"
+      - name: showcaseViewDocUrl
+        type: text
+        label: 查看文档链接
+        show_if: "showcaseEnabled == true"
+        default: "/page/docs"
+      - name: showcaseViewDocText
+        type: text
+        label: 查看文档文字
+        show_if: "showcaseEnabled == true"
+        default: "查看文档"
+      - name: showcaseScrollSections
+        type: textarea
+        label: 滚动内容区（JSON）
+        show_if: "showcaseEnabled == true"
+        default: "[]"
+
+  - section: 页脚
+    fields:
+      - name: footerEnabled
+        type: switch
+        label: 显示页脚
+        default: true
+      - name: footerCopyright
+        type: text
+        label: 版权信息
+        show_if: "footerEnabled == true"
+        default: "2026 Catter CMS. All rights reserved."
+      - name: footerICP
+        type: text
+        label: ICP 备案号
+        show_if: "footerEnabled == true"
+        default: ""
+
+  - section: SEO 设置
+    fields:
+      - name: metaTitle
+        type: text
+        label: 首页标题
+        default: ""
+      - name: metaKeywords
+        type: text
+        label: 关键词
+        default: ""
+      - name: metaDescription
+        type: textarea
+        label: 描述
+        default: ""
+      - name: ogImage
+        type: image
+        label: Open Graph 图片
+        default: ""
+
+  - section: 自定义代码
+    fields:
+      - name: customCss
+        type: textarea
+        label: 自定义 CSS
+        default: ""
+      - name: customJs
+        type: textarea
+        label: 自定义 JavaScript
+        default: ""

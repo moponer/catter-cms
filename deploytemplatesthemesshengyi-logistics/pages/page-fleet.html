@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <title>{{ .page.Title }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ if .page.Excerpt }}{{ .page.Excerpt }}{{ else }}{{ getConfig "metaDescription" "" }}{{ end }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/fleet.css" }}">
+    <link rel="icon" href="{{ asset_path "images/logo-sy.svg" }}" type="image/svg+xml">
+    {{ if getConfig "customCSS" "" }}
+    <style>{{ getConfig "customCSS" "" | safe }}</style>
+    {{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+<!-- 提取 td 并判空 -->
+{{ $td := .td }}
+{{ if not $td }}{{ $td = dict }}{{ end }}
+
+<div class="page-banner">
+    <h1 class="page-banner-title">{{ .page.Title }}</h1>
+    <div class="page-banner-breadcrumb"><a href="/">首页</a><span>›</span>{{ .page.Title }}</div>
+</div>
+
+<!-- ====== 页面简介 ====== -->
+{{ if .page.Content }}
+<section class="fleet-intro">
+    <div class="container">
+        <div class="fleet-intro-body">
+            {{ .page.Content }}
+        </div>
+    </div>
+</section>
+{{ end }}
+
+<!-- ====== 车辆展示网格 ====== -->
+<section class="fleet-section">
+    <div class="container">
+        {{ $vehicles := ensureSlice (index $td "vehicles") }}
+        {{ if $vehicles }}
+        <!-- 统计栏 -->
+        <div class="fleet-stats">
+            <div class="fleet-stats-item">
+                <span class="fleet-stats-num">{{ len $vehicles }}</span>
+                <span class="fleet-stats-label">车型种类</span>
+            </div>
+            <div class="fleet-stats-item">
+                <span class="fleet-stats-num"><i class="fa-solid fa-shield-halved"></i></span>
+                <span class="fleet-stats-label">安全达标</span>
+            </div>
+            <div class="fleet-stats-item">
+                <span class="fleet-stats-num"><i class="fa-solid fa-certificate"></i></span>
+                <span class="fleet-stats-label">持证运营</span>
+            </div>
+        </div>
+
+        <!-- 车辆卡片网格 -->
+        <div class="fleet-grid">
+            {{ range $i, $v := $vehicles }}
+            {{ $vehicle := json_decode $v }}
+            <div class="fleet-card" data-index="{{ $i }}">
+                <!-- 图片区 -->
+                <div class="fleet-card-img-wrap">
+                    {{ if $vehicle.image }}
+                    <img
+                        src="{{ $vehicle.image }}"
+                        alt="{{ $vehicle.name }}"
+                        class="fleet-card-img"
+                        loading="lazy"
+                        data-lightbox-src="{{ $vehicle.image }}"
+                        data-lightbox-title="{{ $vehicle.name }}"
+                    >
+                    <button class="fleet-card-zoom" data-src="{{ $vehicle.image }}" data-title="{{ $vehicle.name }}">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i>
+                    </button>
+                    {{ else }}
+                    <div class="fleet-card-img-placeholder">
+                        <i class="fa-solid fa-truck-moving"></i>
+                    </div>
+                    {{ end }}
+                    {{ if $vehicle.type }}
+                    <span class="fleet-card-badge">{{ $vehicle.type }}</span>
+                    {{ end }}
+                </div>
+
+                <!-- 信息区 -->
+                <div class="fleet-card-body">
+                    <h3 class="fleet-card-name">{{ $vehicle.name }}</h3>
+
+                    <!-- 参数表格 -->
+                    <dl class="fleet-card-specs">
+                        {{ if $vehicle.capacity }}
+                        <div class="fleet-card-spec-item">
+                            <dt><i class="fa-solid fa-weight-hanging"></i> 载重</dt>
+                            <dd>{{ $vehicle.capacity }}</dd>
+                        </div>
+                        {{ end }}
+                        {{ if $vehicle.length }}
+                        <div class="fleet-card-spec-item">
+                            <dt><i class="fa-solid fa-ruler-horizontal"></i> 车长</dt>
+                            <dd>{{ $vehicle.length }}</dd>
+                        </div>
+                        {{ end }}
+                        {{ if $vehicle.type }}
+                        <div class="fleet-card-spec-item">
+                            <dt><i class="fa-solid fa-tag"></i> 车型</dt>
+                            <dd>{{ $vehicle.type }}</dd>
+                        </div>
+                        {{ end }}
+                    </dl>
+
+                    <!-- 特点描述 -->
+                    {{ if $vehicle.feature }}
+                    <p class="fleet-card-feature">{{ $vehicle.feature }}</p>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+        </div>
+
+        {{ else }}
+        <!-- 空状态提示 -->
+        <div class="fleet-empty">
+            <div class="fleet-empty-icon"><i class="fa-solid fa-truck-moving"></i></div>
+            <p class="fleet-empty-text">暂无车辆数据</p>
+            <p class="fleet-empty-hint">请在后台「页面编辑」→「模板数据」中添加车辆信息</p>
+        </div>
+        {{ end }}
+    </div>
+</section>
+
+<!-- ====== 底部咨询 CTA ====== -->
+<section class="fleet-cta">
+    <div class="container">
+        <div class="fleet-cta-inner">
+            <div class="fleet-cta-text">
+                <h2>需要了解更多运力信息？</h2>
+                <p>我们的专业团队随时为您提供运输方案咨询</p>
+            </div>
+            <a href="/page/contact" class="fleet-cta-btn">
+                <i class="fa-solid fa-phone"></i> 立即咨询
+            </a>
+        </div>
+    </div>
+</section>
+
+{{ template "footer" . }}
+
+<!-- ====== 灯箱 ====== -->
+<div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
+    <button class="lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+    <div class="lightbox-content">
+        <img src="" alt="" id="lightboxImg">
+        <p class="lightbox-caption" id="lightboxCaption"></p>
+    </div>
+</div>
+
+<script>
+(function(){
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = document.getElementById('lightboxImg');
+    var lightboxCaption = document.getElementById('lightboxCaption');
+    var currentIndex = 0;
+    var zoomBtns = Array.from(document.querySelectorAll('.fleet-card-zoom'));
+
+    function showLightbox(index) {
+        currentIndex = index;
+        var btn = zoomBtns[currentIndex];
+        if (!btn) return;
+        lightboxImg.src = btn.getAttribute('data-src');
+        lightboxCaption.textContent = btn.getAttribute('data-title');
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    zoomBtns.forEach(function(btn, i) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showLightbox(i);
+        });
+    });
+
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+
+    document.getElementById('lightboxPrev').addEventListener('click', function() {
+        currentIndex = (currentIndex - 1 + zoomBtns.length) % zoomBtns.length;
+        showLightbox(currentIndex);
+    });
+
+    document.getElementById('lightboxNext').addEventListener('click', function() {
+        currentIndex = (currentIndex + 1) % zoomBtns.length;
+        showLightbox(currentIndex);
+    });
+
+    lightbox.addEventListener('click', function(e) {
+        if (e.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (!lightbox.classList.contains('active')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') document.getElementById('lightboxPrev').click();
+        if (e.key === 'ArrowRight') document.getElementById('lightboxNext').click();
+    });
+})();
+</script>
+</body>
+</html>

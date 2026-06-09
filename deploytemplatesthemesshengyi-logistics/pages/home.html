@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <link rel="icon" href="{{ asset_path "images/logo-sy.svg" }}" type="image/svg+xml">
+    <title>{{ .site.title }}</title>
+    <meta name="description" content="{{ getConfig "metaDescription" "" }}">
+    <meta name="keywords" content="{{ getConfig "metaKeywords" "" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
+    <link rel="stylesheet" href="{{ asset_path "assets/css/home.css" }}">
+    {{ if getConfig "customCSS" "" }}
+    <style>{{ getConfig "customCSS" "" | safe }}</style>
+    {{ end }}
+</head>
+<body>
+
+{{ template "header" . }}
+
+<!-- ====== 首页内容模块（按配置顺序渲染） ====== -->
+{{ $moduleOrder := getConfig "homeModuleOrder" "" }}
+{{ $modules := ensureSlice $moduleOrder }}
+{{ if gt (len $modules) 0 }}
+    {{ range $modules }}
+        {{ if eq .id "hero" }}
+{{ if getConfig "heroEnabled" true }}
+<section class="hero">
+    {{ $heroSingle := getConfig "heroBgImage" "" }}
+    {{ $heroImgs := getConfig "heroBgImages" (ensureSlice nil) }}
+    {{ $hasSingle := ne $heroSingle "" }}
+    {{ $hasMulti := gt (len $heroImgs) 0 }}
+    {{ if or $hasMulti $hasSingle }}
+    <div class="hero-bg-carousel" id="heroBgCarousel">
+        <div class="hero-bg-track">
+            {{ if $hasMulti }}
+                {{ range $idx, $img := $heroImgs }}
+                <div class="hero-bg-slide{{ if eq $idx 0 }} active{{ end }}">
+                    <img src="{{ $img.url }}" alt="" loading="eager">
+                </div>
+                {{ end }}
+            {{ else }}
+                <div class="hero-bg-slide active">
+                    <img src="{{ $heroSingle }}" alt="" loading="eager">
+                </div>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-badge-row">
+            <span class="hero-badge"><i class="fa-solid fa-certificate"></i> 危险化学品运输资质</span>
+            <span class="hero-badge"><i class="fa-solid fa-check"></i> ISO9001认证</span>
+            <span class="hero-badge"><i class="fa-solid fa-truck"></i> 全国配送覆盖</span>
+        </div>
+        <h1 class="hero-title">
+            {{ if getConfig "heroTitle" "" }}{{ getConfig "heroTitle" "" }}{{ else }}专业<em>危化品</em>道路运输服务{{ end }}
+        </h1>
+        <p class="hero-subtitle">
+            {{ if getConfig "heroSubtitle" "" }}{{ getConfig "heroSubtitle" "" }}{{ else }}安全·高效·专业 | 全国道路危险货物运输资质认证{{ end }}
+        </p>
+        <div class="hero-actions">
+            <a href="{{ getConfig "heroCta1Link" "#" }}" class="btn btn-primary">
+                {{ if getConfig "heroCta1Text" "" }}{{ getConfig "heroCta1Text" "" }}{{ else }}了解服务{{ end }}
+            </a>
+            <a href="{{ getConfig "heroCta2Link" "#" }}" class="btn btn-outline">
+                {{ if getConfig "heroCta2Text" "" }}{{ getConfig "heroCta2Text" "" }}{{ else }}联系我们{{ end }}
+            </a>
+        </div>
+        <div class="hero-certs cert-strip">
+            <span class="cert-item"><span class="cert-item-icon"><i class="fa-solid fa-list"></i></span>双证齐全合法合规</span>
+            <span class="cert-item"><span class="cert-item-icon"><i class="fa-solid fa-satellite-dish"></i></span>GPS全程实时监控</span>
+            <span class="cert-item"><span class="cert-item-icon"><i class="fa-solid fa-shield-halved"></i></span>全程货物保险</span>
+            <span class="cert-item"><span class="cert-item-icon"><i class="fa-solid fa-clock"></i></span>24小时应急响应</span>
+        </div>
+    </div>
+    {{ if and $hasMulti (gt (len $heroImgs) 1) }}
+    <div class="hero-carousel-dots" id="heroCarouselDots">
+        {{ range $idx, $img := $heroImgs }}
+        <span class="hero-carousel-dot{{ if eq $idx 0 }} active{{ end }}" data-index="{{ $idx }}"></span>
+        {{ end }}
+    </div>
+    {{ end }}
+</section>
+{{ end }}
+        {{ else if eq .id "advantages" }}
+{{ if getConfig "advantagesEnabled" true }}
+<section class="features-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>{{ if getConfig "advantagesTitle" "" }}{{ getConfig "advantagesTitle" "" }}{{ else }}核心服务优势{{ end }}</h2>
+            <p>多年深耕危化品运输领域，为客户提供安全、专业、全程可溯源的物流保障</p>
+        </div>
+        <div class="features-grid">
+            {{ $items := getConfig "advantagesItems" "" }}
+            {{ if $items }}
+                {{ range $items }}
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid {{ .icon }}"></i></div>
+                    <h3 class="feature-title">{{ .title }}</h3>
+                    <p class="feature-desc">{{ .description }}</p>
+                </div>
+                {{ end }}
+            {{ else }}
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-certificate"></i></div>
+                <h3 class="feature-title">持证合规运营</h3>
+                <p class="feature-desc">取得道路危险货物运输许可证，驾驶员、押运员持证上岗，全程合法合规，杜绝违规风险。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-satellite-dish"></i></div>
+                <h3 class="feature-title">GPS实时监控</h3>
+                <p class="feature-desc">车辆全程GPS定位，实时掌握货物动态，异常情况自动预警，客户可随时查询运输状态。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-coins"></i></div>
+                <h3 class="feature-title">透明合理报价</h3>
+                <p class="feature-desc">无隐藏费用，公开透明的收费标准，针对长期合作客户提供定制化优惠方案。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                <h3 class="feature-title">快速响应调度</h3>
+                <p class="feature-desc">24小时运营调度，接单后快速响应，紧急货物优先安排，确保您的生产计划不受影响。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3 class="feature-title">全程货物保险</h3>
+                <p class="feature-desc">货物运输全程投保，出险有保障，最大程度保护客户资产安全，让您安心托付。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-globe"></i></div>
+                <h3 class="feature-title">全国配送网络</h3>
+                <p class="feature-desc">覆盖全国主要城市及工业园区，自有车队加合作专线，确保各地货物准时安全送达。</p>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+        {{ else if eq .id "services" }}
+{{ if getConfig "servicesEnabled" true }}
+<section class="services-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>{{ if getConfig "servicesTitle" "" }}{{ getConfig "servicesTitle" "" }}{{ else }}服务项目{{ end }}</h2>
+            <p>聚焦危化品运输全链路，提供多种运输解决方案</p>
+        </div>
+        <div class="services-grid">
+            {{ $items := getConfig "servicesItems" "" }}
+            {{ if $items }}
+                {{ range $items }}
+                <div class="service-card">
+                    <div class="service-card-header">
+                        <div class="service-icon"><i class="fa-solid {{ .icon }}"></i></div>
+                        <div class="service-card-header-text">
+                            <h3>{{ .title }}</h3>
+                            <p>{{ .description }}</p>
+                        </div>
+                    </div>
+                    <div class="service-card-body">
+                        <ul class="service-features">
+                            {{ $features := .features }}
+                            {{ if $features }}
+                                {{ range split $features "\n" }}
+                                {{ if . }}<li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span> {{ . }}</li>{{ end }}
+                                {{ end }}
+                            {{ end }}
+                        </ul>
+                        <a href="/page/contact" class="btn btn-blue">立即询价</a>
+                    </div>
+                </div>
+                {{ end }}
+            {{ else }}
+            <div class="service-card">
+                <div class="service-card-header">
+                    <div class="service-icon"><i class="fa-solid fa-truck"></i></div>
+                    <div class="service-card-header-text">
+                        <h3>危化品整车配送</h3>
+                        <p>Full Truck Load</p>
+                    </div>
+                </div>
+                <div class="service-card-body">
+                    <ul class="service-features">
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>适用于大批量危化品运输</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>专属危化品运输车辆</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>一对一专项押运服务</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>点到点直达，全程无中转</li>
+                    </ul>
+                    <a href="/page/contact" class="btn btn-blue">立即询价</a>
+                </div>
+            </div>
+            <div class="service-card">
+                <div class="service-card-header">
+                    <div class="service-icon"><i class="fa-solid fa-box"></i></div>
+                    <div class="service-card-header-text">
+                        <h3>危化品零担运输</h3>
+                        <p>Less than Truckload</p>
+                    </div>
+                </div>
+                <div class="service-card-body">
+                    <ul class="service-features">
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>适用于小批量、多频次需求</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>与整车分类规范装载</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>专业分拣，防止货物混装</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>灵活发车，降低库存压力</li>
+                    </ul>
+                    <a href="/page/contact" class="btn btn-blue">立即询价</a>
+                </div>
+            </div>
+            <div class="service-card">
+                <div class="service-card-header">
+                    <div class="service-icon"><i class="fa-solid fa-industry"></i></div>
+                    <div class="service-card-header-text">
+                        <h3>集装箱危化品运输</h3>
+                        <p>Container Transport</p>
+                    </div>
+                </div>
+                <div class="service-card-body">
+                    <ul class="service-features">
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>对接港口及工厂集装箱</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>符合国际危化品装箱规范</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>提供危化品申报协助</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>海陆联运一站式衔接</li>
+                    </ul>
+                    <a href="/page/contact" class="btn btn-blue">立即询价</a>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+        {{ else if eq .id "stats" }}
+{{ if getConfig "statsEnabled" true }}
+<section class="stats-banner">
+    <div class="container">
+        <div class="stats-grid">
+            {{ $items := getConfig "statsItems" "" }}
+            {{ if $items }}
+                {{ range $items }}
+                <div class="stat-item">
+                    <div class="stat-number">{{ .value }}<span class="stat-suffix">{{ .suffix }}</span></div>
+                    <div class="stat-label">{{ .label }}</div>
+                </div>
+                {{ end }}
+            {{ else }}
+            <div class="stat-item">
+                <div class="stat-number">{{ getConfig "statsYears" "0" }}<span class="stat-suffix">+</span></div>
+                <div class="stat-label">专注危化品运输</div>
+                <div class="stat-desc">年深耕行业积累</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ getConfig "statsCars" "0" }}<span class="stat-suffix">+</span></div>
+                <div class="stat-label">自有专业车辆</div>
+                <div class="stat-desc">辆危化品运输专用车</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ getConfig "statsCities" "0" }}<span class="stat-suffix">+</span></div>
+                <div class="stat-label">全国覆盖城市</div>
+                <div class="stat-desc">个城市运输网络</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ getConfig "statsCategories" "0" }}<span class="stat-suffix"></span></div>
+                <div class="stat-label">危险货物类别</div>
+                <div class="stat-desc">类危化品运输资质</div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+        {{ else if eq .id "news" }}
+{{ if getConfig "newsEnabled" true }}
+<section class="news-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>{{ if getConfig "newsTitle" "" }}{{ getConfig "newsTitle" "" }}{{ else }}最新动态{{ end }}</h2>
+            <p>行业资讯、公司新闻，及时了解危化品物流领域最新动向</p>
+        </div>
+        <div class="news-layout">
+            <div class="news-featured">
+                {{ range $index, $post := $.posts }}
+                {{ if lt $index 2 }}
+                <div class="news-card">
+                    {{ if $post.Cover }}
+                    <img src="{{ $post.Cover }}" alt="{{ $post.Title }}" class="news-card-cover">
+                    {{ else }}
+                    <div class="news-card-cover-placeholder"><i class="fa-solid fa-newspaper"></i></div>
+                    {{ end }}
+                    <div class="news-card-body">
+                        <div class="news-card-meta">
+                            {{ range $post.Tags }}
+                            <span class="badge badge-blue">{{ .Name }}</span>
+                            {{ end }}
+                            {{ if getConfig "newsShowDate" true }}
+                            <span class="news-card-date">{{ dateFormat "2006-01-02" $post.PublishedAt }}</span>
+                            {{ end }}
+                        </div>
+                        <h3 class="news-card-title"><a href="/article/{{ $post.Slug }}">{{ $post.Title }}</a></h3>
+                        <p class="news-card-excerpt">{{ $post.Excerpt }}</p>
+                        <a href="/article/{{ $post.Slug }}" class="news-card-more">阅读全文 →</a>
+                    </div>
+                </div>
+                {{ end }}
+                {{ end }}
+            </div>
+            <div class="news-list-panel">
+                <div class="news-list-header">
+                    <h3><i class="fa-solid fa-list"></i> 更多动态</h3>
+                    <a href="/article" class="news-list-more">查看全部 →</a>
+                </div>
+                {{ range $index, $post := $.recentPosts }}
+                {{ if lt $index 8 }}
+                <div class="news-list-item">
+                    <span class="news-list-title"><a href="/article/{{ $post.Slug }}">{{ $post.Title }}</a></span>
+                    <span class="news-list-date">{{ dateFormat "01月02日" .PublishedAt }}</span>
+                </div>
+                {{ end }}
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</section>
+{{ end }}
+        {{ end }}
+    {{ end }}
+{{ else }}
+{{ if getConfig "heroEnabled" true }}
+<section class="hero">
+    {{ $heroSingle := getConfig "heroBgImage" "" }}
+    {{ $heroImgs := getConfig "heroBgImages" (ensureSlice nil) }}
+    {{ $hasSingle := ne $heroSingle "" }}
+    {{ $hasMulti := gt (len $heroImgs) 0 }}
+    {{ if or $hasMulti $hasSingle }}
+    <div class="hero-bg-carousel" id="heroBgCarousel">
+        <div class="hero-bg-track">
+            {{ if $hasMulti }}
+                {{ range $idx, $img := $heroImgs }}
+                <div class="hero-bg-slide{{ if eq $idx 0 }} active{{ end }}">
+                    <img src="{{ $img.url }}" alt="" loading="eager">
+                </div>
+                {{ end }}
+            {{ else }}
+                <div class="hero-bg-slide active">
+                    <img src="{{ $heroSingle }}" alt="" loading="eager">
+                </div>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-badge-row">
+            <span class="hero-badge"><i class="fa-solid fa-certificate"></i> 危险化学品运输资质</span>
+            <span class="hero-badge"><i class="fa-solid fa-check"></i> ISO9001认证</span>
+            <span class="hero-badge"><i class="fa-solid fa-truck"></i> 全国配送覆盖</span>
+        </div>
+        <h1 class="hero-title">
+            {{ if getConfig "heroTitle" "" }}{{ getConfig "heroTitle" "" }}{{ else }}专业<em>危化品</em>道路运输服务{{ end }}
+        </h1>
+        <p class="hero-subtitle">
+            {{ if getConfig "heroSubtitle" "" }}{{ getConfig "heroSubtitle" "" }}{{ else }}安全·高效·专业 | 全国道路危险货物运输资质认证{{ end }}
+        </p>
+        <div class="hero-actions">
+            <a href="{{ getConfig "heroCta1Link" "#" }}" class="btn btn-primary">
+                {{ if getConfig "heroCta1Text" "" }}{{ getConfig "heroCta1Text" "" }}{{ else }}了解服务{{ end }}
+            </a>
+            <a href="{{ getConfig "heroCta2Link" "#" }}" class="btn btn-outline">
+                {{ if getConfig "heroCta2Text" "" }}{{ getConfig "heroCta2Text" "" }}{{ else }}联系我们{{ end }}
+            </a>
+        </div>
+        <div class="hero-certs cert-strip">
+            <span class="cert-item"><span class="cert-item-icon"><i class="fa-solid fa-list"></i></span>双证齐全合法合规</span>
+            <span class="cert-item"><span class="cert-item-icon"><i class="fa-solid fa-satellite-dish"></i></span>GPS全程实时监控</span>
+            <span class="cert-item"><span class="cert-item-icon"><i class="fa-solid fa-shield-halved"></i></span>全程货物保险</span>
+            <span class="cert-item"><span class="cert-item-icon"><i class="fa-solid fa-clock"></i></span>24小时应急响应</span>
+        </div>
+    </div>
+    {{ if and $hasMulti (gt (len $heroImgs) 1) }}
+    <div class="hero-carousel-dots" id="heroCarouselDots">
+        {{ range $idx, $img := $heroImgs }}
+        <span class="hero-carousel-dot{{ if eq $idx 0 }} active{{ end }}" data-index="{{ $idx }}"></span>
+        {{ end }}
+    </div>
+    {{ end }}
+</section>
+{{ end }}
+{{ if getConfig "advantagesEnabled" true }}
+<section class="features-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>{{ if getConfig "advantagesTitle" "" }}{{ getConfig "advantagesTitle" "" }}{{ else }}核心服务优势{{ end }}</h2>
+            <p>多年深耕危化品运输领域，为客户提供安全、专业、全程可溯源的物流保障</p>
+        </div>
+        <div class="features-grid">
+            {{ $items := getConfig "advantagesItems" "" }}
+            {{ if $items }}
+                {{ range $items }}
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid {{ .icon }}"></i></div>
+                    <h3 class="feature-title">{{ .title }}</h3>
+                    <p class="feature-desc">{{ .description }}</p>
+                </div>
+                {{ end }}
+            {{ else }}
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-certificate"></i></div>
+                <h3 class="feature-title">持证合规运营</h3>
+                <p class="feature-desc">取得道路危险货物运输许可证，驾驶员、押运员持证上岗，全程合法合规，杜绝违规风险。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-satellite-dish"></i></div>
+                <h3 class="feature-title">GPS实时监控</h3>
+                <p class="feature-desc">车辆全程GPS定位，实时掌握货物动态，异常情况自动预警，客户可随时查询运输状态。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-coins"></i></div>
+                <h3 class="feature-title">透明合理报价</h3>
+                <p class="feature-desc">无隐藏费用，公开透明的收费标准，针对长期合作客户提供定制化优惠方案。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                <h3 class="feature-title">快速响应调度</h3>
+                <p class="feature-desc">24小时运营调度，接单后快速响应，紧急货物优先安排，确保您的生产计划不受影响。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3 class="feature-title">全程货物保险</h3>
+                <p class="feature-desc">货物运输全程投保，出险有保障，最大程度保护客户资产安全，让您安心托付。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-globe"></i></div>
+                <h3 class="feature-title">全国配送网络</h3>
+                <p class="feature-desc">覆盖全国主要城市及工业园区，自有车队加合作专线，确保各地货物准时安全送达。</p>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+{{ if getConfig "servicesEnabled" true }}
+<section class="services-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>{{ if getConfig "servicesTitle" "" }}{{ getConfig "servicesTitle" "" }}{{ else }}服务项目{{ end }}</h2>
+            <p>聚焦危化品运输全链路，提供多种运输解决方案</p>
+        </div>
+        <div class="services-grid">
+            {{ $items := getConfig "servicesItems" "" }}
+            {{ if $items }}
+                {{ range $items }}
+                <div class="service-card">
+                    <div class="service-card-header">
+                        <div class="service-icon"><i class="fa-solid {{ .icon }}"></i></div>
+                        <div class="service-card-header-text">
+                            <h3>{{ .title }}</h3>
+                            <p>{{ .description }}</p>
+                        </div>
+                    </div>
+                    <div class="service-card-body">
+                        <ul class="service-features">
+                            {{ $features := .features }}
+                            {{ if $features }}
+                                {{ range split $features "\n" }}
+                                {{ if . }}<li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span> {{ . }}</li>{{ end }}
+                                {{ end }}
+                            {{ end }}
+                        </ul>
+                        <a href="/page/contact" class="btn btn-blue">立即询价</a>
+                    </div>
+                </div>
+                {{ end }}
+            {{ else }}
+            <div class="service-card">
+                <div class="service-card-header">
+                    <div class="service-icon"><i class="fa-solid fa-truck"></i></div>
+                    <div class="service-card-header-text">
+                        <h3>危化品整车配送</h3>
+                        <p>Full Truck Load</p>
+                    </div>
+                </div>
+                <div class="service-card-body">
+                    <ul class="service-features">
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>适用于大批量危化品运输</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>专属危化品运输车辆</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>一对一专项押运服务</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>点到点直达，全程无中转</li>
+                    </ul>
+                    <a href="/page/contact" class="btn btn-blue">立即询价</a>
+                </div>
+            </div>
+            <div class="service-card">
+                <div class="service-card-header">
+                    <div class="service-icon"><i class="fa-solid fa-box"></i></div>
+                    <div class="service-card-header-text">
+                        <h3>危化品零担运输</h3>
+                        <p>Less than Truckload</p>
+                    </div>
+                </div>
+                <div class="service-card-body">
+                    <ul class="service-features">
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>适用于小批量、多频次需求</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>与整车分类规范装载</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>专业分拣，防止货物混装</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>灵活发车，降低库存压力</li>
+                    </ul>
+                    <a href="/page/contact" class="btn btn-blue">立即询价</a>
+                </div>
+            </div>
+            <div class="service-card">
+                <div class="service-card-header">
+                    <div class="service-icon"><i class="fa-solid fa-industry"></i></div>
+                    <div class="service-card-header-text">
+                        <h3>集装箱危化品运输</h3>
+                        <p>Container Transport</p>
+                    </div>
+                </div>
+                <div class="service-card-body">
+                    <ul class="service-features">
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>对接港口及工厂集装箱</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>符合国际危化品装箱规范</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>提供危化品申报协助</li>
+                        <li><span class="service-features-icon"><i class="fa-solid fa-check"></i></span>海陆联运一站式衔接</li>
+                    </ul>
+                    <a href="/page/contact" class="btn btn-blue">立即询价</a>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+{{ if getConfig "statsEnabled" true }}
+<section class="stats-banner">
+    <div class="container">
+        <div class="stats-grid">
+            {{ $items := getConfig "statsItems" "" }}
+            {{ if $items }}
+                {{ range $items }}
+                <div class="stat-item">
+                    <div class="stat-number">{{ .value }}<span class="stat-suffix">{{ .suffix }}</span></div>
+                    <div class="stat-label">{{ .label }}</div>
+                </div>
+                {{ end }}
+            {{ else }}
+            <div class="stat-item">
+                <div class="stat-number">{{ getConfig "statsYears" "0" }}<span class="stat-suffix">+</span></div>
+                <div class="stat-label">专注危化品运输</div>
+                <div class="stat-desc">年深耕行业积累</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ getConfig "statsCars" "0" }}<span class="stat-suffix">+</span></div>
+                <div class="stat-label">自有专业车辆</div>
+                <div class="stat-desc">辆危化品运输专用车</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ getConfig "statsCities" "0" }}<span class="stat-suffix">+</span></div>
+                <div class="stat-label">全国覆盖城市</div>
+                <div class="stat-desc">个城市运输网络</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ getConfig "statsCategories" "0" }}<span class="stat-suffix"></span></div>
+                <div class="stat-label">危险货物类别</div>
+                <div class="stat-desc">类危化品运输资质</div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+{{ if getConfig "newsEnabled" true }}
+<section class="news-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>{{ if getConfig "newsTitle" "" }}{{ getConfig "newsTitle" "" }}{{ else }}最新动态{{ end }}</h2>
+            <p>行业资讯、公司新闻，及时了解危化品物流领域最新动向</p>
+        </div>
+        <div class="news-layout">
+            <div class="news-featured">
+                {{ range $index, $post := $.posts }}
+                {{ if lt $index 2 }}
+                <div class="news-card">
+                    {{ if $post.Cover }}
+                    <img src="{{ $post.Cover }}" alt="{{ $post.Title }}" class="news-card-cover">
+                    {{ else }}
+                    <div class="news-card-cover-placeholder"><i class="fa-solid fa-newspaper"></i></div>
+                    {{ end }}
+                    <div class="news-card-body">
+                        <div class="news-card-meta">
+                            {{ range $post.Tags }}
+                            <span class="badge badge-blue">{{ .Name }}</span>
+                            {{ end }}
+                            {{ if getConfig "newsShowDate" true }}
+                            <span class="news-card-date">{{ dateFormat "2006-01-02" $post.PublishedAt }}</span>
+                            {{ end }}
+                        </div>
+                        <h3 class="news-card-title"><a href="/article/{{ $post.Slug }}">{{ $post.Title }}</a></h3>
+                        <p class="news-card-excerpt">{{ $post.Excerpt }}</p>
+                        <a href="/article/{{ $post.Slug }}" class="news-card-more">阅读全文 →</a>
+                    </div>
+                </div>
+                {{ end }}
+                {{ end }}
+            </div>
+            <div class="news-list-panel">
+                <div class="news-list-header">
+                    <h3><i class="fa-solid fa-list"></i> 更多动态</h3>
+                    <a href="/article" class="news-list-more">查看全部 →</a>
+                </div>
+                {{ range $index, $post := $.recentPosts }}
+                {{ if lt $index 8 }}
+                <div class="news-list-item">
+                    <span class="news-list-title"><a href="/article/{{ $post.Slug }}">{{ $post.Title }}</a></span>
+                    <span class="news-list-date">{{ dateFormat "01月02日" .PublishedAt }}</span>
+                </div>
+                {{ end }}
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</section>
+{{ end }}
+{{ end }}
+
+{{ template "footer" . }}
+
+<script src="{{ asset_path "assets/js/home.js" }}"></script>
+</body>
+</html>

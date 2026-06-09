@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .site.title }} - {{ .pageTitle }}</title>
+    <title>{{ .pageTitle }} - {{ .site.title }}</title>
+    <meta name="description" content="{{ .site.title }} 文章归档页面">
+    <link rel="canonical" href="/archives">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ .pageTitle }} - {{ .site.title }}">
+    <meta property="og:url" content="/archives">
+    <meta property="og:description" content="{{ .site.title }} 文章归档页面">
+    <meta property="og:site_name" content="{{ .site.title }}">
+    <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/list.css" }}">

@@ -7,6 +7,13 @@
     <link rel="icon" href="{{ asset_path "images/logo-sy.svg" }}" type="image/svg+xml">
     <title>{{ .page.Title }} - {{ .site.title }}</title>
     <meta name="description" content="{{ .page.MetaDescription | default .page.Excerpt }}">
+    <link rel="canonical" href="/page/{{ .page.Slug }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ .page.Title }} - {{ .site.title }}">
+    <meta property="og:url" content="/page/{{ .page.Slug}}">
+    <meta property="og:description" content="{{ .page.MetaDescription | default .page.Excerpt }}">
+    <meta property="og:site_name" content="{{ .site.title }}">
+    <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
     {{ if getConfig "customCSS" "" }}<style>{{ getConfig "customCSS" "" | safe }}</style>{{ end }}

@@ -1,0 +1,72 @@
+{{ define "footer" }}
+<!-- ====== 页脚 ====== -->
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-brand-name">{{ .site.title }}</div>
+                <p class="footer-brand-desc">{{ getConfig "footerDesc" "" }}</p>
+                <div class="footer-contact-item">
+                    <span class="footer-contact-item-icon"><i class="fa-solid fa-phone"></i></span>
+                    <span>{{ getConfig "phone" "" }}</span>
+                </div>
+                <div class="footer-contact-item">
+                    <span class="footer-contact-item-icon"><i class="fa-solid fa-location-dot"></i></span>
+                    <span>{{ getConfig "address" "" }}</span>
+                </div>
+                <div class="footer-contact-item">
+                    <span class="footer-contact-item-icon"><i class="fa-solid fa-envelope"></i></span>
+                    <span>{{ getConfig "email" "" }}</span>
+                </div>
+            </div>
+            <div>
+                <div class="footer-col-title">快速导航</div>
+                <ul class="footer-links">
+                    {{ $footerNav := getConfig "footerNav" (makeSlice (dict "label" "网站首页" "url" "/") (dict "label" "新闻动态" "url" "/article") (dict "label" "关于我们" "url" "/page/about") (dict "label" "运力展示" "url" "/page/fleet") (dict "label" "联系我们" "url" "/page/contact")) }}
+                    {{ range $footerNav }}
+                    <li><a href="{{ .url }}">{{ .label }}</a></li>
+                    {{ end }}
+                </ul>
+            </div>
+            <div>
+                <div class="footer-col-title">服务项目</div>
+                <ul class="footer-links">
+                    {{ $footerServices := getConfig "footerServices" (makeSlice (dict "label" "危化品整车配送" "url" "/page/contact") (dict "label" "危化品零担运输" "url" "/page/contact") (dict "label" "集装箱运输" "url" "/page/contact") (dict "label" "应急运输服务" "url" "/page/contact")) }}
+                    {{ range $footerServices }}
+                    <li><a href="{{ .url }}">{{ .label }}</a></li>
+                    {{ end }}
+                </ul>
+            </div>
+            <div>
+                <div class="footer-col-title">资质认证</div>
+                <ul class="footer-links">
+                    {{ $footerCerts := getConfig "footerCerts" (makeSlice (dict "label" "道路危货运输许可证" "url" "#") (dict "label" "ISO9001质量体系" "url" "#") (dict "label" "安全生产许可证" "url" "#") (dict "label" "危化品经营许可证" "url" "#")) }}
+                    {{ range $footerCerts }}
+                    <li><a href="{{ .url }}">{{ .label }}</a></li>
+                    {{ end }}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="container">
+            {{ getConfig "footerCopyright" "Copyright © 2026 公司名称 版权所有" }}
+        </div>
+    </div>
+</footer>
+
+<script>
+(function(){
+    var toggle = document.getElementById('navToggle');
+    var menu = document.getElementById('navMenu');
+    if(toggle && menu){
+        toggle.addEventListener('click', function(){
+            menu.classList.toggle('open');
+        });
+    }
+})();
+</script>
+{{ if getConfig "customJS" "" }}
+<script>{{ getConfig "customJS" "" }}</script>
+{{ end }}
+{{ end }}

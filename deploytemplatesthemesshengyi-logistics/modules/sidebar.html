@@ -1,0 +1,90 @@
+{{ define "sidebar" }}
+{{ $sbEnabled := getConfig "sidebarEnabled" true }}
+{{ if $sbEnabled }}
+
+{{ $sbPosition := getConfig "sidebarPosition" "right" }}
+{{ $sbModules := getConfig "sidebarModules" (makeSlice (dict "type" "contact") (dict "type" "recent")) }}
+
+<aside class="sidebar{{ if eq $sbPosition "left" }} sidebar-left{{ end }}">
+    {{ range ensureSlice $sbModules }}
+        {{ $modType := .type }}
+
+        {{ if eq $modType "contact" }}
+        <!-- 联系咨询 -->
+        <div class="sidebar-widget sidebar-contact">
+            <h4><i class="fa-solid fa-phone"></i> 立即咨询</h4>
+            <div class="phone-big">{{ getConfig "phone" "" }}</div>
+            <p class="sidebar-contact-tagline">{{ getConfig "sidebarContactTagline" "专业服务，值得信赖" }}</p>
+            <a href="{{ getConfig "sidebarContactLink" "/page/contact" }}" class="btn btn-primary btn-full">{{ getConfig "sidebarContactBtnText" "在线咨询" }}</a>
+        </div>
+
+        {{ else if eq $modType "recent" }}
+        <!-- 最新动态 -->
+        <div class="sidebar-widget">
+            <div class="sidebar-widget-title"><i class="fa-solid fa-list"></i> {{ getConfig "sidebarRecentTitle" "最新动态" }}</div>
+            {{ $recentLimit := getConfig "sidebarRecentCount" "5" }}
+            {{ $recentPosts := ensureSlice $.recentPosts }}
+            {{ if $recentPosts }}
+                {{ range $i, $p := $recentPosts }}
+                    {{ if lt $i (int $recentLimit) }}
+                    <div class="sidebar-news-item">
+                        <div class="sidebar-news-date"><div class="month">{{ dateFormat "01-02" $p.PublishedAt }}</div></div>
+                        <div class="sidebar-news-title"><a href="/article/{{ $p.Slug }}">{{ $p.Title }}</a></div>
+                    </div>
+                    {{ end }}
+                {{ end }}
+            {{ else }}
+            <p class="sidebar-empty">暂无文章</p>
+            {{ end }}
+        </div>
+
+        {{ else if eq $modType "categories" }}
+        <!-- 分类导航 -->
+        <div class="sidebar-widget">
+            <div class="sidebar-widget-title"><i class="fa-solid fa-folder"></i> {{ getConfig "sidebarCategoriesTitle" "文章分类" }}</div>
+            {{ $cats := ensureSlice $.categories }}
+            {{ if $cats }}
+            <ul class="sidebar-category-list">
+                {{ range $cats }}
+                <li><a href="/category/{{ .Slug }}">{{ .Name }}</a></li>
+                {{ end }}
+            </ul>
+            {{ else }}
+            <p class="sidebar-empty">暂无分类</p>
+            {{ end }}
+        </div>
+
+        {{ else if eq $modType "tags" }}
+        <!-- 标签云 -->
+        <div class="sidebar-widget">
+            <div class="sidebar-widget-title"><i class="fa-solid fa-tags"></i> {{ getConfig "sidebarTagsTitle" "热门标签" }}</div>
+            {{ $tags := ensureSlice $.tags }}
+            {{ if $tags }}
+            <div class="sidebar-tag-cloud">
+                {{ range $tags }}
+                <a href="/tag/{{ .Slug }}" class="sidebar-tag-item">{{ .Name }}</a>
+                {{ end }}
+            </div>
+            {{ else }}
+            <p class="sidebar-empty">暂无标签</p>
+            {{ end }}
+        </div>
+
+        {{ else if eq $modType "custom" }}
+        <!-- 自定义内容 -->
+        {{ $customContent := getConfig "sidebarCustomContent" "" }}
+        {{ if $customContent }}
+        <div class="sidebar-widget">
+            <div class="sidebar-widget-title"><i class="fa-solid fa-pen"></i> {{ getConfig "sidebarCustomTitle" "相关信息" }}</div>
+            <div class="sidebar-custom-content">
+                {{ $customContent | safe }}
+            </div>
+        </div>
+        {{ end }}
+
+        {{ end }}
+    {{ end }}
+</aside>
+
+{{ end }}
+{{ end }}
