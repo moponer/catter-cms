@@ -18,10 +18,14 @@ type Page struct {
 	TemplateData   string    `json:"template_data" gorm:"type:text"` // 模板专属数据（JSON格式）
 	MetaTitle      string    `json:"meta_title" gorm:"size:500"`
 	MetaDescription string   `json:"meta_description" gorm:"type:text"`
-	Views          int       `json:"views" gorm:"default:0"`
-	SortOrder      int       `json:"sort_order" gorm:"default:0"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	// SEO 扩展字段
+	OgImage      string    `json:"og_image" gorm:"size:1000"` // Open Graph 图片
+	CanonicalURL string    `json:"canonical_url" gorm:"size:1000"` // 规范 URL
+	Robots       string    `json:"robots" gorm:"size:100"` // 搜索引擎索引指令 (noindex, nofollow 等)
+	Views        int       `json:"views" gorm:"default:0"`
+	SortOrder    int       `json:"sort_order" gorm:"default:0"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 // TableName 指定表名

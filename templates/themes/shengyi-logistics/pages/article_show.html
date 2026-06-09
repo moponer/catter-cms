@@ -4,8 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/fontawesome/css/all.min.css">
-    <title>{{ .post.Title }} - {{ .site.title }}</title>
+    <title>{{ .post.MetaTitle | default (printf "%s - %s" .post.Title .site.title) }}</title>
     <meta name="description" content="{{ .post.MetaDescription | default .post.Excerpt }}">
+    {{ if .post.Robots }}
+    <meta name="robots" content="{{ .post.Robots }}">
+    {{ else }}
+    <meta name="robots" content="index, follow">
+    {{ end }}
+    <link rel="canonical" href="{{ .site.url }}/article/{{ .post.Slug }}">
+    {{ if .post.CanonicalURL }}
+    <link rel="canonical" href="{{ .post.CanonicalURL }}">
+    {{ end }}
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ .post.MetaTitle | default .post.Title }}">
+    <meta property="og:description" content="{{ .post.MetaDescription | default .post.Excerpt }}">
+    <meta property="og:url" href="{{ .site.url }}/article/{{ .post.Slug }}">
+    <meta property="og:site_name" content="{{ .site.title }}">
+    <meta property="og:locale" content="zh_CN">
+    {{ if .post.PublishedAt }}
+    <meta property="article:published_time" content="{{ dateFormat "2006-01-02T15:04:05-07:00" .post.PublishedAt }}">
+    {{ end }}
+    {{ if .post.Tags }}
+    {{ range .post.Tags }}
+    <meta property="article:tag" content="{{ .Name }}">
+    {{ end }}
+    {{ end }}
+    {{ if .post.OgImage }}
+    <meta property="og:image" content="{{ .post.OgImage }}">
+    {{ else if .post.Cover }}
+    <meta property="og:image" content="{{ .post.Cover }}">
+    {{ end }}
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ .post.MetaTitle | default .post.Title }}">
+    <meta name="twitter:description" content="{{ .post.MetaDescription | default .post.Excerpt }}">
+    {{ if .post.OgImage }}
+    <meta name="twitter:image" content="{{ .post.OgImage }}">
+    {{ else if .post.Cover }}
+    <meta name="twitter:image" content="{{ .post.Cover }}">
+    {{ end }}
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "{{ .post.Title }}",
+      {{ if .post.MetaDescription }}
+      "description": "{{ .post.MetaDescription }}",
+      {{ end }}
+      "datePublished": "{{ dateFormat "2006-01-02T15:04:05-07:00" .post.PublishedAt }}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ if .post.Author }}{{ .post.Author.Name }}{{ end }}"
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "{{ .site.url }}/article/{{ .post.Slug }}"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "{{ .site.title }}"
+      }
+      {{ if .post.Cover }},
+      "image": {
+        "@type": "ImageObject",
+        "url": "{{ .post.Cover }}"
+      }
+      {{ end }}
+    }
+    </script>
     <link rel="stylesheet" href="{{ asset_path "assets/css/base.css" }}">
     <link rel="stylesheet" href="{{ asset_path "assets/css/article.css" }}">
     <link rel="icon" href="{{ asset_path "images/logo-sy.svg" }}" type="image/svg+xml">

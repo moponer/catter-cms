@@ -45,5 +45,6 @@ func AutoMigrate() error {
 		&ScheduledTaskExecution{},
 		&AIToken{},
 		&AIAuditLog{},
+		&SEOSettings{},
 	)
 }

@@ -383,6 +383,10 @@ func main() {
 	// Sitemap（公开）
 	r.GET("/sitemap.xml", api.SitemapHandler)
 
+	// SEO 静态资源（公开）
+	r.GET("/robots.txt", api.RobotsHandler)
+	r.GET("/feed.xml", api.FeedHandler)
+
 	// ========================================
 	// 管理后台静态文件服务 - SPA 模式
 	// ========================================

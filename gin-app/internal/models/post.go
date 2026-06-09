@@ -18,6 +18,10 @@ type Post struct {
 	Views           int        `json:"views" gorm:"default:0"`
 	MetaTitle       string     `json:"meta_title" gorm:"size:500"`
 	MetaDescription string     `json:"meta_description" gorm:"type:text"`
+	// SEO 扩展字段
+	OgImage         string     `json:"og_image" gorm:"size:1000"` // Open Graph 图片
+	CanonicalURL    string     `json:"canonical_url" gorm:"size:1000"` // 规范 URL
+	Robots          string     `json:"robots" gorm:"size:100"` // 搜索引擎索引指令 (noindex, nofollow 等)
 	CategoryID      *uint      `json:"category_id"`
 	Category        *Category  `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
 	AuthorID        uint       `json:"author_id"`
@@ -63,4 +67,14 @@ func GetScheduledPosts() ([]Post, error) {
 	err := DB.Where("status = ? AND scheduled_at <= ? AND published_at IS NULL", "scheduled", now).
 		Find(&posts).Error
 	return posts, err
+}
+
+// GetPostByID 根据 ID 获取文章
+func GetPostByID(id uint) (*Post, error) {
+	var post Post
+	err := DB.Preload("Category").Preload("Tags").First(&post, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &post, nil
 }
