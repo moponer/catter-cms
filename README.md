@@ -13,6 +13,10 @@
 </p>
 
 <p align="center">
+  <em>A lightweight, AI-native CMS built with Go + Vue 3 — themeable, pluginable, agent-friendly.</em>
+</p>
+
+<p align="center">
  主题自由 · 使用自由 · 管理自由 · 插件自由
 </p>
 
