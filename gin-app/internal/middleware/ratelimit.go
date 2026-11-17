@@ -16,15 +16,41 @@ type IPRateLimiter struct {
 	mu  *sync.RWMutex
 	r   rate.Limit
 	b   int
+	// lastSeen 记录每个 key 最近一次访问时间，用于淘汰长期不活跃的条目
+	lastSeen map[string]time.Time
 }
+
+// evictInterval 淘汰周期与不活跃阈值：超过该时间未访问的条目会被清理
+const evictInterval = time.Hour
 
 // NewIPRateLimiter creates a new IP rate limiter
 func NewIPRateLimiter(r rate.Limit, b int) *IPRateLimiter {
-	return &IPRateLimiter{
-		ips: make(map[string]*rate.Limiter),
-		mu:  &sync.RWMutex{},
-		r:   r,
-		b:   b,
+	i := &IPRateLimiter{
+		ips:      make(map[string]*rate.Limiter),
+		mu:       &sync.RWMutex{},
+		r:        r,
+		b:        b,
+		lastSeen: make(map[string]time.Time),
+	}
+	// 后台定时清理，防止恶意 IP 遍历导致 map 无限增长
+	go func() {
+		for range time.Tick(evictInterval) {
+			i.evictStale()
+		}
+	}()
+	return i
+}
+
+// evictStale 清理长期不活跃的条目
+func (i *IPRateLimiter) evictStale() {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	cutoff := time.Now().Add(-evictInterval)
+	for ip, seen := range i.lastSeen {
+		if seen.Before(cutoff) {
+			delete(i.ips, ip)
+			delete(i.lastSeen, ip)
+		}
 	}
 }
 
@@ -35,18 +61,22 @@ func (i *IPRateLimiter) AddIP(ip string) *rate.Limiter {
 
 	limiter := rate.NewLimiter(i.r, i.b)
 	i.ips[ip] = limiter
+	i.lastSeen[ip] = time.Now()
 	return limiter
 }
 
 // GetLimiter retrieves the rate limiter from the map
 func (i *IPRateLimiter) GetLimiter(ip string) *rate.Limiter {
-	i.mu.RLock()
-	limiter, exists := i.ips[ip]
-	i.mu.RUnlock()
+	i.mu.Lock()
+	defer i.mu.Unlock()
 
-	if !exists {
-		return i.AddIP(ip)
+	if limiter, exists := i.ips[ip]; exists {
+		i.lastSeen[ip] = time.Now()
+		return limiter
 	}
+	limiter := rate.NewLimiter(i.r, i.b)
+	i.ips[ip] = limiter
+	i.lastSeen[ip] = time.Now()
 	return limiter
 }
 

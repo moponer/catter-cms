@@ -202,9 +202,11 @@ func validateConfig(c *Config) error {
 	// 检查是否为生产环境且使用默认 JWT 密钥
 	if c.Env == "production" || c.Server.Mode == "release" {
 		if c.JWT.Secret == "your-secret-key-change-in-production" ||
+		   c.JWT.Secret == "***REDACTED***" ||
+		   c.JWT.Secret == "change-me-to-a-random-32-char-secret" ||
 		   c.JWT.Secret == "" ||
 		   len(c.JWT.Secret) < 32 {
-			return fmt.Errorf("production mode requires a strong JWT secret (at least 32 characters)")
+			return fmt.Errorf("production mode requires a strong JWT secret (at least 32 characters, set JWT_SECRET env var)")
 		}
 	}
 

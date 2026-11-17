@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"strings"
 	"time"
 
@@ -19,7 +20,7 @@ func AIAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(200, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "缺少 Authorization 头",
 			})
@@ -30,7 +31,7 @@ func AIAuth() gin.HandlerFunc {
 		// 提取 Bearer token
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == authHeader {
-			c.JSON(200, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "Authorization 格式错误，应为 Bearer <key>",
 			})
@@ -40,7 +41,7 @@ func AIAuth() gin.HandlerFunc {
 
 		// 必须是 cat_ 前缀
 		if !strings.HasPrefix(tokenString, "cat_") {
-			c.JSON(200, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "无效的 API Key 格式",
 			})
@@ -51,7 +52,7 @@ func AIAuth() gin.HandlerFunc {
 		// 查找 token
 		var aiToken models.AIToken
 		if err := models.DB.Where("token = ? AND is_active = ?", tokenString, true).First(&aiToken).Error; err != nil {
-			c.JSON(200, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "无效的 API Key",
 			})
@@ -61,7 +62,7 @@ func AIAuth() gin.HandlerFunc {
 
 		// 检查过期
 		if aiToken.IsExpired() {
-			c.JSON(200, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "API Key 已过期",
 			})
@@ -94,7 +95,7 @@ func RequireAIPermission(permission string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		aiToken, ok := GetAIToken(c)
 		if !ok {
-			c.JSON(200, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "未认证",
 			})
@@ -103,7 +104,7 @@ func RequireAIPermission(permission string) gin.HandlerFunc {
 		}
 
 		if !aiToken.HasPermission(permission) {
-			c.JSON(200, gin.H{
+			c.JSON(http.StatusForbidden, gin.H{
 				"code":    403,
 				"message": "权限不足，需要 " + permission + " 权限",
 			})
