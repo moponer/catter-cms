@@ -450,50 +450,61 @@ func GetAISetupCommands(c *gin.Context) {
 			"mac":     fmt.Sprintf("echo 'export CATTER_CMS_URL=\"%s\"' >> ~/.zshrc && echo 'export CATTER_CMS_KEY=\"%s\"' >> ~/.zshrc && source ~/.zshrc", cmsURL, activeKey.Token),
 			"linux":   fmt.Sprintf("echo 'export CATTER_CMS_URL=\"%s\"' >> ~/.bashrc && echo 'export CATTER_CMS_KEY=\"%s\"' >> ~/.bashrc && source ~/.bashrc", cmsURL, activeKey.Token),
 		},
-		"skill_prompt": fmt.Sprintf(`Catter CMS 集成：当用户要求管理网站内容（文章、页面、分类、标签、媒体、评论、设置）时，请按以下步骤操作：
+		"skill_prompt": `Catter CMS 集成（AI 自动执行）：当用户要求管理网站内容（文章、页面、分类、标签、媒体、评论、设置）时，按以下步骤操作：
 
-【环境配置】
-- CMS 地址：[Environment]::GetEnvironmentVariable("CATTER_CMS_URL", "User")
-- API Key：[Environment]::GetEnvironmentVariable("CATTER_CMS_KEY", "User")
+【环境准备】
+1. 从环境变量读取 CMS 地址和 API Key：
+   - CMS 地址：[Environment]::GetEnvironmentVariable("CATTER_CMS_URL", "User")
+   - API Key：[Environment]::GetEnvironmentVariable("CATTER_CMS_KEY", "User")
+2. 如果环境变量未配置，告知用户需要在管理后台 AI 集成页面配置（使用 GetEnvironmentVariable 读取），或通过 PowerShell 设置：
+   [Environment]::SetEnvironmentVariable("CATTER_CMS_URL", "http://your-cms-url", "User")
+   [Environment]::SetEnvironmentVariable("CATTER_CMS_KEY", "cat_xxxxx", "User")
 
-【首次使用 - 安装 Skill】
-1. 检查记忆中是否已有 "Catter CMS Skill 已安装"
-2. 如未安装，调用 save_memory 保存以下信息：
-   "Catter CMS Skill 已安装。API认证：请求头 Authorization: Bearer {CATTER_CMS_KEY}。操作原则：先读后写、删除确认、默认草稿。"
-3. 告知用户安装完成
+【获取 Skill 文档】
+1. 调用 API 获取完整 Skill 文档：GET ` + cmsURL + `/api/ai/skill（需 Authorization: Bearer {KEY}）
+2. 阅读并理解文档中的 API 规范、数据模型和操作约束
+
+【持久化安装状态】
+调用 save_memory 工具保存以下信息（仅首次）：
+"Catter CMS Skill 已安装。API认证：请求头 Authorization: Bearer {CATTER_CMS_KEY}。操作原则：先读后写、删除确认、默认草稿。"
 
 【执行操作】
 1. 使用 run_shell_command 通过 PowerShell Socket 发起 API 请求
-2. 请求地址：{CATTER_CMS_URL}/api/v1/{endpoint}
+2. 请求地址：` + cmsURL + `/api/v1/{endpoint}
 3. 请求头：Authorization: Bearer {CATTER_CMS_KEY}
-4. 参考 Skill 文档：{CATTER_CMS_URL}/api/ai/skill（可选，获取完整 API 规范）
+4. 参考 Skill 文档中的 API 规范
 
 【操作原则】
 - 先读后写：创建/更新前先 GET 查看现有数据
 - 删除确认：删除前向用户展示内容并确认
-- 默认草稿：创建文章 status 默认为 draft`, cmsURL),
-		"theme_skill_prompt": fmt.Sprintf(`Catter CMS 主题开发 Skill：当用户要求开发/修改 Catter CMS 主题时，请按以下步骤操作：
+- 默认草稿：创建文章 status 默认为 draft
+- Markdown 写作：使用 content_type: "markdown" 创建文章`,
+		"theme_skill_prompt": `Catter CMS 主题开发 Skill（AI 自动执行）：当用户要求开发/修改 Catter CMS 主题时，按以下步骤操作：
 
-【环境配置】
-- CMS 地址：[Environment]::GetEnvironmentVariable("CATTER_CMS_URL", "User")
-- API Key（可选）：[Environment]::GetEnvironmentVariable("CATTER_CMS_KEY", "User")
+【环境准备】
+1. 从环境变量读取 CMS 地址和 API Key（如需）：
+   - CMS 地址：[Environment]::GetEnvironmentVariable("CATTER_CMS_URL", "User")
+   - API Key（可选）：[Environment]::GetEnvironmentVariable("CATTER_CMS_KEY", "User")
 
-【首次使用 - 安装 Skill】
-1. 检查记忆中是否已有 "Catter CMS 主题开发 Skill 已安装"
-2. 如未安装，调用 save_memory 保存以下信息：
-   "Catter CMS 主题开发 Skill 已安装。Skill 文档地址：{CATTER_CMS_URL}/api/ai/themes-skill。操作原则：遵循前置检查清单、禁止蓝色系、数据解耦、模块化开发。"
-3. 告知用户安装完成
+【获取 Skill 文档】
+1. 调用 API 获取主题开发 Skill 文档：GET ` + cmsURL + `/api/ai/themes-skill（需 Authorization: Bearer {KEY}）
+2. 完整阅读所有规则（R0-R25），包括前置检查清单、模板函数速查、数据模型速查、URL 规则
+3. 重点记住：禁止蓝色系、getConfig 路径、markdownHTML 不接 | safe、asset_path 不带 /themes/ 前缀
+
+【持久化安装状态】
+调用 save_memory 工具保存以下信息（仅首次）：
+"Catter CMS 主题开发 Skill 已安装。Skill 文档地址：` + cmsURL + `/api/ai/themes-skill。操作原则：遵循前置检查清单 R0-R25、禁止蓝色系、数据解耦、模块化开发。"
 
 【执行操作】
-1. 获取 Skill 文档：{CATTER_CMS_URL}/api/ai/themes-skill（无需认证头，AI 客户端自动读取）
-2. 阅读完整规则（前置检查清单 R0-R19）后开始开发
-3. 主题文件修改使用 replace_in_file 工具，禁止用 PowerShell 写入文件
+1. 主题文件修改使用 replace_in_file 工具，禁止用 PowerShell 写入文件
+2. 开发前必做前置检查（配色、模块开关、数据来源、模板语法）
+3. 主题文件修改后同步到 deploy 目录（xcopy /E /Y templates\themes\* deploy\templates\themes\*）
 
-【操作原则】
+【开发原则】
 - 开发前必做前置检查（禁止蓝色、getConfig 路径、markdownHTML 不接 | safe 等）
 - 数据来自配置或 CMS 模型，严禁硬编码
 - 模块化开发，每个区块独立 + 配置开关控制
-- 样式统一，使用 CSS 变量`, cmsURL),
+- 样式统一，使用 CSS 变量`,
 	})
 }
 

@@ -345,7 +345,7 @@ func PageShowHandler(c *gin.Context) {
         </div>
     </div>
 </body>
-</html>`, html.EscapeString(page.Title), templateName, renderErr)
+</html>`, templateName, html.EscapeString(page.Title), renderErr.Error())
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.String(http.StatusInternalServerError, errMsg)
 }

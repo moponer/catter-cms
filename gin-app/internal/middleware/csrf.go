@@ -66,12 +66,7 @@ func CSRFProtection() gin.HandlerFunc {
 			return
 		}
 
-		newToken, genErr := generateCSRFToken()
-		if genErr == nil {
-			setCSRFCookie(c, newToken, cfg)
-			c.Header(csrfHeaderName, newToken)
-		}
-
+		// Token 有效，继续处理（不旋转 Token，避免并发请求冲突）
 		c.Next()
 	}
 }
@@ -81,6 +76,7 @@ func setCSRFCookie(c *gin.Context, token string, cfg *config.Config) {
 		Name:     csrfCookieName,
 		Value:    token,
 		Path:     "/",
+		Domain:   "",
 		MaxAge:   86400,
 		Secure:   cfg.IsProduction(),
 		HttpOnly: false,

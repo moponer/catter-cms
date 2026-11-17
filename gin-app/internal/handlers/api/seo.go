@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,9 @@ import (
 // ========================================
 // Robots.txt Handler
 // ========================================
+
+// pushClient 推送用 HTTP 客户端（包级单例，复用连接池）
+var pushClient = &http.Client{Timeout: 10 * time.Second}
 
 // RobotsHandler 生成 robots.txt
 func RobotsHandler(c *gin.Context) {
@@ -172,6 +176,10 @@ type IndexNowConfig struct {
 	APIKeyURL  string `json:"api_key_url"`
 	LastPush   string `json:"last_push"`
 	PushCount  int    `json:"push_count"`
+	BaiduVerify string `json:"baidu_verify"`
+	GoogleVerify string `json:"google_verify"`
+	HasBaiduVerify bool `json:"has_baidu_verify"`
+	HasGoogleVerify bool `json:"has_google_verify"`
 }
 
 // IndexNowPushRequest IndexNow 推送请求
@@ -179,7 +187,14 @@ type IndexNowPushRequest struct {
 	URLs []string `json:"urls"`
 }
 
-// IndexNowPush 推送 URL 到 IndexNow
+// pushResult 单次推送结果
+type pushResult struct {
+	name    string
+	success bool
+	message string
+}
+
+// IndexNowPush 推送 URL 到搜索引擎（IndexNow + 百度/360/搜狗主动推送）
 func IndexNowPush(c *gin.Context) {
 	var req IndexNowPushRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -207,18 +222,6 @@ func IndexNowPush(c *gin.Context) {
 		return
 	}
 
-	apiKey := seoSettings.IndexNowKey
-	if apiKey == "" {
-		apiKey = models.GetSettingAsString("index_now_key")
-	}
-	if apiKey == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"code":    400,
-			"message": "请先配置 IndexNow API Key",
-		})
-		return
-	}
-
 	siteURL := seoSettings.SiteURL
 	if siteURL == "" {
 		siteURL = models.GetSettingAsString("site_url")
@@ -226,64 +229,173 @@ func IndexNowPush(c *gin.Context) {
 	if siteURL == "" {
 		siteURL = "http://localhost:3000"
 	}
-
-	// 去掉末尾斜杠
 	siteURL = strings.TrimRight(siteURL, "/")
 
-	// 构建 IndexNow 请求
-	// IndexNow 要求：POST JSON { "host": "", "key": "" } + URL 列表作为 query params
-	// 但实际实现是：GET /IndexNow?url={url1}&url={url2}...&key={apiKey}&host={host}
+	urls := req.URLs
 
-	host := siteURL
-
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("host=%s&", host))
-	sb.WriteString(fmt.Sprintf("key=%s&", apiKey))
-
-	for i, url := range req.URLs {
-		if i > 0 {
-			sb.WriteString("&")
-		}
-		sb.WriteString("url=")
-		sb.WriteString(url)
-	}
-
-	// 由于 IndexNow 需要真实 API Key 和可访问的服务器，
-	// 这里做异步推送，避免阻塞
+	// 异步推送，不阻塞响应
 	go func() {
-		// 尝试推送给 Bing（最主流的 IndexNow 支持方）
-		bingURL := "https://www.bing.com/indexnow"
+		results := pushToAllEngines(siteURL, urls, seoSettings)
 
-		payload := map[string]interface{}{
-			"host":    siteURL,
-			"key":     apiKey,
-			"urlList": req.URLs,
+		// 汇总日志
+		successCount := 0
+		for _, r := range results {
+			if r.success {
+				successCount++
+			}
+			log.Printf("[SEO] Push %s: %s", r.name, r.message)
 		}
+		log.Printf("[SEO] Push complete: %d/%d engines succeeded, %d URLs", successCount, len(results), len(urls))
 
-		body, _ := json.Marshal(payload)
-		client := &http.Client{Timeout: 10 * time.Second}
-		resp, err := client.Post(bingURL, "application/json", bytes.NewReader(body))
-		if err == nil && resp != nil {
-			resp.Body.Close()
-			log.Printf("[SEO] IndexNow push to Bing: %d (%d URLs)", resp.StatusCode, len(req.URLs))
-		}
+		// 更新计数
+		now := time.Now().Format("2006-01-02 15:04:05")
+		models.UpdateSEOSettings(map[string]interface{}{
+			"index_now_pushed": true,
+			"pushed_at":        now,
+		})
 	}()
 
-	// 更新计数
 	now := time.Now().Format("2006-01-02 15:04:05")
-	models.UpdateSEOSettings(map[string]interface{}{
-		"index_now_pushed": true,
-	})
-
 	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
-		"message": "推送成功",
+		"code":    0,
+		"message": "推送请求已提交，正在后台处理",
 		"data": gin.H{
-			"pushed_urls": req.URLs,
-			"count":       len(req.URLs),
+			"pushed_urls": urls,
+			"count":       len(urls),
 			"time":        now,
 		},
 	})
+}
+
+// pushToAllEngines 并发推送到所有搜索引擎
+func pushToAllEngines(siteURL string, urls []string, seoSettings *models.SEOSettings) []pushResult {
+	var results []pushResult
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	// 1. IndexNow (Bing) — 需要 API Key
+	if seoSettings.IndexNowKey != "" {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			payload := map[string]interface{}{
+				"host":    siteURL,
+				"key":     seoSettings.IndexNowKey,
+				"urlList": urls,
+			}
+			body, _ := json.Marshal(payload)
+			resp, err := pushClient.Post("https://www.bing.com/indexnow", "application/json", bytes.NewReader(body))
+			msg := ""
+			ok := false
+			if err != nil {
+				msg = fmt.Sprintf("错误: %v", err)
+			} else if resp != nil {
+				resp.Body.Close()
+				msg = fmt.Sprintf("HTTP %d", resp.StatusCode)
+				ok = (resp.StatusCode >= 200 && resp.StatusCode < 300)
+			} else {
+				msg = "无响应"
+			}
+			mu.Lock()
+			results = append(results, pushResult{name: "Bing (IndexNow)", success: ok, message: msg})
+			mu.Unlock()
+		}()
+	}
+
+	// 2. 百度站长主动推送（每批最多 1000 URL）
+	if seoSettings.BaiduPushToken != "" {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			// 百度 API 要求 POST 纯文本，每行一个 URL
+			baiduURL := fmt.Sprintf("https://data.zz.baidu.com/urls?site=%s&token=%s", siteURL, seoSettings.BaiduPushToken)
+
+			// 分批推送（百度限制每批 1000 条）
+			batchSize := 1000
+			for i := 0; i < len(urls); i += batchSize {
+				end := i + batchSize
+				if end > len(urls) {
+					end = len(urls)
+				}
+				batch := urls[i:end]
+				bodyStr := strings.Join(batch, "\n")
+
+				resp, err := pushClient.Post(baiduURL, "text/plain", bytes.NewReader([]byte(bodyStr)))
+				msg := ""
+				ok := false
+				if err != nil {
+					msg = fmt.Sprintf("错误: %v", err)
+			} else if resp != nil {
+				resp.Body.Close()
+					msg = fmt.Sprintf("HTTP %d (批次 %d-%d)", resp.StatusCode, i+1, end)
+					ok = (resp.StatusCode >= 200 && resp.StatusCode < 300)
+				} else {
+					msg = "无响应"
+				}
+				mu.Lock()
+				results = append(results, pushResult{name: "百度", success: ok, message: msg})
+				mu.Unlock()
+			}
+		}()
+	}
+
+	// 3. 360 站长推送
+	if seoSettings.ThreeSixZeroPushToken != "" {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			// 360 推送 API：POST 纯文本 URL 列表
+			threeSixZeroURL := fmt.Sprintf("https://data.zhanzhang.360.cn/?token=%s", seoSettings.ThreeSixZeroPushToken)
+			bodyStr := strings.Join(urls, "\n")
+
+			resp, err := pushClient.Post(threeSixZeroURL, "text/plain", bytes.NewReader([]byte(bodyStr)))
+			msg := ""
+			ok := false
+			if err != nil {
+				msg = fmt.Sprintf("错误: %v", err)
+			} else if resp != nil {
+				resp.Body.Close()
+				msg = fmt.Sprintf("HTTP %d", resp.StatusCode)
+				ok = (resp.StatusCode >= 200 && resp.StatusCode < 300)
+			} else {
+				msg = "无响应"
+			}
+			mu.Lock()
+			results = append(results, pushResult{name: "360", success: ok, message: msg})
+			mu.Unlock()
+		}()
+	}
+
+	// 4. 搜狗站长推送
+	if seoSettings.SogouPushToken != "" {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			// 搜狗主动推送 API
+			sogouURL := "https://www.sogou.com/web/FrequentSubmit"
+
+			// 搜狗需要 POST form 数据
+			formData := fmt.Sprintf("site=%s&token=%s&urls=%s", siteURL, seoSettings.SogouPushToken, strings.Join(urls, "\n"))
+			resp, err := pushClient.Post(sogouURL, "application/x-www-form-urlencoded", bytes.NewReader([]byte(formData)))
+			msg := ""
+			ok := false
+			if err != nil {
+				msg = fmt.Sprintf("错误: %v", err)
+			} else if resp != nil {
+				resp.Body.Close()
+				msg = fmt.Sprintf("HTTP %d", resp.StatusCode)
+				ok = (resp.StatusCode >= 200 && resp.StatusCode < 300)
+			} else {
+				msg = "无响应"
+			}
+			mu.Lock()
+			results = append(results, pushResult{name: "搜狗", success: ok, message: msg})
+			mu.Unlock()
+		}()
+	}
+
+	wg.Wait()
+	return results
 }
 
 // GetIndexNowStatus 获取 IndexNow 推送状态
@@ -305,15 +417,26 @@ func GetIndexNowStatus(c *gin.Context) {
 		siteURL = "http://localhost:3000"
 	}
 
+	// 计算推送次数（基于 IndexNowPushed 状态）
+	pushCount := 0
+	if seoSettings.IndexNowPushed {
+		pushCount = 1
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
 		"data": gin.H{
-			"site_url":        siteURL,
-			"api_key_configed":  seoSettings.IndexNowKey != "",
-			"sitemap_enabled":  seoSettings.SitemapEnabled,
-			"robots_enabled":   seoSettings.RobotsEnabled,
-			"feed_enabled":     seoSettings.FeedEnabled,
-			"feed_limit":       seoSettings.FeedLimit,
+			"site_url":              siteURL,
+			"api_key_configed":      seoSettings.IndexNowKey != "",
+			"sitemap_enabled":       seoSettings.SitemapEnabled,
+			"robots_enabled":        seoSettings.RobotsEnabled,
+			"feed_enabled":          seoSettings.FeedEnabled,
+			"feed_limit":            seoSettings.FeedLimit,
+			"baidu_push_configed":   seoSettings.BaiduPushToken != "",
+			"three_six_zero_push_configed": seoSettings.ThreeSixZeroPushToken != "",
+			"sogou_push_configed":   seoSettings.SogouPushToken != "",
+			"push_count":            pushCount,
+			"last_push":             "", // 可以后续扩展从数据库读取
 		},
 	})
 }
@@ -353,6 +476,18 @@ func SaveSEOSettings(c *gin.Context) {
 	}
 	if defaultMetaDesc, ok := req["default_meta_desc"].(string); ok {
 		updates["default_meta_desc"] = defaultMetaDesc
+	}
+	if defaultRobots, ok := req["default_robots"].(string); ok {
+		updates["default_robots"] = defaultRobots
+	}
+	if baiduToken, ok := req["baidu_push_token"].(string); ok {
+		updates["baidu_push_token"] = baiduToken
+	}
+	if threeSixZeroToken, ok := req["three_six_zero_push_token"].(string); ok {
+		updates["three_six_zero_push_token"] = threeSixZeroToken
+	}
+	if sogouToken, ok := req["sogou_push_token"].(string); ok {
+		updates["sogou_push_token"] = sogouToken
 	}
 
 	if err := models.UpdateSEOSettings(updates); err != nil {
@@ -405,7 +540,7 @@ func RunSEORAudit(c *gin.Context) {
 
 	// 检查 1: 文章的 MetaTitle
 	var postsWithoutMetaTitle []models.Post
-	models.DB.Where("status = ? AND meta_title = ''", "published").Find(&postsWithoutMetaTitle)
+	models.DB.Select("id, slug").Where("status = ? AND meta_title = ''", "published").Find(&postsWithoutMetaTitle)
 	for _, p := range postsWithoutMetaTitle {
 		issues = append(issues, SEORIssue{
 			Type:     "missing_meta_title",
@@ -417,7 +552,7 @@ func RunSEORAudit(c *gin.Context) {
 
 	// 检查 2: 文章的 MetaDescription
 	var postsWithoutMetaDesc []models.Post
-	models.DB.Where("status = ? AND meta_description = ''", "published").Find(&postsWithoutMetaDesc)
+	models.DB.Select("id, slug").Where("status = ? AND meta_description = ''", "published").Find(&postsWithoutMetaDesc)
 	for _, p := range postsWithoutMetaDesc {
 		issues = append(issues, SEORIssue{
 			Type:     "missing_meta_description",
@@ -429,7 +564,7 @@ func RunSEORAudit(c *gin.Context) {
 
 	// 检查 3: 文章无封面图
 	var postsWithoutCover []models.Post
-	models.DB.Where("status = ? AND cover = ''", "published").Find(&postsWithoutCover)
+	models.DB.Select("id, slug").Where("status = ? AND cover = ''", "published").Find(&postsWithoutCover)
 	for _, p := range postsWithoutCover {
 		issues = append(issues, SEORIssue{
 			Type:     "missing_cover",
@@ -441,7 +576,7 @@ func RunSEORAudit(c *gin.Context) {
 
 	// 检查 4: 分类缺少描述
 	var catsWithoutDesc []models.Category
-	models.DB.Where("description = ''").Find(&catsWithoutDesc)
+	models.DB.Select("id, slug").Where("description = ''").Find(&catsWithoutDesc)
 	for _, cat := range catsWithoutDesc {
 		issues = append(issues, SEORIssue{
 			Type:     "missing_category_desc",
@@ -462,7 +597,12 @@ func RunSEORAudit(c *gin.Context) {
 		}
 	}
 
-	score := 100 - warnings*2 - errors*5
+	// 百分比算法：基于总 URL 数和问题数的比例
+	totalItems := totalURLs + warnings + errors*2
+	score := 100
+	if totalItems > 0 {
+		score = int(float64(totalURLs) / float64(totalItems) * 100)
+	}
 	if score < 0 {
 		score = 0
 	}
@@ -518,16 +658,19 @@ func GetSEOSettingsAPI(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
 		"data": gin.H{
-			"id":               settings.ID,
-			"site_url":         settings.SiteURL,
-			"index_now_key":    settings.IndexNowKey,
-			"sitemap_enabled":  settings.SitemapEnabled,
-			"robots_enabled":   settings.RobotsEnabled,
-			"feed_enabled":     settings.FeedEnabled,
-			"feed_limit":       settings.FeedLimit,
-			"default_og_image": settings.DefaultOgImage,
-			"default_meta_desc": settings.DefaultMetaDesc,
-			"default_robots":   settings.DefaultRobots,
+			"id":                    settings.ID,
+			"site_url":              settings.SiteURL,
+			"index_now_key":         settings.IndexNowKey,
+			"sitemap_enabled":       settings.SitemapEnabled,
+			"robots_enabled":        settings.RobotsEnabled,
+			"feed_enabled":          settings.FeedEnabled,
+			"feed_limit":            settings.FeedLimit,
+			"default_og_image":      settings.DefaultOgImage,
+			"default_meta_desc":     settings.DefaultMetaDesc,
+			"default_robots":        settings.DefaultRobots,
+			"baidu_push_token":      settings.BaiduPushToken,
+			"three_six_zero_push_token": settings.ThreeSixZeroPushToken,
+			"sogou_push_token":      settings.SogouPushToken,
 		},
 	})
 }
@@ -536,7 +679,7 @@ func GetSEOSettingsAPI(c *gin.Context) {
 // SEO 字段批量更新（发布文章时自动推送）
 // ========================================
 
-// OnPostPublish 文章发布时的 SEO 钩子
+// OnPostPublish 文章发布时的 SEO 钩子（自动推送到所有配置的搜索引擎）
 func OnPostPublish(postID uint) {
 	post, err := models.GetPostByID(postID)
 	if err != nil || post == nil {
@@ -548,8 +691,8 @@ func OnPostPublish(postID uint) {
 	}
 
 	seoSettings, _ := models.GetSEOSettings()
-	if seoSettings == nil || seoSettings.IndexNowKey == "" {
-		return // 未配置 IndexNow Key，跳过推送
+	if seoSettings == nil {
+		return
 	}
 
 	siteURL := seoSettings.SiteURL
@@ -562,19 +705,15 @@ func OnPostPublish(postID uint) {
 	siteURL = strings.TrimRight(siteURL, "/")
 
 	url := fmt.Sprintf("%s/article/%s", siteURL, post.Slug)
+	urls := []string{url}
 
-	// 异步推送
-	go func() {
-		payload := map[string]interface{}{
-			"host":    siteURL,
-			"key":     seoSettings.IndexNowKey,
-			"urlList": []string{url},
-		}
-		body, _ := json.Marshal(payload)
-		client := &http.Client{Timeout: 5 * time.Second}
-		resp, err := client.Post("https://www.bing.com/indexnow", "application/json", bytes.NewReader(body))
-		if err == nil && resp != nil {
-			resp.Body.Close()
-		}
-	}()
+	// 检查是否有任意引擎可推
+	hasAnyEngine := seoSettings.IndexNowKey != "" || seoSettings.BaiduPushToken != "" ||
+		seoSettings.ThreeSixZeroPushToken != "" || seoSettings.SogouPushToken != ""
+	if !hasAnyEngine {
+		return
+	}
+
+	// 异步推送到所有已配置的引擎
+	go pushToAllEngines(siteURL, urls, seoSettings)
 }

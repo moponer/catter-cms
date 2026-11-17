@@ -69,6 +69,11 @@
           <template #title>定时任务</template>
         </el-menu-item>
 
+        <el-menu-item index="/seo">
+          <el-icon><DataAnalysis /></el-icon>
+          <template #title>SEO 管理</template>
+        </el-menu-item>
+
         <el-menu-item index="/cache">
           <el-icon><Delete /></el-icon>
           <template #title>清理缓存</template>
@@ -104,7 +109,8 @@ import {
   Timer,
   Connection,
   Menu,
-  Delete
+  Delete,
+  DataAnalysis
 } from '@element-plus/icons-vue'
 
 defineProps({

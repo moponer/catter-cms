@@ -106,7 +106,14 @@
           <el-table :data="recentPosts" style="width:100%" :show-header="true">
             <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip>
               <template #default="{ row }">
-                <el-link type="primary" @click="$router.push(`/posts/edit/${row.id}`)">{{ row.title }}</el-link>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <el-link type="primary" @click="$router.push(`/posts/edit/${row.id}`)">
+                    {{ row.title }}
+                  </el-link>
+                  <el-tooltip content="编辑文章" placement="top" v-if="row.status === 'published'">
+                    <el-link type="primary" :underline="false" icon="View" @click="viewPost(row.id)" />
+                  </el-tooltip>
+                </div>
               </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" width="86">
@@ -224,11 +231,11 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import {
   Document, User, Folder, Picture,
-  Edit, DocumentAdd, Upload, FolderAdd,
   Setting, Timer, Monitor, Coin, Cpu,
   Connection, Histogram, PriceTag, ChatDotRound,
   Brush, ArrowRight, Message, UserFilled, View
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { get } from '@/utils/request'
 
 const stats = reactive({
@@ -319,6 +326,22 @@ const getMemoryStatus = (p) => {
   if (p > 90) return 'exception'
   if (p > 70) return 'warning'
   return 'success'
+}
+
+// 预览文章
+const viewPost = (id) => {
+  // 先尝试从后台配置获取站点URL
+  get('/api/settings').then(res => {
+    const data = res.data || res || {}
+    const siteUrl = data.site_url || ''
+    if (siteUrl) {
+      window.open(`${siteUrl}/posts/${id}`, '_blank')
+    } else {
+      ElMessage.warning('请先在SEO设置中配置站点 URL')
+    }
+  }).catch(() => {
+    ElMessage.warning('无法获取站点 URL，请配置 SEO 设置')
+  })
 }
 
 onMounted(() => { loadDashboardData(); loadSystemInfo(); loadCurrentUser() })

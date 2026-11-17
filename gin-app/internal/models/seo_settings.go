@@ -19,6 +19,9 @@ type SEOSettings struct {
 	DefaultOgImage   string    `json:"default_og_image" gorm:"size:1000"`            // 默认 OG 图片（无封面时使用）
 	DefaultMetaDesc  string    `json:"default_meta_desc" gorm:"size:500"`            // 默认 Meta 描述
 	DefaultRobots    string    `json:"default_robots" gorm:"size:100;default:index,nofollow"` // 默认 robots 指令
+	BaiduPushToken   string    `json:"baidu_push_token" gorm:"size:1000"`            // 百度站长主动推送 Token
+	ThreeSixZeroPushToken string `json:"three_six_zero_push_token" gorm:"size:1000"`  // 360 站长推送 Token
+	SogouPushToken   string    `json:"sogou_push_token" gorm:"size:1000"`            // 搜狗站长推送 Token
 	Description      string    `json:"description" gorm:"size:1000"`                 // 设置描述
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`

@@ -18,9 +18,10 @@ const SiteSettings = () => import('@/views/settings/SiteSettings.vue')
 const AiSettings = () => import('@/views/settings/AiSettings.vue')
 const Comments = () => import('@/views/comments/Index.vue')
 const ScheduledTasks = () => import('@/views/scheduled-tasks/Index.vue')
-const Sitemap = () => import('@/views/sitemap/Index.vue')
 const MenuList = () => import('@/views/menus/MenuList.vue')
 const Cache = () => import('@/views/cache/Index.vue')
+const SeoSettings = () => import('@/views/seo/Index.vue')
+const SeoAudit = () => import('@/views/seo/Audit.vue')
 const Profile = () => import('@/views/profile/Profile.vue')
 const ChangePassword = () => import('@/views/profile/ChangePassword.vue')
 
@@ -146,12 +147,6 @@ const routes = [
     meta: { title: '定时任务', requiresAuth: true }
   },
   {
-    path: '/sitemap',
-    name: 'Sitemap',
-    component: Sitemap,
-    meta: { title: 'Sitemap管理', requiresAuth: true }
-  },
-  {
     path: '/cache',
     name: 'Cache',
     component: Cache,
@@ -162,6 +157,18 @@ const routes = [
     name: 'Menus',
     component: MenuList,
     meta: { title: '菜单管理', requiresAuth: true }
+  },
+  {
+    path: '/seo',
+    name: 'SeoSettings',
+    component: SeoSettings,
+    meta: { title: 'SEO 设置', requiresAuth: true }
+  },
+  {
+    path: '/seo/audit',
+    name: 'SeoAudit',
+    component: SeoAudit,
+    meta: { title: 'SEO 健康检查', requiresAuth: true }
   },
   {
     path: '/profile',

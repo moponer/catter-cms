@@ -286,6 +286,13 @@ func main() {
 			protected.GET("/settings", api.GetSettings)
 			protected.PUT("/settings", api.SaveSettings)
 
+			// SEO 管理 API
+			protected.GET("/seo/settings", api.GetSEOSettingsAPI)
+			protected.PUT("/seo/settings", api.SaveSEOSettings)
+			protected.GET("/seo/audit", api.RunSEORAudit)
+			protected.GET("/seo/indexnow/status", api.GetIndexNowStatus)
+			protected.POST("/seo/indexnow/push", api.IndexNowPush)
+
 			// 存储配置 API
 			protected.GET("/storage/config", api.GetStorageConfig)
 			protected.PUT("/storage/config", api.SaveStorageConfig)

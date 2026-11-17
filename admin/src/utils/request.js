@@ -49,13 +49,28 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[2]) : null
 }
 
+// 是否正在获取 CSRF Token（防止并发重复请求）
+let isFetchingCsrf = false
+
 // 请求拦截器
 request.interceptors.request.use(
-  (config) => {
+  async (config) => {
     // 对非安全方法（POST/PUT/DELETE 等），自动附加 CSRF Token
     const method = (config.method || 'get').toUpperCase()
     if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
-      const csrfToken = getCookie('catter_csrf')
+      let csrfToken = getCookie('catter_csrf')
+      if (!csrfToken && !isFetchingCsrf) {
+        // CSRF Token 不存在，先获取它
+        isFetchingCsrf = true
+        try {
+          const axios = (await import('axios')).default
+          await axios.get('/api/settings', { withCredentials: true })
+          csrfToken = getCookie('catter_csrf')
+        } catch {
+          // 忽略错误，后续请求会自动获取 CSRF Token
+        }
+        isFetchingCsrf = false
+      }
       if (csrfToken) {
         config.headers['X-CSRF-Token'] = csrfToken
       }

@@ -75,7 +75,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Document, Grid } from '@element-plus/icons-vue'
-import axios from 'axios'
+import { post, get } from '@/utils/request'
 
 // 状态
 const clearing = ref(false)
@@ -90,11 +90,7 @@ const cacheStatus = ref({
 // 获取缓存状态
 const fetchCacheStatus = async () => {
   try {
-    const response = await axios.get('/api/admin/cache/status', {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
+    const response = await get('/api/admin/cache/status')
     if (response.data.success) {
       cacheStatus.value = response.data.data
     }
@@ -113,11 +109,7 @@ const clearAllCache = async () => {
     )
 
     clearing.value = true
-    const response = await axios.post('/api/admin/cache/clear', { type: 'all' }, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
+    const response = await post('/api/admin/cache/clear', { type: 'all' })
 
     if (response.data.code === 0) {
       ElMessage.success(response.data.message || '所有缓存已清理完成')
@@ -145,11 +137,7 @@ const clearTemplateCache = async () => {
     )
 
     clearingTemplate.value = true
-    const response = await axios.post('/api/admin/cache/clear', { type: 'template' }, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
+    const response = await post('/api/admin/cache/clear', { type: 'template' })
 
     if (response.data.code === 0) {
       ElMessage.success(response.data.message || '模板缓存已清理完成')
@@ -177,11 +165,7 @@ const clearDataCache = async () => {
     )
 
     clearingData.value = true
-    const response = await axios.post('/api/admin/cache/clear', { type: 'data' }, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
+    const response = await post('/api/admin/cache/clear', { type: 'data' })
 
     if (response.data.code === 0) {
       ElMessage.success(response.data.message || '数据缓存已清理完成')

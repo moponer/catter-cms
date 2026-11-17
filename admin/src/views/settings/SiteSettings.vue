@@ -67,29 +67,6 @@
         </el-card>
       </el-tab-pane>
 
-      <!-- SEO设置 -->
-      <el-tab-pane label="SEO设置" name="seo">
-        <el-card>
-          <el-form :model="settings.seo" label-width="120px">
-            <el-form-item label="网站标题">
-              <el-input v-model="settings.seo.meta_title" placeholder="SEO标题" />
-            </el-form-item>
-            <el-form-item label="网站描述">
-              <el-input v-model="settings.seo.meta_description" type="textarea" :rows="3" placeholder="SEO描述" />
-            </el-form-item>
-            <el-form-item label="网站关键词">
-              <el-input v-model="settings.seo.meta_keywords" placeholder="关键词，用逗号分隔" />
-            </el-form-item>
-            <el-form-item label="启用Sitemap">
-              <el-switch v-model="settings.seo.enable_sitemap" />
-            </el-form-item>
-            <el-form-item label="启用Robots.txt">
-              <el-switch v-model="settings.seo.enable_robots" />
-            </el-form-item>
-          </el-form>
-        </el-card>
-      </el-tab-pane>
-
       <!-- 邮件设置 -->
       <el-tab-pane label="邮件设置" name="email">
         <el-card>
@@ -401,13 +378,6 @@ const settings = reactive({
     logo: '',
     favicon: ''
   },
-  seo: {
-    meta_title: '',
-    meta_description: '',
-    meta_keywords: '',
-    enable_sitemap: true,
-    enable_robots: true
-  },
   email: {
     smtp_host: '',
     smtp_port: 587,
@@ -487,13 +457,6 @@ const loadSettings = async () => {
     if (data.logo !== undefined) settings.basic.logo = data.logo
     if (data.favicon !== undefined) settings.basic.favicon = data.favicon
 
-    // seo
-    if (data.meta_title !== undefined) settings.seo.meta_title = data.meta_title
-    if (data.meta_description !== undefined) settings.seo.meta_description = data.meta_description
-    if (data.meta_keywords !== undefined) settings.seo.meta_keywords = data.meta_keywords
-    if (data.enable_sitemap !== undefined) settings.seo.enable_sitemap = data.enable_sitemap
-    if (data.enable_robots !== undefined) settings.seo.enable_robots = data.enable_robots
-
     // email
     if (data.smtp_host !== undefined) settings.email.smtp_host = data.smtp_host
     if (data.smtp_port !== undefined) settings.email.smtp_port = data.smtp_port
@@ -538,7 +501,6 @@ const handleSave = async () => {
     // 合并所有设置并发送
     const allSettings = {
       ...settings.basic,
-      ...settings.seo,
       ...settings.email,
       ...settings.upload
     }

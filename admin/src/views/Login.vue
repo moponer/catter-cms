@@ -130,7 +130,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { post } from '@/utils/request'
+import { post, get } from '@/utils/request'
 import { setCurrentUser } from '@/utils/auth'
 
 const router = useRouter()
@@ -174,6 +174,15 @@ const handleLogin = async () => {
       const data = res.data
       // setToken(data.token) // 已废弃，改用 httpOnly Cookie
       setCurrentUser(data.user)
+
+      // 登录成功后主动触发一次 GET 请求，确保 CSRF Cookie (catter_csrf) 被设置
+      // 开发环境下 Vite proxy 可能导致 Set-Cookie 的域名不匹配，
+      // 后续 GET 请求会触发 CSRFProtection 中间件自动设置 Cookie
+      try {
+        await get('/settings')
+      } catch {
+        // 忽略错误，后续请求会自动获取 CSRF Token
+      }
 
       // 检查是否需要修改初始密码
       if (data.must_change_password) {
