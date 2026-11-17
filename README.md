@@ -6,6 +6,8 @@
   <img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat-square&logo=go" alt="Go">
   <img src="https://img.shields.io/badge/Vue-3-4FC08D?style=flat-square&logo=vue.js" alt="Vue">
   <img src="https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite" alt="SQLite">
+  <a href="https://gitee.com/cena926/catter-cms"><img src="https://img.shields.io/badge/Gitee-cena926%2Fcatter--cms-C71D23?style=flat-square&logo=gitee&logoColor=white" alt="Gitee"></a>
+  <a href="https://github.com/moponer/catter-cms"><img src="https://img.shields.io/badge/GitHub-moponer%2Fcatter--cms-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub"></a>
 </p>
 
 <p align="center">
@@ -13,7 +15,7 @@
 </p>
 
 <p align="center">
-  <em>A lightweight, AI-native CMS built with Go + Vue 3 — themeable, pluginable, agent-friendly.</em>
+  <em>A complete full-stack, AI-native CMS — Go API backend + Vue 3 admin console + SSR themes. Themeable, pluginable, agent-friendly.</em>
 </p>
 
 <p align="center">
@@ -35,6 +37,21 @@
 Catter CMS 是一款基于 **Go + Vue 3** 构建的轻量级内容管理系统，以 **"自由"** 为核心理念——内置 AI 专用接口与 Agent Skill，复制一段提示词即可让大模型帮你开发主题、管理内容、扩展插件。
 
 > **与传统 CMS 对比**：Catter CMS 则轻量、原生中文、AI 原生、Go 高性能。
+
+---
+
+## 项目组成
+
+Catter CMS 是一个**完整的前后端项目**——不是只有前端页面、也不是只有 API 的空壳，仓库里后端、管理后台、前台主题是同一套代码、同一次构建、同一个二进制。
+
+| 组成 | 目录 | 技术栈 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 后端服务 | `gin-app/` | Go 1.25 + Gin + GORM | RESTful API、JWT 鉴权、中间件安全防护、模板 SSR、静态资源托管 |
+| 管理后台 | `admin/` | Vue 3 + Vite + Element Plus | 独立 SPA，构建产物由后端托管在 `/admin` |
+| 前台主题 | `templates/themes/` | Go `html/template` | 3 套内置主题，服务端渲染，SEO 友好 |
+| AI 文档 | `public/ai/` | Agent Skill | `skill.md` / `themes-skill.md`，AI 可直接读取并操作 |
+
+数据流：前台请求走 **模板 SSR**，`/admin` 走 **Vue SPA**，二者共用同一套 API 与 SQLite 数据库；编译后只有一个可执行文件 + 一个 `.db` 文件，零外部依赖。
 
 ---
 
@@ -86,7 +103,7 @@ Catter CMS 是一款基于 **Go + Vue 3** 构建的轻量级内容管理系统�
 - 扁平化配置系统，后台可视化编辑
 - 模块化开发，每个区块独立 + 开关控制
 - 强制规则前置检查，杜绝常见错误
-- 已内置 6 套精选主题（博客、企业、物流等）
+- 已内置 3 套精选主题（官方站、企业经典、物流行业）
 
 ### 🤖 管理自由 — 复制提示词，AI 接管后台
 
@@ -128,7 +145,11 @@ AI 就能自动帮你写文章、改页面、管分类、传图片，还支持**
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/your-username/catter-cms.git
+# Gitee（国内推荐）
+git clone https://gitee.com/cena926/catter-cms.git
+# 或 GitHub
+git clone https://github.com/moponer/catter-cms.git
+
 cd catter-cms
 ```
 
@@ -272,7 +293,7 @@ npm run dev
 | 可视化配置 | 后台表单编辑，实时预览 |
 | 主题开发 Skill | AI 可读的完整开发规范 |
 | 服务端渲染 | Go html/template，SEO 友好 |
-| 内置主题 | 6 套精选主题开箱即用 |
+| 内置主题 | 3 套精选主题开箱即用（官方站 / 企业经典 / 物流行业） |
 
 ### AI 集成
 
@@ -327,29 +348,34 @@ npm run dev
 
 ```
 Catter-CMS/
-├── admin/                    # Vue 3 管理后台
+├── admin/                    # Vue 3 管理后台（独立 SPA）
 │   ├── src/
 │   │   ├── views/           # 页面组件
 │   │   ├── components/      # 公共组件
 │   │   ├── router/          # 路由配置
+│   │   ├── store/           # Pinia 状态
+│   │   ├── api/             # 接口封装
+│   │   ├── composables/     # 组合式函数
 │   │   ├── utils/           # 工具函数
-│   │   └── composables/     # 组合式函数
-│   └── dist/                # 构建产物
+│   │   ├── styles/          # 后台主题（3 套）
+│   │   └── types/           # 类型定义
+│   └── dist/                # 构建产物（由后端托管在 /admin）
 │
 ├── gin-app/                  # Go 后端
 │   ├── cmd/main.go          # 入口
 │   ├── config/              # 配置管理
 │   └── internal/
 │       ├── handlers/        # HTTP 处理器
-│       ├── middleware/      # 中间件
+│       ├── middleware/      # 中间件（认证 / 安全 / 限流）
 │       ├── models/          # 数据模型
-│       └── services/        # 业务逻辑
+│       ├── services/        # 业务逻辑
+│       ├── cache/           # 缓存
+│       └── storage/         # 存储抽象（本地 / 对象存储）
 │
-├── templates/themes/         # 主题模板
-│   ├── catter-blog/         # 博客主题
-│   ├── catter-cms-official/ # 企业官网
-│   ├── enterprise-website/  # 商务网站
-│   └── ...                  # 更多主题
+├── templates/themes/         # 前台主题（Go html/template SSR）
+│   ├── catter-cms-official/ # 官方站主题
+│   ├── enterprise-classic/  # 企业经典主题
+│   └── shengyi-logistics/   # 物流行业主题
 │
 ├── public/ai/               # AI Skill 文档
 │   ├── skill.md             # CMS 集成 Skill
@@ -374,10 +400,11 @@ Catter-CMS/
 ## 项目链接
 
 | 链接 | 地址 |
-|------|------|
-| GitHub | [链接] |
-| 在线演示 | [链接] |
-| 使用文档 | [链接] |
+| :--- | :--- |
+| Gitee（主仓库） | <https://gitee.com/cena926/catter-cms> |
+| GitHub（镜像） | <https://github.com/moponer/catter-cms> |
+| AI 集成文档 | [`public/ai/skill.md`](public/ai/skill.md) |
+| 主题开发文档 | [`public/ai/themes-skill.md`](public/ai/themes-skill.md) |
 
 ---
 
